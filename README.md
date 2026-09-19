@@ -38,45 +38,51 @@ proyectos independientes, con despliegue y configuración propios.
 
 ```
 src/
-├── main.tsx              entrypoint (React + BrowserRouter)
-├── App.tsx                vitrina visual mínima (F0) — sin routing productivo
-├── styles/                 estilos globales (global.css, portado del prototipo)
-├── components/              UI reutilizable (Badge, BarRow, Icons, Modal, etc.)
-├── layouts/                  shells de navegación (AdminLayout, UserLayout)
-└── pages/                     páginas/rutas (hoy solo Login.tsx, como esqueleto)
+├── main.tsx           entrypoint (React + BrowserRouter + AuthProvider)
+├── App.tsx              loading -> Login -> shell autenticado temporal (sin rol/routing aún)
+├── lib/supabase.ts        cliente único de Supabase (anon key)
+├── hooks/useAuth.tsx        AuthProvider + useAuth (sesión real, sin rol todavía)
+├── styles/                    estilos globales (global.css, portado del prototipo)
+├── components/                  UI reutilizable (Badge, BarRow, Icons, Modal, etc.)
+├── layouts/                      shells de navegación (AdminLayout, UserLayout — pendientes de F5)
+└── pages/Login.tsx                 formulario real (email/password vía Supabase Auth)
 ```
 
 ### Convención prevista (carpetas que se crearán cuando tengan contenido real)
 
-No se crean carpetas vacías solo para reservar el nombre — se crean en
-F2/F3 junto con su primer archivo real:
-
 - `src/api/` — cliente HTTP y módulos por recurso (F3)
-- `src/hooks/` — hooks de React (ej. `useAuth`, desde F2)
-- `src/lib/` — clientes externos/configuración (ej. cliente de Supabase, F2)
 - `src/types/` — tipos compartidos del frontend (DTOs del backend, desde F3)
 
 ## Estado actual
 
-- **F0 — completada.** Base visual mínima: React arranca, el CSS carga y
-  los componentes portados desde el prototipo compilan y renderizan. Sin
-  Supabase, sin auth, sin cliente API, sin routing productivo.
-- **F1 — en curso.** Base estructural: rama `main`, convenciones de
-  carpetas documentadas, `.env.example` con el contrato de variables
-  públicas, linter verificado.
+- **F0 — completada.** Base visual mínima.
+- **F1 — completada.** Base estructural: rama `main`, convenciones de
+  carpetas documentadas, `.env.example`, linter verificado.
+- **F2 — completada.** Autenticación real vía Supabase Auth: cliente
+  único (`src/lib/supabase.ts`), `AuthProvider`/`useAuth`
+  (`src/hooks/useAuth.tsx`) con `getSession()` +
+  `onAuthStateChange()`, login real con email/contraseña
+  (`signInWithPassword`), logout real (`signOut`). Sesión administrada
+  íntegramente por `supabase-js` (sin `localStorage` propio, sin JWT
+  logueado). Todavía **sin** rol resuelto, sin cliente API, sin guards,
+  sin routing productivo — la vista autenticada es un placeholder
+  temporal solo para confirmar que la sesión real funciona.
 
-Deliberadamente NO implementado todavía: Supabase Auth, login real, JWT,
-cliente API, `GET /api/auth/me`, guards de rol, routing productivo,
-proyectos, memberships, cualquier integración con el backend.
+Deliberadamente NO implementado todavía: cliente API REST,
+`GET /api/auth/me`, guards de rol, routing productivo, proyectos,
+memberships, cualquier integración con el backend, `service_role` en
+frontend.
 
 ## Variables de entorno
 
-Ver `.env.example`. Ninguna de las variables ahí listadas se consume
-todavía en el código — se usarán a partir de F2/F3.
+Ver `.env.example`. Desde F2, `VITE_SUPABASE_URL` y
+`VITE_SUPABASE_ANON_KEY` se consumen en `src/lib/supabase.ts`.
+`VITE_API_BASE_URL` sigue sin usarse hasta F3. El `.env` local con
+valores reales del proyecto de desarrollo/pruebas está gitignored y
+nunca se commitea.
 
 ## Próximas fases
 
-- **F2** — Supabase Auth real (login, sesión, logout)
 - **F3** — Cliente API (`src/api/`) con `Authorization: Bearer <JWT>`
 - **F4** — Consumo de `GET /api/auth/me`
 - **F5** — Guards de rol y routing productivo
@@ -87,6 +93,7 @@ todavía en el código — se usarán a partir de F2/F3.
 
 ```bash
 npm install
+cp .env.example .env   # completar con los valores del proyecto Supabase de desarrollo/pruebas
 npm run dev
 ```
 

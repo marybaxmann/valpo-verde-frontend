@@ -1,115 +1,48 @@
-import { useState } from "react";
-import AdminLayout from "./layouts/AdminLayout";
-import { StatCard, StatGrid } from "./components/StatCard";
-import { BarRow } from "./components/BarRow";
-import { Badge } from "./components/Badge";
-import { Tabs } from "./components/Tabs";
-import { Modal } from "./components/Modal";
-import { MapPlaceholder } from "./components/MapPlaceholder";
-import { Placeholder } from "./components/Placeholder";
-import { WizardShell, type WizardStepDef } from "./components/WizardShell";
+import { useAuth } from "./hooks/useAuth";
+import Login from "./pages/Login";
+import { Sidebar } from "./components/Sidebar";
+import { Topbar } from "./components/Topbar";
 
 /**
- * F0 — vitrina visual mínima. Objetivo único: demostrar que React
- * arranca, que global.css carga y que los componentes portados desde
- * el prototipo compilan y renderizan.
- *
- * No hay routing productivo, no hay sesión, no hay datos reales ni
- * mocks operativos: el texto de ejemplo de abajo es contenido estático
- * de demostración, no una fuente de datos.
+ * F2 — solo demuestra que la autenticación real funciona:
+ * loading -> sin sesión -> con sesión. Todavía NO decide rol (eso es
+ * F4, vía GET /api/auth/me) ni construye routing/guards (eso es F5).
  */
-const wizardSteps: WizardStepDef[] = [
-  { key: "uno", label: "Paso 1" },
-  { key: "dos", label: "Paso 2" },
-];
-
 export default function App() {
-  const [tab, setTab] = useState("Resumen");
-  const [showModal, setShowModal] = useState(false);
-  const [wizardStep, setWizardStep] = useState(0);
+  const { session, user, loading, signOut } = useAuth();
+
+  if (loading) {
+    return (
+      <div className="login-screen">
+        <p style={{ color: "var(--text-muted)" }}>Cargando sesión…</p>
+      </div>
+    );
+  }
+
+  if (!session) {
+    return <Login />;
+  }
 
   return (
-    <AdminLayout project={{ nombre: "Vitrina de componentes", institucion: "Valpo Verde" }}>
-      <div className="page-header">
-        <div>
-          <h1>Base visual — F0</h1>
-          <p className="page-header__sub">
-            Componentes portados del prototipo, renderizando sin datos ni lógica reales.
-          </p>
-        </div>
-        <button className="btn btn-primary" onClick={() => setShowModal(true)}>
-          Abrir modal de prueba
-        </button>
-      </div>
-
-      <StatGrid>
-        <StatCard label="Componentes portados" value={11} />
-        <StatCard label="Mocks activos" value={0} foot="Deliberadamente ninguno" />
-        <StatCard label="Rutas productivas" value={0} foot="Se construyen en F5" />
-      </StatGrid>
-
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 16 }}>
-        <div className="card card--pad">
-          <h3 style={{ marginBottom: 14, fontSize: 14 }}>BarRow</h3>
-          <BarRow label="Ejemplo A" value={7} total={10} tone="var(--green-500)" />
-          <BarRow label="Ejemplo B" value={3} total={10} tone="var(--amber-500)" />
-        </div>
-        <div className="card card--pad">
-          <h3 style={{ marginBottom: 14, fontSize: 14 }}>Badge</h3>
-          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-            <Badge tone="green">green</Badge>
-            <Badge tone="amber">amber</Badge>
-            <Badge tone="red">red</Badge>
-            <Badge tone="blue">blue</Badge>
-            <Badge tone="slate">slate</Badge>
+    <div className="app-shell">
+      {/* roleTone="admin" aquí es solo el estilo por defecto del pill —
+          no implica que el usuario sea admin. El rol real llega en F4. */}
+      <Sidebar items={[]} projectName="Sesión activa" institucion="Valpo Verde" onLogout={signOut} />
+      <div className="main">
+        <Topbar title="Autenticado" roleLabel="Sesión iniciada" roleTone="admin" />
+        <div className="content">
+          <div className="card card--pad">
+            <h3 style={{ marginBottom: 10 }}>Autenticación real confirmada (F2)</h3>
+            <p style={{ fontSize: 13, color: "var(--text-muted)" }}>
+              Sesión de Supabase Auth activa para <strong>{user?.email}</strong>.
+            </p>
+            <p style={{ fontSize: 12.5, color: "var(--text-faint)", marginTop: 10 }}>
+              Todavía sin rol resuelto, sin cliente API y sin routing productivo —
+              se construyen en F3, F4 y F5.
+            </p>
           </div>
         </div>
       </div>
-
-      <div className="card card--pad" style={{ marginBottom: 16 }}>
-        <Tabs tabs={["Resumen", "Detalle"]} active={tab} onChange={setTab} />
-        <p style={{ marginTop: 12, fontSize: 13, color: "var(--text-muted)" }}>
-          Tab activa: {tab}
-        </p>
-      </div>
-
-      <div style={{ marginBottom: 16 }}>
-        <MapPlaceholder pointCount={0} />
-      </div>
-
-      <div style={{ marginBottom: 16 }}>
-        <Placeholder
-          icon="link"
-          title="Sección aún no implementada"
-          description="Ejemplo del componente Placeholder para módulos pendientes."
-        />
-      </div>
-
-      <WizardShell
-        steps={wizardSteps}
-        currentIndex={wizardStep}
-        onBack={() => setWizardStep((s) => Math.max(0, s - 1))}
-        onNext={() => setWizardStep((s) => Math.min(wizardSteps.length - 1, s + 1))}
-        showAutosave={false}
-      >
-        <p style={{ fontSize: 13, color: "var(--text-muted)" }}>
-          Contenido del paso {wizardStep + 1} (demostración de WizardShell).
-        </p>
-      </WizardShell>
-
-      {showModal && (
-        <Modal
-          title="Modal de prueba"
-          onClose={() => setShowModal(false)}
-          footer={
-            <button className="btn btn-primary" onClick={() => setShowModal(false)}>
-              Cerrar
-            </button>
-          }
-        >
-          <p>Este modal confirma que el componente compila y se monta correctamente.</p>
-        </Modal>
-      )}
-    </AdminLayout>
+    </div>
   );
 }

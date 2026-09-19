@@ -1,17 +1,27 @@
+import { useState, type FormEvent } from "react";
 import { Icon } from "../components/Icons";
+import { useAuth } from "../hooks/useAuth";
 
 /**
- * Esqueleto visual únicamente (F0). No hay autenticación real todavía:
- * sin Supabase Auth, sin sesión, sin navegación. Los callbacks se
- * conectarán a Supabase Auth en una fase posterior (F2).
+ * Login real contra Supabase Auth (F2). Sin roles todavía: el rol de
+ * aplicación se resuelve en F4 vía GET /api/auth/me.
  */
-export default function Login({
-  onSelectAdmin,
-  onSelectUsuario,
-}: {
-  onSelectAdmin?: () => void;
-  onSelectUsuario?: () => void;
-}) {
+export default function Login() {
+  const { signIn } = useAuth();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function handleSubmit(e: FormEvent) {
+    e.preventDefault();
+    setSubmitting(true);
+    setError(null);
+    const { error } = await signIn(email, password);
+    setSubmitting(false);
+    if (error) setError(error);
+  }
+
   return (
     <div className="login-screen">
       <div className="login-card">
@@ -21,29 +31,42 @@ export default function Login({
         <h1>Arbolado Urbano</h1>
         <p>Plataforma de gestión técnica de arbolado municipal</p>
 
-        <div className="login-options">
-          <button className="login-option" onClick={onSelectAdmin}>
-            <div className="login-option__icon">
-              <Icon name="check-square" size={17} />
-            </div>
-            <div>
-              <div className="login-option__title">Ingresar como Administrador</div>
-              <div className="login-option__sub">Equipo técnico — gestión y evaluación</div>
-            </div>
-          </button>
+        <form onSubmit={handleSubmit} style={{ textAlign: "left", marginTop: 8 }}>
+          <div className="field">
+            <label>Email</label>
+            <input
+              type="email"
+              autoComplete="email"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              disabled={submitting}
+            />
+          </div>
+          <div className="field">
+            <label>Contraseña</label>
+            <input
+              type="password"
+              autoComplete="current-password"
+              required
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              disabled={submitting}
+            />
+          </div>
 
-          <button className="login-option" onClick={onSelectUsuario}>
-            <div className="login-option__icon">
-              <Icon name="building" size={17} />
-            </div>
-            <div>
-              <div className="login-option__title">Ingresar como Usuario municipal</div>
-              <div className="login-option__sub">Institución responsable del arbolado</div>
-            </div>
-          </button>
-        </div>
+          {error && (
+            <p style={{ color: "var(--red-500)", fontSize: 12.5, marginBottom: 12 }}>
+              <Icon name="alert" size={12} /> {error}
+            </p>
+          )}
 
-        <p className="login-note">Esqueleto visual — autenticación real pendiente (F2)</p>
+          <button type="submit" className="btn btn-primary" disabled={submitting} style={{ width: "100%" }}>
+            {submitting ? "Iniciando sesión..." : "Iniciar sesión"}
+          </button>
+        </form>
+
+        <p className="login-note">Sesión real vía Supabase Auth</p>
       </div>
     </div>
   );
