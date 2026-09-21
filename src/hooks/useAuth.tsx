@@ -37,7 +37,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   const [profile, setProfile] = useState<AuthProfile | null>(null);
-  const [profileLoading, setProfileLoading] = useState(false);
+  // Arranca en `true` (no `false`): apenas `session` se resuelve, hay un
+  // render donde `sessionUserId` ya es real pero el efecto de perfil
+  // (más abajo) todavía no corrió, así que `profile` sigue siendo `null`.
+  // Si `profileLoading` arrancara en `false`, ese render intermedio se
+  // vería igual que "rol no coincide" (profile null, sin loading) y
+  // guards como RequireRole redirigirían de más — se veía en un refresh
+  // directo a una ruta profunda (/admin/projects/:id), que colapsaba a
+  // la lista porque el guard alcanzaba a redirigir antes de que el
+  // perfil llegara. Ver `value.profileLoading` más abajo.
+  const [profileLoading, setProfileLoading] = useState(true);
   const [profileError, setProfileError] = useState<string | null>(null);
 
   useEffect(() => {

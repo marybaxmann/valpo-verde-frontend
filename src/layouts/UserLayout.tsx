@@ -1,19 +1,21 @@
 import { Outlet } from "react-router-dom";
-import { Sidebar } from "../components/Sidebar";
+import { Sidebar, type NavItem } from "../components/Sidebar";
 import { Topbar } from "../components/Topbar";
 import { useAuth } from "../hooks/useAuth";
 
 /**
- * Shell del rol usuario_municipal (F5). Ver nota en AdminLayout.tsx —
+ * Shell del rol usuario_municipal (F5/F6). Ver nota en AdminLayout.tsx —
  * solo se monta detrás de `RequireRole`, que ya garantizó el rol.
  */
+const navItems: NavItem[] = [{ to: "/usuario/projects", label: "Proyectos", icon: "list" }];
+
 export default function UserLayout() {
   const { profile, signOut } = useAuth();
 
   return (
     <div className="app-shell">
       <Sidebar
-        items={[]}
+        items={navItems}
         projectName={profile?.nombre ?? profile?.email ?? "Usuario municipal"}
         institucion="Valpo Verde"
         onLogout={signOut}

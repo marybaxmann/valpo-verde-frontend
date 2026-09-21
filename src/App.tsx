@@ -1,7 +1,8 @@
 import { Navigate, Outlet, Route, Routes } from "react-router-dom";
 import { useAuth } from "./hooks/useAuth";
 import Login from "./pages/Login";
-import RoleHome from "./pages/RoleHome";
+import ProjectsList from "./pages/ProjectsList";
+import ProjectDetail from "./pages/ProjectDetail";
 import AdminLayout from "./layouts/AdminLayout";
 import UserLayout from "./layouts/UserLayout";
 import type { KnownRole } from "./types/authProfile";
@@ -13,8 +14,9 @@ import type { KnownRole } from "./types/authProfile";
  * README, contrato PR-018/ADR-014). Un guard que falla aquí solo
  * redirige; nunca es la razón por la que algo es o no accesible.
  *
- * Rutas provisionales: "/" (resuelve destino), "/admin", "/usuario".
- * Rutas profundas de proyectos/inventario/etc. son fases posteriores.
+ * Rutas: "/" (resuelve destino), "/admin/projects(/:projectId)",
+ * "/usuario/projects(/:projectId)" (F6). Inventario/dashboard/etc. son
+ * fases posteriores.
  */
 export default function App() {
   return (
@@ -23,13 +25,17 @@ export default function App() {
 
       <Route element={<RequireRole role="admin" />}>
         <Route path="/admin" element={<AdminLayout />}>
-          <Route index element={<RoleHome roleLabel="Administrador" />} />
+          <Route index element={<Navigate to="projects" replace />} />
+          <Route path="projects" element={<ProjectsList />} />
+          <Route path="projects/:projectId" element={<ProjectDetail />} />
         </Route>
       </Route>
 
       <Route element={<RequireRole role="usuario_municipal" />}>
         <Route path="/usuario" element={<UserLayout />}>
-          <Route index element={<RoleHome roleLabel="Usuario municipal" />} />
+          <Route index element={<Navigate to="projects" replace />} />
+          <Route path="projects" element={<ProjectsList />} />
+          <Route path="projects/:projectId" element={<ProjectDetail />} />
         </Route>
       </Route>
 
