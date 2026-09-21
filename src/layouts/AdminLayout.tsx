@@ -1,37 +1,32 @@
-import type { ReactNode } from "react";
-import { Sidebar, type NavItem } from "../components/Sidebar";
+import { Outlet } from "react-router-dom";
+import { Sidebar } from "../components/Sidebar";
 import { Topbar } from "../components/Topbar";
+import { useAuth } from "../hooks/useAuth";
 
 /**
- * Esqueleto visual únicamente (F0). Ya no resuelve el proyecto desde
- * mock/data.ts: recibe `project` y `children` como props. El routing
- * real (rutas anidadas, useParams, Outlet) y los guards de rol se
- * construyen en F5.
+ * Shell del rol admin (F5). Solo se monta detrás de `RequireRole`
+ * (ver App.tsx), que ya garantizó `profile.role === "admin"` — este
+ * layout no repite esa verificación, solo presenta.
+ *
+ * Sin navegación funcional todavía (proyectos/inventario/etc. son fases
+ * posteriores): el Sidebar no lleva items hasta que existan rutas reales.
  */
-const navItems: NavItem[] = [
-  { to: "dashboard", label: "Dashboard", icon: "grid" },
-  { to: "inventario", label: "Inventario", icon: "list" },
-  { to: "inspeccion", label: "Inspección y riesgo", icon: "check-square" },
-  { to: "infraestructura", label: "Infraestructura", icon: "link" },
-  { to: "incidencias", label: "Incidencias", icon: "alert" },
-  { to: "priorizacion", label: "Priorización", icon: "sort" },
-  { to: "mantenimiento", label: "Mantenimiento", icon: "wrench" },
-  { to: "indicadores", label: "Indicadores y análisis", icon: "chart" },
-];
+export default function AdminLayout() {
+  const { profile, signOut } = useAuth();
 
-export default function AdminLayout({
-  project,
-  children,
-}: {
-  project: { nombre: string; institucion: string };
-  children?: ReactNode;
-}) {
   return (
     <div className="app-shell">
-      <Sidebar items={navItems} projectName={project.nombre} institucion={project.institucion} />
+      <Sidebar
+        items={[]}
+        projectName={profile?.nombre ?? profile?.email ?? "Administrador"}
+        institucion="Valpo Verde"
+        onLogout={signOut}
+      />
       <div className="main">
-        <Topbar title={project.nombre} roleLabel="Administrador" roleTone="admin" />
-        <div className="content">{children}</div>
+        <Topbar title="Panel administrador" roleLabel="Administrador" roleTone="admin" />
+        <div className="content">
+          <Outlet />
+        </div>
       </div>
     </div>
   );

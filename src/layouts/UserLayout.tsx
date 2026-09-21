@@ -1,32 +1,28 @@
-import type { ReactNode } from "react";
-import { Sidebar, type NavItem } from "../components/Sidebar";
+import { Outlet } from "react-router-dom";
+import { Sidebar } from "../components/Sidebar";
 import { Topbar } from "../components/Topbar";
+import { useAuth } from "../hooks/useAuth";
 
 /**
- * Esqueleto visual únicamente (F0). Ver nota en AdminLayout.tsx.
+ * Shell del rol usuario_municipal (F5). Ver nota en AdminLayout.tsx —
+ * solo se monta detrás de `RequireRole`, que ya garantizó el rol.
  */
-const navItems: NavItem[] = [
-  { to: "dashboard", label: "Dashboard", icon: "grid" },
-  { to: "inventario", label: "Inventario", icon: "list" },
-  { to: "registrar", label: "Registrar árbol", icon: "plus" },
-  { to: "incidencias", label: "Incidencias", icon: "alert" },
-  { to: "mantenimiento", label: "Mantenimiento", icon: "wrench" },
-  { to: "indicadores", label: "Indicadores", icon: "chart" },
-];
+export default function UserLayout() {
+  const { profile, signOut } = useAuth();
 
-export default function UserLayout({
-  project,
-  children,
-}: {
-  project: { nombre: string; institucion: string };
-  children?: ReactNode;
-}) {
   return (
     <div className="app-shell">
-      <Sidebar items={navItems} projectName={project.nombre} institucion={project.institucion} />
+      <Sidebar
+        items={[]}
+        projectName={profile?.nombre ?? profile?.email ?? "Usuario municipal"}
+        institucion="Valpo Verde"
+        onLogout={signOut}
+      />
       <div className="main">
-        <Topbar title={project.institucion} roleLabel="Usuario municipal" roleTone="user" />
-        <div className="content">{children}</div>
+        <Topbar title="Panel municipal" roleLabel="Usuario municipal" roleTone="user" />
+        <div className="content">
+          <Outlet />
+        </div>
       </div>
     </div>
   );
