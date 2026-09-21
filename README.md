@@ -10,9 +10,11 @@ visuales puntuales, evaluados caso a caso.
 
 ## Stack
 
-React + TypeScript + Vite + react-router-dom. CSS propio (sin Tailwind),
-reutilizado del prototipo (`src/styles/global.css`). Linter: `oxlint`
-(incluido por el scaffold de Vite).
+React 19 + TypeScript + Vite 8 + react-router-dom 7. CSS propio (sin
+Tailwind), reutilizado del prototipo (`src/styles/global.css`). Cliente
+de Supabase: `@supabase/supabase-js`. Linter: `oxlint` (incluido por el
+scaffold de Vite). Sin librerías de estado/fetching adicionales (sin
+Redux, Zustand, React Query ni Axios).
 
 ## Relación con el backend
 
@@ -28,66 +30,75 @@ proyectos independientes, con despliegue y configuración propios.
 - Solo las variables de entorno prefijadas con `VITE_` se exponen al
   bundle del navegador (ver `.env.example`); cualquier secreto real no
   debe llevar ese prefijo ni vivir en este repositorio.
-- A partir de F3, este frontend enviará `Authorization: Bearer <JWT>` al
-  backend en cada request.
+- Este frontend envía `Authorization: Bearer <JWT>` al backend en cada
+  request autenticada (`src/api/client.ts`).
 - El backend decide identidad y permisos (`GET /api/auth/me`,
   autorización por rol/membership) — este frontend nunca decide
   seguridad, solo adapta la UI según lo que el backend confirme.
+
+Detalle completo de arquitectura, fases y decisiones técnicas en
+[`docs/frontend-architecture.md`](docs/frontend-architecture.md).
+Versión narrativa orientada a tesis en
+[`docs/thesis-frontend-development.md`](docs/thesis-frontend-development.md).
 
 ## Estructura
 
 ```
 src/
-├── main.tsx           entrypoint (React + BrowserRouter + AuthProvider)
-├── App.tsx              loading -> Login -> shell autenticado temporal (sin rol/routing aún)
-├── lib/supabase.ts        cliente único de Supabase (anon key)
-├── hooks/useAuth.tsx        AuthProvider + useAuth (sesión real, sin rol todavía)
-├── styles/                    estilos globales (global.css, portado del prototipo)
-├── components/                  UI reutilizable (Badge, BarRow, Icons, Modal, etc.)
-├── layouts/                      shells de navegación (AdminLayout, UserLayout — pendientes de F5)
-└── pages/Login.tsx                 formulario real (email/password vía Supabase Auth)
+├── main.tsx                     entrypoint (React + BrowserRouter + AuthProvider)
+├── App.tsx                       routing protegido por sesión + rol real
+├── lib/supabase.ts                cliente único de Supabase (anon key)
+├── hooks/useAuth.tsx                sesión + perfil real (GET /api/auth/me)
+├── api/
+│   ├── client.ts                     cliente HTTP con Authorization: Bearer <JWT>
+│   ├── projects.ts                    listProjects / getProject / createProject
+│   └── projectMembers.ts               listProjectMembers / addProjectMember / removeProjectMember
+├── types/
+│   ├── authProfile.ts                   AuthProfile, KnownRole
+│   ├── project.ts                        Project, CreateProjectInput
+│   └── projectMember.ts                   ProjectMember, AddProjectMemberInput
+├── layouts/                                AdminLayout, UserLayout (shells por rol)
+├── pages/
+│   ├── Login.tsx                             formulario real (email/password)
+│   ├── ProjectsList.tsx                       listado + creación (solo admin)
+│   ├── ProjectDetail.tsx                       detalle de proyecto
+│   └── ProjectMembersSection.tsx                gestión de miembros (solo admin)
+├── components/                                    UI reutilizable (Badge, Sidebar, Modal, etc.)
+└── styles/global.css                                estilos globales (portado del prototipo)
 ```
-
-### Convención prevista (carpetas que se crearán cuando tengan contenido real)
-
-- `src/api/` — cliente HTTP y módulos por recurso (F3)
-- `src/types/` — tipos compartidos del frontend (DTOs del backend, desde F3)
 
 ## Estado actual
 
-- **F0 — completada.** Base visual mínima.
-- **F1 — completada.** Base estructural: rama `main`, convenciones de
-  carpetas documentadas, `.env.example`, linter verificado.
-- **F2 — completada.** Autenticación real vía Supabase Auth: cliente
-  único (`src/lib/supabase.ts`), `AuthProvider`/`useAuth`
-  (`src/hooks/useAuth.tsx`) con `getSession()` +
-  `onAuthStateChange()`, login real con email/contraseña
-  (`signInWithPassword`), logout real (`signOut`). Sesión administrada
-  íntegramente por `supabase-js` (sin `localStorage` propio, sin JWT
-  logueado). Todavía **sin** rol resuelto, sin cliente API, sin guards,
-  sin routing productivo — la vista autenticada es un placeholder
-  temporal solo para confirmar que la sesión real funciona.
+**F0 a F6 committeados; F7 implementada y validada, pendiente de
+aprobación final para commit.** Resumen:
 
-Deliberadamente NO implementado todavía: cliente API REST,
-`GET /api/auth/me`, guards de rol, routing productivo, proyectos,
-memberships, cualquier integración con el backend, `service_role` en
-frontend.
+| Fase | Qué agrega |
+|---|---|
+| F0 | Base visual mínima (React + CSS + componentes portados) |
+| F1 | Base estructural (rama `main`, convenciones, `.env.example`) |
+| F2 | Autenticación real (Supabase Auth: login/logout/sesión) |
+| F3 | Cliente API con `Authorization: Bearer <JWT>` |
+| F4 | Perfil real vía `GET /api/auth/me` |
+| F5 | Routing protegido por sesión + rol real |
+| F6 | Gestión de proyectos (`GET/POST /api/projects`, detalle) |
+| F7 | Gestión de miembros de proyecto (admin-only) |
+
+Detalle completo (objetivo, archivos, decisiones, validaciones y
+endpoints por fase) en
+[`docs/frontend-architecture.md`](docs/frontend-architecture.md).
 
 ## Variables de entorno
 
-Ver `.env.example`. Desde F2, `VITE_SUPABASE_URL` y
-`VITE_SUPABASE_ANON_KEY` se consumen en `src/lib/supabase.ts`.
-`VITE_API_BASE_URL` sigue sin usarse hasta F3. El `.env` local con
-valores reales del proyecto de desarrollo/pruebas está gitignored y
-nunca se commitea.
+Ver `.env.example`. `VITE_SUPABASE_URL` y `VITE_SUPABASE_ANON_KEY` se
+consumen en `src/lib/supabase.ts`; `VITE_API_BASE_URL` en
+`src/api/client.ts`. El `.env` local con valores reales del proyecto de
+desarrollo/pruebas está gitignored y nunca se commitea.
 
 ## Próximas fases
 
-- **F3** — Cliente API (`src/api/`) con `Authorization: Bearer <JWT>`
-- **F4** — Consumo de `GET /api/auth/me`
-- **F5** — Guards de rol y routing productivo
-- **F6** — Proyectos (`GET/POST /api/projects`)
-- **F7** — Memberships (`GET/POST/DELETE /api/projects/:id/members`)
+F8 en adelante todavía no tiene alcance definido en detalle — ver
+`docs/frontend-architecture.md` § Roadmap para lo que sí se sabe hoy
+(y lo que depende de módulos que el backend aún no implementa).
 
 ## Desarrollo local
 
