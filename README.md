@@ -82,6 +82,7 @@ aprobación final para commit.** Resumen:
 | F5 | Routing protegido por sesión + rol real |
 | F6 | Gestión de proyectos (`GET/POST /api/projects`, detalle) |
 | F7 | Gestión de miembros de proyecto (admin-only) |
+| SIG-1 | Mapa de inventario de árboles por proyecto (ArcGIS, solo lectura) — en revisión, sin commit |
 
 Detalle completo (objetivo, archivos, decisiones, validaciones y
 endpoints por fase) en
@@ -91,7 +92,11 @@ endpoints por fase) en
 
 Ver `.env.example`. `VITE_SUPABASE_URL` y `VITE_SUPABASE_ANON_KEY` se
 consumen en `src/lib/supabase.ts`; `VITE_API_BASE_URL` en
-`src/api/client.ts`. El `.env` local con valores reales del proyecto de
+`src/api/client.ts`. `VITE_ARCGIS_API_KEY` (SIG-1) en `src/lib/arcgis.ts`:
+API key de aplicación pública de ArcGIS Location Platform (solo Basemap
+Styles, restringida por origen); Vite la incorpora al bundle, pero el
+valor real nunca se versiona. Si falta, el mapa muestra un error
+controlado. El `.env` local con valores reales del proyecto de
 desarrollo/pruebas está gitignored y nunca se commitea.
 
 ## Próximas fases
