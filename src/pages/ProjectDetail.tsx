@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import { getProject } from "../api/projects";
 import type { Project } from "../types/project";
 import { Icon } from "../components/Icons";
@@ -74,6 +74,12 @@ export default function ProjectDetail() {
         <Badge tone={project.status === "activo" ? "green" : "slate"}>{project.status}</Badge>
       </div>
 
+      <div style={{ marginBottom: 14 }}>
+        <Link to="mapa" className="btn btn-primary">
+          Ver mapa de inventario
+        </Link>
+      </div>
+
       <div className="card card--pad">
         <div className="info-list">
           <div className="info-list__item">
@@ -94,7 +100,7 @@ export default function ProjectDetail() {
       {profile?.role === "admin" && <ProjectMembersSection projectId={project.id} />}
 
       <p style={{ fontSize: 12.5, color: "var(--text-faint)", marginTop: 14 }}>
-        Sin inventario ni módulos internos todavía — fases posteriores.
+        Mapa de inventario de solo lectura (SIG-1). Edición y módulos internos — fases posteriores.
       </p>
     </div>
   );

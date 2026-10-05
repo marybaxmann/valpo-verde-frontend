@@ -71,6 +71,7 @@ email, nunca hardcodeado.
 /admin/projects/:projectId     ProjectDetail (+ sección de miembros si es admin)
 /usuario/projects              ProjectsList (sin creación)
 /usuario/projects/:projectId   ProjectDetail
+/admin|usuario/projects/:projectId/mapa   ProjectInventoryMap (SIG-1, carga diferida)
 ```
 
 - **`RootRoute`** — único lugar que decide "a dónde va este usuario": sin sesión → `Login`; perfil cargando → estado de carga; error de perfil → mensaje controlado; `role === "admin"` → `/admin`; `role === "usuario_municipal"` → `/usuario`; cualquier otro valor (incluido `null`) → mensaje controlado de "rol no reconocido", **nunca** un shell operativo ni un fallback a admin.
@@ -138,6 +139,17 @@ email, nunca hardcodeado.
 **Decisiones:** ver §5 (limitaciones) — campo `user_id` crudo para agregar miembro, documentado como interfaz provisional.
 **Validación (contra backend + Supabase reales):** casos A-I — listado real, alta real (201), duplicado real (409, "El usuario ya es miembro de este proyecto"), baja real (204), sección ausente del DOM para municipal (ni se llama el endpoint), **llamada manual al endpoint desde la consola del navegador con el JWT real de un usuario municipal confirmó 403 ("Requiere rol administrador") independientemente de que el frontend oculte los controles**, proyecto no permitido con error controlado, refresh recupera proyecto + miembros, logout sin residuos. Membresía QA usada para las pruebas fue eliminada al cierre; confirmado por consulta SQL de solo lectura que quedaron 0 miembros en el proyecto de prueba.
 
+### SIG-1 — Mapa de inventario de árboles por proyecto
+**Estado:** implementada; **no committeada todavía** (pendiente de revisión). Rama `feature/sig-1-mapa-inventario`.
+**Objetivo:** primer mapa funcional de inventario (ADR-015, PR-015 v2.0, ADR-010 v2.0), de solo lectura.
+**Archivos:** `src/lib/arcgis.ts` (lectura de `VITE_ARCGIS_API_KEY` sin importar el SDK, basemap y encuadre por defecto), `src/types/tree.ts`, `src/api/trees.ts` (`GET /api/projects/:id/trees`), `src/pages/ProjectInventoryMap.tsx`, `src/components/InventoryMapView.tsx`, ruta `projects/:projectId/mapa` en `App.tsx`, botón en `ProjectDetail.tsx`, estilos en `global.css`. Dependencia nueva: `@arcgis/core`.
+**Decisiones:**
+- Los árboles llegan solo por el backend (GeoJSON RFC 7946); el frontend no consulta Supabase para esto ni escribe en ArcGIS.
+- FeatureLayer client-side: un `Graphic` por feature, `OBJECTID` entero generado solo en el frontend, `id` (uuid) como identidad real, `spatialReference` wkid 4326. Renderer neutro (un solo símbolo, sin Arcade ni clasificación). Popup mínimo: código, nombre científico, nombre común, estado de ciclo de vida y dirección/comuna/lugar de referencia cuando existen.
+- Todos los estados de ciclo de vida, sin filtros. Los árboles sin ubicación se informan con un aviso (`meta.sin_ubicacion`).
+- Con puntos, el mapa se ajusta a su extensión. Sin ningún árbol con ubicación usa el encuadre visual por defecto de Valparaíso (centro `[-71.620, -33.045]`, zoom 13): no es una coordenada técnica, de levantamiento ni del proyecto.
+- El SDK (`InventoryMapView`) y la página se cargan de forma diferida. Sin `VITE_ARCGIS_API_KEY` no se carga el SDK y se muestra un error controlado; el resto de la aplicación funciona. Los recursos del SDK (estilos, workers) se cargan por defecto desde el CDN de ArcGIS.
+
 ---
 
 ## 5. Limitaciones conocidas
@@ -150,14 +162,14 @@ email, nunca hardcodeado.
 
 ## 6. Pendiente / no implementado
 
-Árboles, inventario, mapa SIG, dashboard real, inspección técnica,
-infraestructura, priorización, mantención, incidencias, indicadores.
-Ninguno de estos módulos tiene endpoints en el backend todavía
-(`valpo-verde-backend/src/routes/index.ts` los deja comentados como
-"próximas rutas, no implementadas aún") — el frontend no puede
-construirlos sin inventar un contrato que no existe.
+Edición de árboles y de ubicación, filtros y capas temáticas del mapa,
+dashboard real, inspección técnica, infraestructura, priorización,
+mantención, incidencias, indicadores. Ninguno de estos módulos tiene
+endpoints en el backend todavía — el frontend no puede construirlos sin
+inventar un contrato que no existe. El mapa de inventario de solo
+lectura existe desde SIG-1.
 
-## 7. Endpoints consumidos hoy (7/7 de los disponibles)
+## 7. Endpoints consumidos hoy (8/8 de los disponibles)
 
 | Endpoint | Consumido desde |
 |---|---|
@@ -168,6 +180,7 @@ construirlos sin inventar un contrato que no existe.
 | `GET /api/projects/:id/members` | `src/api/projectMembers.ts` (F7) |
 | `POST /api/projects/:id/members` | `src/api/projectMembers.ts` (F7) |
 | `DELETE /api/projects/:id/members/:userId` | `src/api/projectMembers.ts` (F7) |
+| `GET /api/projects/:id/trees` | `src/api/trees.ts` (SIG-1) |
 
 ## 8. Roadmap (F8 en adelante)
 

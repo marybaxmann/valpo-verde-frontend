@@ -1,3 +1,4 @@
+import { lazy, Suspense } from "react";
 import { Navigate, Outlet, Route, Routes } from "react-router-dom";
 import { useAuth } from "./hooks/useAuth";
 import Login from "./pages/Login";
@@ -7,6 +8,17 @@ import AdminLayout from "./layouts/AdminLayout";
 import UserLayout from "./layouts/UserLayout";
 import type { KnownRole } from "./types/authProfile";
 
+/** SIG-1: la página del mapa (y el SDK de ArcGIS) se carga de forma diferida. */
+const ProjectInventoryMap = lazy(() => import("./pages/ProjectInventoryMap"));
+
+function InventoryMapRoute() {
+  return (
+    <Suspense fallback={<p style={{ color: "var(--text-muted)" }}>Cargando mapa…</p>}>
+      <ProjectInventoryMap />
+    </Suspense>
+  );
+}
+
 /**
  * F5 — routing protegido por autenticación + rol real (`profile.role`,
  * GET /api/auth/me). Esto es control de navegación/UX, no la frontera
@@ -15,8 +27,8 @@ import type { KnownRole } from "./types/authProfile";
  * redirige; nunca es la razón por la que algo es o no accesible.
  *
  * Rutas: "/" (resuelve destino), "/admin/projects(/:projectId)",
- * "/usuario/projects(/:projectId)" (F6). Inventario/dashboard/etc. son
- * fases posteriores.
+ * "/usuario/projects(/:projectId)" (F6) y ".../projects/:projectId/mapa"
+ * (SIG-1, mapa de inventario). Dashboard/etc. son fases posteriores.
  */
 export default function App() {
   return (
@@ -28,6 +40,7 @@ export default function App() {
           <Route index element={<Navigate to="projects" replace />} />
           <Route path="projects" element={<ProjectsList />} />
           <Route path="projects/:projectId" element={<ProjectDetail />} />
+          <Route path="projects/:projectId/mapa" element={<InventoryMapRoute />} />
         </Route>
       </Route>
 
@@ -36,6 +49,7 @@ export default function App() {
           <Route index element={<Navigate to="projects" replace />} />
           <Route path="projects" element={<ProjectsList />} />
           <Route path="projects/:projectId" element={<ProjectDetail />} />
+          <Route path="projects/:projectId/mapa" element={<InventoryMapRoute />} />
         </Route>
       </Route>
 

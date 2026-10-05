@@ -10,6 +10,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@arcgis/core": "^5.1.26",
     "@supabase/supabase-js": "^2.116.0",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
