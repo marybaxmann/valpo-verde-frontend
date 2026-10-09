@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { Outlet, useLocation } from "react-router-dom";
 import { Sidebar, type NavItem } from "../components/Sidebar";
 import { Topbar } from "../components/Topbar";
@@ -52,7 +53,9 @@ export function RoleLayout({ basePath, roleLabel, roleTone }: { basePath: "/admi
         <div className="main">
           {!isWorkspace && <Topbar title="SIVU — Gestión Territorial" roleLabel={roleLabel} roleTone={roleTone} />}
           <div className={isWorkspace ? "content--workspace" : "content"}>
-            <Outlet />
+            <Suspense fallback={<p style={{ color: "var(--text-muted)", padding: 24 }}>Cargando…</p>}>
+              <Outlet />
+            </Suspense>
           </div>
         </div>
       </div>

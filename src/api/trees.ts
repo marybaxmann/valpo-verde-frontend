@@ -1,4 +1,5 @@
 import { api } from "./client";
+import { cachedGet } from "./cache";
 import { supabase } from "../lib/supabase";
 import type {
   CreateTreePayload,
@@ -14,7 +15,7 @@ import type {
  * siempre por el backend — el frontend nunca consulta Supabase para esto.
  */
 export function listProjectTrees(projectId: string): Promise<TreeInventory> {
-  return api.get<TreeInventory>(`/api/projects/${projectId}/trees`);
+  return cachedGet(`trees:${projectId}`, () => api.get<TreeInventory>(`/api/projects/${projectId}/trees`));
 }
 
 /**

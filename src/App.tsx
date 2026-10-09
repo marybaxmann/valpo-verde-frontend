@@ -2,18 +2,24 @@ import { lazy, Suspense } from "react";
 import { Navigate, Outlet, Route, Routes } from "react-router-dom";
 import { useAuth } from "./hooks/useAuth";
 import Login from "./pages/Login";
-import ProjectsList from "./pages/ProjectsList";
-import ProjectDetail from "./pages/ProjectDetail";
-import ProjectDashboard from "./pages/ProjectDashboard";
-import ModulePage from "./pages/ModulePage";
-import MaintenancePage from "./pages/MaintenancePage";
-import IncidentsPage from "./pages/IncidentsPage";
-import IndicesPage from "./pages/IndicesPage";
 import AdminLayout from "./layouts/AdminLayout";
 import UserLayout from "./layouts/UserLayout";
 import type { KnownRole } from "./types/authProfile";
 
-/** SIG-1: la página del mapa (y el SDK de ArcGIS) se carga de forma diferida. */
+/**
+ * Cada pantalla se descarga recién cuando se abre (carga diferida): el
+ * primer ingreso no baja el código de todos los módulos. El indicador de
+ * carga vive en RoleLayout (<Suspense> alrededor del <Outlet>), así el
+ * menú lateral se mantiene visible al cambiar de pantalla.
+ * SIG-1: la página del mapa (y el SDK de ArcGIS) ya se cargaba así.
+ */
+const ProjectsList = lazy(() => import("./pages/ProjectsList"));
+const ProjectDetail = lazy(() => import("./pages/ProjectDetail"));
+const ProjectDashboard = lazy(() => import("./pages/ProjectDashboard"));
+const ModulePage = lazy(() => import("./pages/ModulePage"));
+const MaintenancePage = lazy(() => import("./pages/MaintenancePage"));
+const IncidentsPage = lazy(() => import("./pages/IncidentsPage"));
+const IndicesPage = lazy(() => import("./pages/IndicesPage"));
 const ProjectInventoryMap = lazy(() => import("./pages/ProjectInventoryMap"));
 
 function InventoryMapRoute() {

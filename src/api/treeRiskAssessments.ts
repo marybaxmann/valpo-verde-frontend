@@ -1,4 +1,5 @@
 import { api } from "./client";
+import { cachedGet } from "./cache";
 import type { CreateTreeRiskAssessmentPayload, TreeRiskAssessmentDTO } from "../types/treeRisk";
 
 /**
@@ -31,7 +32,7 @@ export function getLatestTreeRiskAssessment(
 export function getProjectRiskSummary(
   projectId: string
 ): Promise<{ data: Record<string, TreeRiskAssessmentDTO> }> {
-  return api.get<{ data: Record<string, TreeRiskAssessmentDTO> }>(
-    `/api/projects/${projectId}/risk-assessments/latest`
+  return cachedGet(`risk:${projectId}`, () =>
+    api.get<{ data: Record<string, TreeRiskAssessmentDTO> }>(`/api/projects/${projectId}/risk-assessments/latest`)
   );
 }

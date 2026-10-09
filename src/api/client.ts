@@ -1,4 +1,5 @@
 import { supabase } from "../lib/supabase";
+import { clearApiCache } from "./cache";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
@@ -70,6 +71,9 @@ async function request<T>(method: Method, path: string, body?: unknown): Promise
       throw new ApiError(401, SESSION_EXPIRED_MESSAGE);
     }
   }
+
+  // Una escritura exitosa invalida todas las lecturas en caché (ver cache.ts).
+  if (method !== "GET" && res.ok) clearApiCache();
 
   if (res.status === 204) {
     return undefined as T;

@@ -1,4 +1,5 @@
 import { api } from "./client";
+import { cachedGet } from "./cache";
 
 /**
  * Infraestructura (datos crudos), órdenes de trabajo e incidencias —
@@ -86,7 +87,9 @@ export const listTreeInfrastructureAssessments = (treeId: string) =>
   api.get<{ data: InfrastructureAssessmentDTO[] }>(`/api/trees/${treeId}/infrastructure-assessments`);
 
 export const listProjectInfrastructureAssessments = (projectId: string) =>
-  api.get<{ data: InfrastructureAssessmentDTO[] }>(`/api/projects/${projectId}/infrastructure-assessments`);
+  cachedGet(`infra:${projectId}`, () =>
+    api.get<{ data: InfrastructureAssessmentDTO[] }>(`/api/projects/${projectId}/infrastructure-assessments`)
+  );
 
 export const createMaintenanceOrder = (
   projectId: string,
@@ -101,7 +104,7 @@ export const createMaintenanceOrder = (
 ) => api.post<{ data: MaintenanceOrder }>(`/api/projects/${projectId}/maintenance`, payload);
 
 export const listProjectMaintenance = (projectId: string) =>
-  api.get<{ data: MaintenanceOrder[] }>(`/api/projects/${projectId}/maintenance`);
+  cachedGet(`maintenance:${projectId}`, () => api.get<{ data: MaintenanceOrder[] }>(`/api/projects/${projectId}/maintenance`));
 
 export const createIncident = (
   projectId: string,
@@ -109,7 +112,7 @@ export const createIncident = (
 ) => api.post<{ data: Incident }>(`/api/projects/${projectId}/incidents`, payload);
 
 export const listProjectIncidents = (projectId: string) =>
-  api.get<{ data: Incident[] }>(`/api/projects/${projectId}/incidents`);
+  cachedGet(`incidents:${projectId}`, () => api.get<{ data: Incident[] }>(`/api/projects/${projectId}/incidents`));
 
 /** Etiqueta de un código de acción/subtipo según el catálogo del backend. */
 export function actionLabel(catalogs: ModuleCatalogs | null, accion: string, subtipo?: string | null): string {
