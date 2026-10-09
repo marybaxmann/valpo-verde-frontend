@@ -56,6 +56,7 @@ Ante contradicción, manda la de mayor nivel:
 | Figma original (8 pantallas) | `docs/referencias/figma-original/` | Intención funcional histórica de cada pantalla. Puede contener módulos, campos, categorías y cálculos superados; no restablece decisiones posteriormente modificadas. |
 | Prototipo navegable | `marybaxmann/Valpo-Verde-Conecta` | Intención funcional histórica (mismo nivel que el Figma, PR-001 v3.0). |
 | Referencia visual principal | `docs/referencias/visuales/03_CityDashboardsButton.jpg` | Composición, lenguaje gráfico, relación mapa–paneles, densidad informativa y paleta. No define funcionalidad ni metodología. |
+| Referencias complementarias (PR-016 v5.0, CC-023) | Fuera del repositorio (material de terceros) | Inspiración UX/UI: ficha lateral con pestañas y pines legibles (vista de árbol de Groundzy), resumen flotante sobre el mapa, donas y tarjetas tintadas, barras ordenadas. Se adaptan a la arquitectura de SIVU sin copiar identidad ni composición; la paleta de riesgo no cambia; sin funciones que SIVU no calcula; gráficos solo con datos reales; rediseño solo tras validar una maqueta con la autora. |
 
 Los diagramas de decisión metodológicos **no** son referencias de UI y no
 se copian a este repositorio. La metodología se consulta solo en las
