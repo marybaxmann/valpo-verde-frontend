@@ -52,6 +52,9 @@ const RIESGO_COLORS: Record<string, [number, number, number]> = {
 };
 const SIN_EVALUACION_COLOR: [number, number, number] = [154, 166, 158]; // neutro
 
+/** Diámetro (px) del punto de cada árbol en el mapa. */
+const TREE_MARKER_SIZE = 13;
+
 /**
  * Cancelaciones normales de ArcGIS: un goTo interrumpido por otro
  * movimiento ("view:goto-interrupted") o una petición abortada al desmontar.
@@ -114,18 +117,18 @@ function createInventoryLayer(graphics: Graphic[]): FeatureLayer {
       defaultSymbol: {
         type: "simple-marker",
         style: "circle",
-        size: 9,
+        size: TREE_MARKER_SIZE,
         color: [...SIN_EVALUACION_COLOR, 0.9],
-        outline: { color: [255, 255, 255, 1], width: 1.5 },
+        outline: { color: [255, 255, 255, 1], width: 2 },
       },
       uniqueValueInfos: Object.entries(RIESGO_COLORS).map(([value, rgb]) => ({
         value,
         symbol: {
           type: "simple-marker",
           style: "circle",
-          size: 9,
+          size: TREE_MARKER_SIZE,
           color: [...rgb, 0.92],
-          outline: { color: [255, 255, 255, 1], width: 1.5 },
+          outline: { color: [255, 255, 255, 1], width: 2 },
         },
       })),
     },
@@ -277,6 +280,29 @@ export default function InventoryMapView({
       view = mapView;
       viewRef.current = mapView;
 
+      // Cursor de mano al pasar sobre un árbol (en modo captura de
+      // ubicación se mantiene la cruz). Un solo hitTest a la vez para no
+      // encolar consultas mientras el mouse se mueve.
+      let hoverPending = false;
+      mapView.on("pointer-move", (event) => {
+        if (hoverPending || callbacksRef.current.isPickingLocation) return;
+        hoverPending = true;
+        mapView
+          .hitTest(event, { include: [treeLayer] })
+          .then((response) => {
+            if (destroyed || callbacksRef.current.isPickingLocation) return;
+            const overTree = response.results.some((r) => "graphic" in r && r.graphic.layer === treeLayer);
+            container.style.cursor = overTree ? "pointer" : "default";
+          })
+          .catch(() => undefined)
+          .finally(() => {
+            hoverPending = false;
+          });
+      });
+      mapView.on("pointer-leave", () => {
+        if (!callbacksRef.current.isPickingLocation) container.style.cursor = "default";
+      });
+
       // Evento de clic en el mapa
       mapView.on("click", async (event) => {
         const { isPickingLocation, onPickLocation, onSelectTree } = callbacksRef.current;
@@ -386,7 +412,7 @@ export default function InventoryMapView({
           symbol: {
             type: "simple-marker",
             style: "circle",
-            size: 18,
+            size: TREE_MARKER_SIZE + 11,
             color: [63, 147, 111, 0.35], // --sivu-primary-medium con transparencia
             outline: {
               color: [35, 82, 63, 1], // --sivu-primary-dark
