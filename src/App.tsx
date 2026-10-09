@@ -4,6 +4,11 @@ import { useAuth } from "./hooks/useAuth";
 import Login from "./pages/Login";
 import ProjectsList from "./pages/ProjectsList";
 import ProjectDetail from "./pages/ProjectDetail";
+import ProjectDashboard from "./pages/ProjectDashboard";
+import ModulePage from "./pages/ModulePage";
+import MaintenancePage from "./pages/MaintenancePage";
+import IncidentsPage from "./pages/IncidentsPage";
+import IndicesPage from "./pages/IndicesPage";
 import AdminLayout from "./layouts/AdminLayout";
 import UserLayout from "./layouts/UserLayout";
 import type { KnownRole } from "./types/authProfile";
@@ -40,7 +45,14 @@ export default function App() {
           <Route index element={<Navigate to="projects" replace />} />
           <Route path="projects" element={<ProjectsList />} />
           <Route path="projects/:projectId" element={<ProjectDetail />} />
+          <Route path="projects/:projectId/dashboard" element={<ProjectDashboard />} />
           <Route path="projects/:projectId/mapa" element={<InventoryMapRoute />} />
+          <Route path="projects/:projectId/inventario" element={<Navigate to="../mapa" replace />} />
+          <Route path="projects/:projectId/inspeccion" element={<ModulePage module="inspeccion" />} />
+          <Route path="projects/:projectId/infraestructura" element={<ModulePage module="infraestructura" />} />
+          <Route path="projects/:projectId/mantencion" element={<MaintenancePage />} />
+          <Route path="projects/:projectId/incidencias" element={<IncidentsPage />} />
+          <Route path="projects/:projectId/indices" element={<IndicesPage />} />
         </Route>
       </Route>
 
@@ -49,7 +61,14 @@ export default function App() {
           <Route index element={<Navigate to="projects" replace />} />
           <Route path="projects" element={<ProjectsList />} />
           <Route path="projects/:projectId" element={<ProjectDetail />} />
+          <Route path="projects/:projectId/dashboard" element={<ProjectDashboard />} />
           <Route path="projects/:projectId/mapa" element={<InventoryMapRoute />} />
+          <Route path="projects/:projectId/inventario" element={<Navigate to="../mapa" replace />} />
+          <Route path="projects/:projectId/inspeccion" element={<ModulePage module="inspeccion" />} />
+          <Route path="projects/:projectId/infraestructura" element={<ModulePage module="infraestructura" />} />
+          <Route path="projects/:projectId/mantencion" element={<MaintenancePage />} />
+          <Route path="projects/:projectId/incidencias" element={<IncidentsPage />} />
+          <Route path="projects/:projectId/indices" element={<IndicesPage />} />
         </Route>
       </Route>
 

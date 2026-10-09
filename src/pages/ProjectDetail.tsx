@@ -2,7 +2,17 @@ import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { getProject } from "../api/projects";
 import type { Project } from "../types/project";
-import { Icon } from "../components/Icons";
+import { Icon, type IconName } from "../components/Icons";
+
+const MODULE_LINKS: { to: string; label: string; icon: IconName }[] = [
+  { to: "dashboard", label: "Dashboard", icon: "chart" },
+  { to: "mapa", label: "Inventario", icon: "leaf" },
+  { to: "inspeccion", label: "Inspección y Riesgo", icon: "check-square" },
+  { to: "infraestructura", label: "Infraestructura", icon: "building" },
+  { to: "mantencion", label: "Mantención", icon: "wrench" },
+  { to: "incidencias", label: "Incidencias", icon: "alert" },
+  { to: "indices", label: "Índices", icon: "sort" },
+];
 import { Badge } from "../components/Badge";
 import { useAuth } from "../hooks/useAuth";
 import ProjectMembersSection from "./ProjectMembersSection";
@@ -74,10 +84,25 @@ export default function ProjectDetail() {
         <Badge tone={project.status === "activo" ? "green" : "slate"}>{project.status}</Badge>
       </div>
 
-      <div style={{ marginBottom: 14 }}>
-        <Link to="mapa" className="btn btn-primary">
-          Ver mapa de inventario
-        </Link>
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit, minmax(170px, 1fr))",
+          gap: 10,
+          marginBottom: 14,
+        }}
+      >
+        {MODULE_LINKS.map((m, i) => (
+          <Link
+            key={m.to}
+            to={m.to}
+            className={`btn ${i === 0 ? "btn-primary" : "btn-secondary"}`}
+            style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8 }}
+          >
+            <Icon name={m.icon} size={15} />
+            {m.label}
+          </Link>
+        ))}
       </div>
 
       <div className="card card--pad">
@@ -98,10 +123,6 @@ export default function ProjectDetail() {
       </div>
 
       {profile?.role === "admin" && <ProjectMembersSection projectId={project.id} />}
-
-      <p style={{ fontSize: 12.5, color: "var(--text-faint)", marginTop: 14 }}>
-        Mapa de inventario de solo lectura (SIG-1). Edición y módulos internos — fases posteriores.
-      </p>
     </div>
   );
 }

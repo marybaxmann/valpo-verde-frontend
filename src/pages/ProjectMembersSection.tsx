@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { SivuTable } from "../components/SivuTable";
 import { addProjectMember, listProjectMembers, removeProjectMember } from "../api/projectMembers";
 import type { ProjectMember } from "../types/projectMember";
 import { Icon } from "../components/Icons";
@@ -69,7 +70,7 @@ export default function ProjectMembersSection({ projectId }: { projectId: string
 
   return (
     <div className="card card--pad" style={{ marginTop: 16 }}>
-      <h3 style={{ marginBottom: 10 }}>Miembros del proyecto</h3>
+      <h3 className="sivu-toolbar__title" style={{ marginBottom: 12 }}>Miembros del proyecto</h3>
 
       {loading && <p style={{ color: "var(--text-muted)" }}>Cargando miembros…</p>}
 
@@ -79,39 +80,33 @@ export default function ProjectMembersSection({ projectId }: { projectId: string
         </p>
       )}
 
-      {!loading && !error && members && members.length === 0 && (
-        <p style={{ color: "var(--text-muted)", marginBottom: 14 }}>
-          Este proyecto todavía no tiene miembros.
-        </p>
-      )}
-
-      {!loading && !error && members && members.length > 0 && (
-        <table className="dtable" style={{ marginBottom: 16 }}>
-          <thead>
-            <tr>
-              <th>Usuario</th>
-              <th>Agregado</th>
-              <th></th>
-            </tr>
-          </thead>
-          <tbody>
+      {!loading && !error && members && (
+        <div style={{ marginBottom: 16 }}>
+          <SivuTable
+            columns={[
+              { label: "Usuario", width: "55%" },
+              { label: "Agregado", width: "25%" },
+              { label: "Acciones", width: "20%", align: "right" },
+            ]}
+            empty={members.length === 0 ? { icon: "user", title: "Este proyecto todavía no tiene miembros." } : null}
+          >
             {members.map((m) => (
               <tr key={m.id}>
-                <td>{m.user?.nombre ?? m.user_id}</td>
-                <td>{m.created_at}</td>
-                <td>
+                <td className="sivu-table__strong">{m.user?.nombre ?? m.user_id}</td>
+                <td className="sivu-table__num">{m.created_at.slice(0, 10)}</td>
+                <td className="sivu-table__actions">
                   <button
                     className="btn btn-ghost btn-sm"
                     onClick={() => handleRemove(m.user_id)}
                     disabled={removingId === m.user_id}
                   >
-                    {removingId === m.user_id ? "Eliminando..." : "Eliminar"}
+                    {removingId === m.user_id ? "Quitando..." : "Quitar del proyecto"}
                   </button>
                 </td>
               </tr>
             ))}
-          </tbody>
-        </table>
+          </SivuTable>
+        </div>
       )}
 
       {removeError && (
@@ -121,7 +116,7 @@ export default function ProjectMembersSection({ projectId }: { projectId: string
       {!loading && !error && (
         <div className="field" style={{ maxWidth: 420 }}>
           <label>
-            Agregar miembro por user_id <span className="hint">(sin selector de usuarios todavía)</span>
+            Agregar miembro <span className="hint">(ID de usuario)</span>
           </label>
           <div style={{ display: "flex", gap: 8 }}>
             <input

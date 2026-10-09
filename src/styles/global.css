@@ -1,42 +1,68 @@
 :root {
-  --bg: #f6f8f6;
-  --surface: #ffffff;
-  --surface-muted: #f1f3f0;
-  --border: #e3e8e2;
-  --text: #1c2621;
-  --text-muted: #66756c;
-  --text-faint: #99a69d;
+  /* ==================================================
+     SIVU PALETA INSTITUCIONAL BASE (INV-1C)
+     ================================================== */
+  --sivu-primary: #176B4D;
+  --sivu-primary-dark: #23523F;
+  --sivu-primary-medium: #3F936F;
+  --sivu-primary-light: #9BCB76;
+  --sivu-primary-surface: #E3EFE5;
 
-  --green-50: #eef6f0;
-  --green-100: #d7ead9;
-  --green-500: #2f7d55;
-  --green-600: #256644;
-  --green-700: #1c4f35;
+  --surface-background: #F4F5F1;
+  --surface-primary: #FFFFFF;
 
-  --amber-50: #fbf1e2;
-  --amber-500: #b8752a;
+  --text-primary: #26332D;
+  --text-secondary: #68756E;
+  --border-default: #D9DFDA;
 
-  --red-50: #fbeae7;
-  --red-500: #b23f30;
+  /* ==================================================
+     SIVU PALETA SEMÁNTICA DE CLASIFICACIÓN
+     (Solo para badges / categorías técnicas, nunca decoración)
+     ================================================== */
+  --classification-critical: #C7252B;
+  --classification-high: #F04A32;
+  --classification-medium: #F9B52B;
+  --classification-low: #DCE8A9;
 
-  --blue-50: #e9f0f9;
+  /* Mapeo de tokens de la aplicación */
+  --bg: var(--surface-background);
+  --surface: var(--surface-primary);
+  --surface-muted: var(--sivu-primary-surface);
+  --border: var(--border-default);
+  --text: var(--text-primary);
+  --text-muted: var(--text-secondary);
+  --text-faint: #8a968f;
+
+  --green-50: var(--sivu-primary-surface);
+  --green-100: #cde2d3;
+  --green-500: var(--sivu-primary);
+  --green-600: var(--sivu-primary-dark);
+  --green-700: #1b4232;
+
+  --amber-50: #fff9e6;
+  --amber-500: var(--classification-medium);
+
+  --red-50: #fde8e8;
+  --red-500: var(--classification-critical);
+
+  --blue-50: #ebf3f9;
   --blue-500: #35608f;
 
-  --slate-50: #eef0ee;
+  --slate-50: #f0f2f0;
   --slate-500: #5c6a61;
 
-  --radius-sm: 8px;
-  --radius-md: 12px;
-  --radius-lg: 18px;
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 10px;
 
-  --shadow-sm: 0 1px 2px rgba(24, 35, 28, 0.06);
-  --shadow-md: 0 6px 20px -8px rgba(24, 35, 28, 0.18);
+  --shadow-sm: 0 1px 2px rgba(24, 35, 28, 0.05);
+  --shadow-md: 0 4px 12px -2px rgba(24, 35, 28, 0.1);
 
-  --font-display: "Manrope", system-ui, sans-serif;
-  --font-body: "Inter", system-ui, sans-serif;
+  --font-display: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-body: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 
-  --sidebar-w: 232px;
-  --topbar-h: 60px;
+  --sidebar-w: 240px;
+  --topbar-h: 56px;
 }
 
 * {
@@ -774,18 +800,18 @@ table.dtable {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(180deg, #f6f8f6 0%, #eef3ee 100%);
+  background: var(--surface-background);
   padding: 24px;
 }
 
 .login-card {
   width: 100%;
-  max-width: 420px;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-md);
-  padding: 34px 30px;
+  max-width: 400px;
+  background: var(--surface-primary);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  padding: 36px 30px;
   text-align: center;
 }
 
@@ -793,8 +819,8 @@ table.dtable {
   width: 52px;
   height: 52px;
   margin: 0 auto 16px;
-  border-radius: 14px;
-  background: var(--green-500);
+  border-radius: var(--radius-sm);
+  background: var(--sivu-primary);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1216,4 +1242,1542 @@ table.dtable {
     flex-direction: row;
     overflow-x: auto;
   }
+}
+
+/* ==================================================
+   SIVU CLASSIFICATION BADGES & SEMANTICS (INV-1C)
+   ================================================== */
+.classification-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 7px;
+  border-radius: var(--radius-sm);
+  line-height: 1.4;
+  letter-spacing: 0.02em;
+  border: 1px solid transparent;
+}
+
+.classification-badge__dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.classification-badge--critical {
+  color: #7a0c10;
+  background-color: #fce8e8;
+  border-color: #f7c5c7;
+}
+.classification-badge--critical .classification-badge__dot {
+  background-color: var(--classification-critical);
+}
+
+.classification-badge--high {
+  color: #931e0f;
+  background-color: #fdeee9;
+  border-color: #faccc3;
+}
+.classification-badge--high .classification-badge__dot {
+  background-color: var(--classification-high);
+}
+
+.classification-badge--medium {
+  color: #7f5500;
+  background-color: #fef7e7;
+  border-color: #fde5af;
+}
+.classification-badge--medium .classification-badge__dot {
+  background-color: var(--classification-medium);
+}
+
+.classification-badge--low {
+  color: #435b1b;
+  background-color: #f5f8ea;
+  border-color: #e2ecc2;
+}
+.classification-badge--low .classification-badge__dot {
+  background-color: #8fa73b;
+}
+
+/* Resultado destacado del nivel de riesgo (paso 6 de la evaluación) */
+.classification-badge.risk-result-badge {
+  font-size: 18px;
+  font-weight: 800;
+  padding: 8px 18px;
+}
+.classification-badge.risk-result-badge .classification-badge__dot {
+  width: 10px;
+  height: 10px;
+}
+
+/* Variante compacta para usar dentro de filas de listado */
+.classification-badge.risk-list-badge {
+  font-size: 10px;
+  padding: 1px 7px;
+  flex-shrink: 0;
+}
+
+/* Badge de Ciclo de Vida y Estados Operativos */
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11.5px;
+  font-weight: 500;
+  padding: 2px 8px;
+  border-radius: var(--radius-sm);
+  background: var(--surface-muted);
+  color: var(--sivu-primary-dark);
+  border: 1px solid var(--border-default);
+}
+
+/* ==================================================
+   SIVU TERRITORIAL PLATFORM LAYOUT (INV-1C)
+   ================================================== */
+.app-shell--workspace {
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+  display: flex;
+}
+
+.content--workspace {
+  padding: 0;
+  max-width: none;
+  width: 100%;
+  height: 100vh;
+  overflow: hidden;
+  display: flex;
+  flex: 1;
+}
+
+/* SIVU Module Rail (Sidebar) */
+.sivu-rail {
+  width: 170px;
+  flex-shrink: 0;
+  background: var(--surface-primary);
+  border-right: 1px solid var(--border-default);
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  user-select: none;
+  z-index: 10;
+  transition: width 0.16s ease;
+}
+
+.sivu-rail--compact {
+  width: 56px;
+}
+
+.sivu-rail__brand {
+  padding: 10px 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-bottom: 1px solid var(--border-default);
+  height: 52px;
+}
+
+.sivu-rail--compact .sivu-rail__brand {
+  padding: 10px;
+  justify-content: center;
+}
+
+.sivu-rail__brand-mark {
+  width: 30px;
+  height: 30px;
+  border-radius: var(--radius-sm);
+  background: var(--sivu-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  flex-shrink: 0;
+  transition: transform 0.12s;
+}
+
+.sivu-rail__brand-mark:hover {
+  transform: scale(1.05);
+}
+
+.sivu-rail__brand-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.1;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.sivu-rail--compact .sivu-rail__brand-text {
+  display: none;
+}
+
+.sivu-rail__brand-title {
+  font-size: 13.5px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  color: var(--sivu-primary-dark);
+}
+
+.sivu-rail__brand-sub {
+  font-size: 10px;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.sivu-rail__nav {
+  padding: 10px 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  flex: 1;
+}
+
+.sivu-rail--compact .sivu-rail__nav {
+  padding: 10px 4px;
+  align-items: center;
+}
+
+.sivu-rail__item {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 8px 10px;
+  font-size: 12px;
+  font-weight: 500;
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  text-decoration: none;
+  transition: all 0.12s ease;
+  position: relative;
+}
+
+.sivu-rail--compact .sivu-rail__item {
+  padding: 9px;
+  justify-content: center;
+  width: 44px;
+  height: 40px;
+}
+
+.sivu-rail--compact .sivu-rail__item span {
+  display: none;
+}
+
+.sivu-rail__item:hover:not(.sivu-rail__item--disabled) {
+  background: var(--surface-background);
+  color: var(--text-primary);
+}
+
+.sivu-rail__item.active {
+  background: var(--sivu-primary-surface);
+  color: var(--sivu-primary-dark);
+  font-weight: 700;
+}
+
+.sivu-rail--compact .sivu-rail__item.active::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 6px;
+  bottom: 6px;
+  width: 3px;
+  background: var(--sivu-primary);
+  border-radius: 0 2px 2px 0;
+}
+
+.sivu-rail__item--disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.sivu-rail__footer {
+  padding: 10px 12px;
+  border-top: 1px solid var(--border-default);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  background: var(--surface-background);
+}
+
+.sivu-rail--compact .sivu-rail__footer {
+  padding: 10px 4px;
+  align-items: center;
+}
+
+.sivu-rail__context {
+  display: flex;
+  flex-direction: column;
+}
+
+.sivu-rail--compact .sivu-rail__context {
+  display: none;
+}
+
+.sivu-rail__inst {
+  font-size: 9.5px;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  letter-spacing: 0.03em;
+}
+
+.sivu-rail__user {
+  font-size: 11.5px;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sivu-rail__user-avatar {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: var(--sivu-primary-surface);
+  color: var(--sivu-primary-dark);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
+  border: 1px solid #c9decb;
+}
+
+.sivu-rail__logout {
+  background: none;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  padding: 5px 8px;
+  font-size: 11px;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  cursor: pointer;
+  transition: all 0.12s;
+}
+
+.sivu-rail--compact .sivu-rail__logout {
+  width: 36px;
+  height: 32px;
+  padding: 0;
+}
+
+.sivu-rail--compact .sivu-rail__logout span {
+  display: none;
+}
+
+.sivu-rail__logout:hover {
+  background: #ffffff;
+  color: var(--classification-critical);
+  border-color: var(--classification-critical);
+}
+
+/* SIVU Territorial Platform Workspace (Full Height) */
+.sivu-territorial-layout {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  width: 100%;
+  overflow: hidden;
+  background: var(--surface-primary);
+}
+
+/* Topbar Territorial */
+.sivu-territorial-topbar {
+  height: 52px;
+  flex-shrink: 0;
+  background: var(--surface-primary);
+  border-bottom: 1px solid var(--border-default);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  z-index: 5;
+}
+
+.sivu-territorial-topbar__left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.sivu-territorial-topbar__title {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sivu-territorial-topbar__sep {
+  color: var(--border-default);
+}
+
+.sivu-territorial-topbar__project {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--sivu-primary-dark);
+  background: var(--sivu-primary-surface);
+  padding: 4px 10px;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid #d4e5da;
+}
+
+.sivu-territorial-topbar__right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Cuerpo de Workspace: plataforma territorial-analítica
+   INFORMACIÓN (registros) ↔ MAPA ↔ CONTEXTO (selección/analítica) */
+.sivu-territorial-body {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 300px minmax(0, 1fr) 320px;
+  gap: 12px;
+  padding: 12px;
+  overflow: hidden;
+  background: var(--surface-background);
+  min-height: 0;
+}
+
+/* Las tres columnas comparten el tratamiento de "panel editorial":
+   superficie blanca, borde fino, radio y sombra sutil — nunca a sangre. */
+.sivu-inv-panel,
+.sivu-map-pane,
+.sivu-detail-dock {
+  background: var(--surface-primary);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+  min-height: 0;
+}
+
+/* Panel Izquierdo: resumen + registros + filtros + acción */
+.sivu-inv-panel {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.sivu-inv-panel__header {
+  padding: 11px 14px;
+  border-bottom: 1px solid var(--border-default);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.sivu-inv-panel__title-box {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sivu-inv-panel__title {
+  font-size: 11.5px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--sivu-primary-dark);
+}
+
+.sivu-inv-panel__badge {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: var(--radius-sm);
+  background: var(--sivu-primary-surface);
+  color: var(--sivu-primary-dark);
+}
+
+/* Composición del inventario por ciclo de vida (barras, no decorativas) */
+.sivu-inv-composition {
+  padding: 10px 14px 12px;
+  border-bottom: 1px solid var(--border-default);
+}
+
+.sivu-inv-composition__title {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+  display: block;
+}
+
+/* KPI Summary Card (Inspirado en City Dashboard) */
+.sivu-inv-kpi-card {
+  padding: 12px 14px;
+  background: #fbfdfb;
+  border-bottom: 1px solid var(--border-default);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sivu-inv-kpi-card__row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.sivu-inv-kpi-card__num {
+  font-size: 24px;
+  font-weight: 800;
+  color: var(--sivu-primary-dark);
+  line-height: 1;
+}
+
+.sivu-inv-kpi-card__label {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-secondary);
+}
+
+.sivu-inv-kpi-bar {
+  height: 5px;
+  background: #e2ece5;
+  border-radius: 3px;
+  overflow: hidden;
+  width: 100%;
+}
+
+.sivu-inv-kpi-bar__fill {
+  height: 100%;
+  background: var(--sivu-primary);
+  border-radius: 3px;
+  transition: width 0.3s ease;
+}
+
+.sivu-inv-kpi-chips {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+
+.sivu-inv-kpi-chip-val {
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+/* Primary Action Button */
+.sivu-inv-panel__action {
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border-default);
+}
+
+.sivu-inv-panel__btn-add {
+  width: 100%;
+  background: var(--sivu-primary);
+  color: #ffffff;
+  border: none;
+  border-radius: var(--radius-sm);
+  padding: 9px 12px;
+  font-size: 12.5px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  transition: background 0.12s;
+  cursor: pointer;
+  box-shadow: 0 1px 3px rgba(23, 107, 77, 0.2);
+}
+
+.sivu-inv-panel__btn-add:hover {
+  background: var(--sivu-primary-dark);
+}
+
+/* Filter Section */
+.sivu-inv-panel__filters {
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border-default);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: var(--surface-background);
+}
+
+.sivu-inv-search-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.sivu-inv-search-icon {
+  position: absolute;
+  left: 9px;
+  color: var(--text-secondary);
+  pointer-events: none;
+}
+
+.sivu-inv-search-input {
+  width: 100%;
+  padding: 6px 26px 6px 28px;
+  font-size: 11.5px;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  background: #ffffff;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.sivu-inv-search-input:focus {
+  border-color: var(--sivu-primary);
+}
+
+.sivu-inv-search-clear {
+  position: absolute;
+  right: 7px;
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 2px;
+  font-size: 11px;
+}
+
+.sivu-inv-filter-chips {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.sivu-inv-chip {
+  padding: 3px 9px;
+  border-radius: 12px;
+  font-size: 10.5px;
+  font-weight: 600;
+  border: 1px solid var(--border-default);
+  background: #ffffff;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.1s ease;
+}
+
+.sivu-inv-chip:hover {
+  border-color: var(--sivu-primary-medium);
+  color: var(--text-primary);
+}
+
+.sivu-inv-chip.active {
+  background: var(--sivu-primary-surface);
+  border-color: var(--sivu-primary);
+  color: var(--sivu-primary-dark);
+}
+
+/* Tree List Rows */
+.sivu-inv-list {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.sivu-inv-tree-row {
+  padding: 9px 14px;
+  border-bottom: 1px solid #f0f2f0;
+  cursor: pointer;
+  transition: all 0.1s ease;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.sivu-inv-tree-row:hover {
+  background: var(--surface-background);
+}
+
+.sivu-inv-tree-row.active {
+  background: var(--sivu-primary-surface);
+  border-left: 3px solid var(--sivu-primary);
+}
+
+.sivu-inv-tree-row__code {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--sivu-primary-dark);
+}
+
+.sivu-inv-tree-row__sp {
+  font-size: 11px;
+  color: var(--text-secondary);
+  font-style: italic;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 170px;
+}
+
+/* Canvas del Mapa: integrado a la interfaz como panel propio, nunca
+   un visor GIS "pegado" a sangre dentro del sistema. */
+.sivu-map-pane {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.sivu-map-pane__header {
+  flex-shrink: 0;
+  height: 42px;
+  padding: 0 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--border-default);
+  background: var(--surface-primary);
+}
+
+.sivu-map-pane__header-label {
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.sivu-map-pane__header-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--sivu-primary);
+  flex-shrink: 0;
+}
+
+.sivu-map-pane__canvas {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  background: #e8ece9;
+}
+
+.sivu-map-pane__canvas .inventory-map {
+  height: 100%;
+  width: 100%;
+  border-radius: 0;
+  border: none;
+}
+
+.sivu-map-pane__canvas .inventory-map__view {
+  height: 100%;
+  width: 100%;
+}
+
+/* Leyenda discreta de nivel de riesgo sobre el mapa */
+.sivu-map-legend {
+  position: absolute;
+  right: 12px;
+  bottom: 12px;
+  z-index: 10;
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  padding: 8px 10px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  pointer-events: none;
+}
+
+.sivu-map-legend__title {
+  font-size: 9.5px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-secondary);
+  margin-bottom: 2px;
+}
+
+.sivu-map-legend__item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--text-primary);
+}
+
+.sivu-map-legend__dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+}
+
+/* Panel Contextual Lateral Acoplado (Docked) */
+.sivu-detail-dock {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  animation: sivuPanelSlide 0.16s ease-out;
+}
+
+.sivu-detail-dock__header {
+  padding: 12px 14px;
+  background: var(--surface-background);
+  border-bottom: 1px solid var(--border-default);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.sivu-detail-dock__body {
+  padding: 14px;
+  overflow-y: auto;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.sivu-detail-dock__footer {
+  padding: 10px 14px;
+  background: var(--surface-primary);
+  border-top: 1px solid var(--border-default);
+}
+
+.sivu-sig-controls-input {
+  border: 1px solid var(--border-default);
+  background: var(--surface-primary);
+  border-radius: var(--radius-sm);
+  padding: 5px 8px;
+  font-size: 12px;
+  color: var(--text-primary);
+  outline: none;
+  width: 180px;
+}
+
+.sivu-sig-controls-input:focus {
+  border-color: var(--sivu-primary);
+}
+
+.sivu-sig-controls-select {
+  border: 1px solid var(--border-default);
+  background: var(--surface-primary);
+  border-radius: var(--radius-sm);
+  padding: 5px 8px;
+  font-size: 12px;
+  color: var(--text-primary);
+  outline: none;
+}
+
+.sivu-sig-controls-select:focus {
+  border-color: var(--sivu-primary);
+}
+
+/* Indicador de modo captura de coordenadas en mapa */
+.sivu-sig-pick-banner {
+  position: absolute;
+  top: 14px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 25;
+  background: var(--sivu-primary);
+  color: #ffffff;
+  padding: 8px 18px;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  box-shadow: var(--shadow-md);
+  pointer-events: auto;
+}
+
+@keyframes sivuPanelSlide {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.sivu-tech-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.sivu-tech-cell {
+  background: var(--surface-background);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  padding: 8px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.sivu-tech-cell--full {
+  grid-column: 1 / -1;
+}
+
+.sivu-tech-cell__label {
+  font-size: 10.5px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-secondary);
+}
+
+.sivu-tech-cell__value {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.sivu-tech-cell__sub {
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+
+/* Secciones del panel contextual en estado inactivo (resumen analítico) */
+.sivu-idle-section__title {
+  font-size: 10.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-secondary);
+  margin-bottom: 10px;
+  display: block;
+}
+
+/* Modales Técnicos SIVU */
+.sivu-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(22, 34, 27, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+  backdrop-filter: blur(2px);
+}
+
+.sivu-modal-content {
+  background: var(--surface-primary);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+  width: 100%;
+  max-width: 680px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.sivu-modal-content--large {
+  max-width: 860px;
+}
+
+.sivu-modal-header {
+  padding: 14px 18px;
+  background: var(--surface-background);
+  border-bottom: 1px solid var(--border-default);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.sivu-modal-header h2 {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.sivu-modal-body {
+  padding: 18px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.sivu-modal-footer {
+  padding: 12px 18px;
+  background: var(--surface-primary);
+  border-top: 1px solid var(--border-default);
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+/* Secciones diferenciadas del alta unificada */
+.sivu-form-section {
+  margin-bottom: 20px;
+}
+
+.sivu-form-section__header {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--sivu-primary);
+  border-bottom: 1px solid var(--border-default);
+  padding-bottom: 6px;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sivu-form-section--highlight {
+  background: #fbfdfb;
+  border: 1px solid #d4e2d8;
+  border-radius: var(--radius-sm);
+  padding: 14px;
+}
+
+/* ── Ficha técnica: franja resumen del ejemplar (demo SIVU) ─────────────── */
+.sivu-ficha-summary {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 1px;
+  background: var(--border-default);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  margin-bottom: 18px;
+}
+
+.sivu-ficha-summary__item {
+  background: var(--surface-primary);
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.sivu-ficha-summary__item--risk {
+  background: var(--surface-background);
+  align-items: flex-start;
+  gap: 6px;
+}
+
+.sivu-ficha-summary__label {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-secondary);
+}
+
+.sivu-ficha-summary__value {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--sivu-primary-dark);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sivu-ficha-summary__sub {
+  font-size: 11.5px;
+  color: var(--text-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (max-width: 760px) {
+  .sivu-ficha-summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* ── Filtros segmentados (Inspección: todos / evaluados / sin evaluar) ──── */
+.sivu-seg {
+  display: flex;
+  gap: 4px;
+  padding: 8px 14px 4px;
+}
+
+.sivu-seg button {
+  flex: 1;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 4px 6px;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  background: var(--surface-primary);
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+.sivu-seg button.active {
+  background: var(--sivu-primary-surface);
+  border-color: var(--sivu-primary-medium);
+  color: var(--sivu-primary-dark);
+}
+
+/* ── Flujo de proceso (Mantención / Incidencias) ─────────────────────────── */
+.sivu-flow {
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+  margin-bottom: 16px;
+  overflow-x: auto;
+}
+
+.sivu-flow__step {
+  flex: 1;
+  min-width: 120px;
+  background: var(--surface-primary);
+  border: 1px solid var(--border-default);
+  padding: 10px 12px;
+  position: relative;
+}
+
+.sivu-flow__step + .sivu-flow__step {
+  border-left: none;
+}
+
+.sivu-flow__step:first-child {
+  border-radius: var(--radius-md) 0 0 var(--radius-md);
+}
+
+.sivu-flow__step:last-child {
+  border-radius: 0 var(--radius-md) var(--radius-md) 0;
+}
+
+.sivu-flow__num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 999px;
+  background: var(--sivu-primary-surface);
+  color: var(--sivu-primary-dark);
+  font-size: 11px;
+  font-weight: 800;
+  margin-bottom: 6px;
+}
+
+.sivu-flow__title {
+  display: block;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.sivu-flow__desc {
+  display: block;
+  font-size: 11.5px;
+  color: var(--text-secondary);
+  margin-top: 2px;
+}
+
+.sivu-next-stage {
+  font-size: 11px;
+  color: var(--text-secondary);
+  font-weight: 600;
+}
+
+/* ── Rail: bloques "Proyecto actual" / "Usuario" ─────────────────────────── */
+.sivu-rail {
+  width: 186px;
+}
+
+.sivu-rail--compact {
+  width: 56px;
+}
+
+.sivu-rail__item span {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sivu-rail__block {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.sivu-rail__block + .sivu-rail__block {
+  padding-top: 8px;
+  border-top: 1px solid var(--border-default);
+}
+
+.sivu-rail--compact .sivu-rail__block {
+  align-items: center;
+}
+
+.sivu-rail__sub {
+  font-size: 10.5px;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ── Mis proyectos ───────────────────────────────────────────────────────── */
+.sivu-project-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 14px;
+}
+
+.sivu-project-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 180px;
+}
+
+.sivu-project-card__title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--sivu-primary-dark);
+  margin: 0;
+}
+
+.sivu-project-card__inst {
+  font-size: 12.5px;
+  color: var(--text-secondary);
+  margin: 2px 0 0;
+}
+
+.sivu-project-card__meta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 12.5px;
+}
+
+.sivu-project-card__meta span {
+  font-size: 10.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-secondary);
+}
+
+/* ==================================================
+   TABLA SIVU — sistema visual compartido de tablas
+   (contenedor blanco + borde suave + encabezado claro
+   + divisores sutiles + estado vacío integrado).
+   `.table` queda como alias: antes no tenía estilos.
+   ================================================== */
+.sivu-table-wrap {
+  width: 100%;
+  background: var(--surface-primary);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.sivu-table-scroll {
+  width: 100%;
+  overflow-x: auto;
+}
+
+table.sivu-table,
+table.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12.5px;
+  color: var(--text-primary);
+}
+
+table.sivu-table--fixed {
+  table-layout: fixed;
+}
+
+.sivu-table thead th,
+table.table thead th {
+  height: 44px;
+  padding: 0 14px;
+  text-align: left;
+  vertical-align: middle;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--sivu-primary-dark);
+  background: #eef3ee;
+  border-bottom: 1px solid var(--border-default);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sivu-table tbody td,
+table.table tbody td {
+  padding: 10px 14px;
+  vertical-align: middle;
+  border-bottom: 1px solid #edf0ed;
+}
+
+.sivu-table tbody tr:last-child td,
+table.table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.sivu-table tbody tr.sivu-table__row--interactive {
+  cursor: pointer;
+}
+
+.sivu-table tbody tr.sivu-table__row--interactive:hover td {
+  background: #f6f9f6;
+}
+
+.sivu-table__num {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.sivu-table__strong {
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.sivu-table__actions {
+  text-align: right;
+  white-space: nowrap;
+}
+
+/* Estado vacío integrado a la tabla (fila con colSpan completo) */
+.sivu-table tbody td.sivu-table__empty {
+  padding: 0;
+  border-bottom: none;
+}
+
+.sivu-table__empty-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 6px;
+  min-height: 180px;
+  padding: 28px 24px;
+  color: var(--text-secondary);
+}
+
+.sivu-table__empty-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  background: var(--sivu-primary-surface);
+  color: var(--sivu-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 4px;
+}
+
+.sivu-table__empty-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.sivu-table__empty-text {
+  font-size: 12.5px;
+  max-width: 420px;
+  margin: 0;
+}
+
+/* Barra de herramientas: título + acción, luego filtros alineados a la tabla */
+.sivu-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+
+.sivu-toolbar__title {
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--sivu-primary-dark);
+  margin: 0;
+}
+
+.sivu-toolbar__action {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.sivu-filters {
+  display: grid;
+  grid-template-columns: minmax(220px, 2fr) repeat(auto-fit, minmax(150px, 1fr));
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.sivu-filters input,
+.sivu-filters select {
+  width: 100%;
+  height: 36px;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  padding: 0 12px;
+  font-size: 12.5px;
+  background: var(--surface-primary);
+  color: var(--text-primary);
+}
+
+.sivu-filters input:disabled,
+.sivu-filters select:disabled {
+  background: var(--surface-background);
+  color: var(--text-secondary);
+  cursor: not-allowed;
+}
+
+/* Densidad: herramienta municipal, no landing page */
+.page-header {
+  margin-bottom: 16px;
+}
+
+.stat-grid {
+  margin-bottom: 16px;
+}
+
+.empty-state {
+  padding: 36px 24px;
+}
+
+.btn:disabled {
+  opacity: 0.55;
+}
+
+/* Contenido de páginas de gestión: usa el ancho útil y se centra en
+   pantallas anchas (antes quedaba cargado a la izquierda). */
+.content {
+  padding: 22px 26px;
+  max-width: 1480px;
+  margin: 0 auto;
+}
+
+/* Listado territorial (Inventario / Inspección / Infraestructura) */
+.sivu-inv-tree-row {
+  min-height: 46px;
+  border-bottom: 1px solid #edf0ed;
+}
+
+.sivu-inv-tree-row.active {
+  border-left: none;
+  box-shadow: inset 3px 0 0 var(--sivu-primary);
+}
+
+.sivu-inv-tree-row:focus-visible {
+  outline: 2px solid var(--sivu-primary-medium);
+  outline-offset: -2px;
+}
+
+.sivu-inv-tree-row .status-pill,
+.sivu-inv-tree-row .classification-badge {
+  flex-shrink: 0;
+}
+
+.sivu-inv-tree-row__ref {
+  font-size: 10.5px;
+  color: var(--text-faint);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 170px;
+}
+
+/* Badges: padding y radio consistentes en toda la plataforma */
+.status-pill {
+  line-height: 1.4;
+  white-space: nowrap;
+}
+
+.classification-badge {
+  white-space: nowrap;
+}
+
+/* Dashboard: tarjetas de acceso a módulos con altura uniforme */
+.sivu-module-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  height: 100%;
+  padding: 14px 16px;
+  text-decoration: none;
+  transition: border-color 0.12s ease, box-shadow 0.12s ease;
+}
+
+.sivu-module-card:hover {
+  border-color: var(--sivu-primary-medium);
+  box-shadow: var(--shadow-md);
+}
+
+.sivu-module-card__icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--sivu-primary-surface);
+  color: var(--sivu-primary);
+  flex-shrink: 0;
+}
+
+.sivu-module-card__cta {
+  margin-top: auto;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--sivu-primary);
+}
+
+.sivu-inv-panel__btn-add:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.sivu-inv-panel__btn-add:disabled:hover {
+  background: var(--sivu-primary);
+}
+
+/* Accesos rápidos a módulos en el panel contextual */
+.sivu-detail-dock__footer .btn-ghost {
+  white-space: normal;
+  line-height: 1.2;
+  text-align: center;
+  border: 1px solid var(--border-default);
+  color: var(--sivu-primary-dark);
 }
