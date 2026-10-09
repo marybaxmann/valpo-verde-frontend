@@ -15,6 +15,7 @@ import { TreeDetailModal } from "../components/TreeDetailModal";
 import { CreateTreeModal } from "../components/CreateTreeModal";
 import { ClassificationBadge } from "../components/ClassificationBadge";
 import { RiskDistribution, countRisks } from "../components/RiskDistribution";
+import { useCanWrite } from "../hooks/useCanWrite";
 
 /** SDK de ArcGIS cargado de forma diferida */
 const InventoryMapView = lazy(() => import("../components/InventoryMapView"));
@@ -29,6 +30,7 @@ export default function ProjectInventoryMap() {
   const { projectId = "" } = useParams();
   const location = useLocation();
   const apiKey = getArcgisApiKey();
+  const canWrite = useCanWrite();
 
   const projectsBasePath = location.pathname.startsWith("/admin")
     ? "/admin/projects"
@@ -367,7 +369,8 @@ export default function ProjectInventoryMap() {
             </div>
           )}
 
-          {/* Acción principal: Alta de Árbol */}
+          {/* Acción principal: Alta de Árbol (solo Usuario municipal, CC-022) */}
+          {canWrite && (
           <div className="sivu-inv-panel__action">
             <button
               className="sivu-inv-panel__btn-add"
@@ -380,6 +383,7 @@ export default function ProjectInventoryMap() {
               Nuevo árbol
             </button>
           </div>
+          )}
 
           {/* Búsqueda y Filtros Rápidos */}
           <div className="sivu-inv-panel__filters">

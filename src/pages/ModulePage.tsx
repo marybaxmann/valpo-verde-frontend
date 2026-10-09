@@ -20,6 +20,7 @@ import {
   componentesRegistrados,
 } from "../components/InfrastructureAssessmentModal";
 import { SivuTable } from "../components/SivuTable";
+import { useCanWrite } from "../hooks/useCanWrite";
 
 const InventoryMapView = lazy(() => import("../components/InventoryMapView"));
 
@@ -77,6 +78,7 @@ export default function ModulePage({ module }: { module: ModuleKey }) {
   const apiKey = getArcgisApiKey();
   const config = MODULE_CONFIG[module];
   const isInspection = module === "inspeccion";
+  const canWrite = useCanWrite();
 
   const [project, setProject] = useState<Project | null>(null);
   const [inventory, setInventory] = useState<TreeInventory | null>(null);
@@ -255,12 +257,12 @@ export default function ModulePage({ module }: { module: ModuleKey }) {
     if (!f) return;
     setSelectedTreeId(arbol);
     setInspectingTreeId(null);
-    if (searchParams.get("nuevo") === "1") {
+    if (searchParams.get("nuevo") === "1" && canWrite) {
       if (isInspection) setEvaluatingTree(f);
       else setInfraEvaluatingTree(f);
     }
     setSearchParams({}, { replace: true });
-  }, [searchParams, features, isInspection, setSearchParams]);
+  }, [searchParams, features, isInspection, setSearchParams, canWrite]);
 
   const infraTreeIds = useMemo(() => new Set(infraAll.map((a) => a.tree_id)), [infraAll]);
   const infraForSelected = useMemo(
@@ -318,6 +320,7 @@ export default function ModulePage({ module }: { module: ModuleKey }) {
             </p>
           </div>
 
+          {canWrite && (
           <div className="sivu-inv-panel__action" style={{ position: "relative" }}>
             {isInspection ? (
               <>
@@ -352,6 +355,7 @@ export default function ModulePage({ module }: { module: ModuleKey }) {
               </>
             )}
           </div>
+          )}
 
           {isInspection ? (
             <>
@@ -707,14 +711,16 @@ export default function ModulePage({ module }: { module: ModuleKey }) {
                 )}
               </div>
               <footer className="sivu-detail-dock__footer" style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                <button
-                  className="btn btn-primary"
-                  style={{ width: "100%", justifyContent: "center", gap: 6 }}
-                  onClick={() => (isInspection ? setEvaluatingTree(selectedFeature) : setInfraEvaluatingTree(selectedFeature))}
-                >
-                  <Icon name="plus" size={14} />
-                  {isInspection ? "Nueva evaluación" : "Nueva evaluación de infraestructura"}
-                </button>
+                {canWrite && (
+                  <button
+                    className="btn btn-primary"
+                    style={{ width: "100%", justifyContent: "center", gap: 6 }}
+                    onClick={() => (isInspection ? setEvaluatingTree(selectedFeature) : setInfraEvaluatingTree(selectedFeature))}
+                  >
+                    <Icon name="plus" size={14} />
+                    {isInspection ? "Nueva evaluación" : "Nueva evaluación de infraestructura"}
+                  </button>
+                )}
                 <button
                   className="btn btn-secondary"
                   style={{ width: "100%", justifyContent: "center", gap: 6 }}
@@ -853,7 +859,7 @@ export default function ModulePage({ module }: { module: ModuleKey }) {
             return f ? treeLabel(f) : "";
           })()}
           onClose={() => setInfraDetail(null)}
-          onNew={() => {
+          onNew={!canWrite ? undefined : () => {
             const f = features.find((x) => x.properties.id === infraDetail.tree_id);
             setInfraDetail(null);
             if (f) setInfraEvaluatingTree(f);

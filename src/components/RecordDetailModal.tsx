@@ -5,9 +5,8 @@ import { Icon } from "./Icons";
 /**
  * Detalle de un registro de gestión (orden de trabajo / incidencia) con
  * cambio de estado persistido en el backend. El cambio de estado solo se
- * ofrece a Administrador (PR-003 v5.0: el Usuario municipal consulta
- * mantenimiento y reporta/consulta incidencias); el backend y RLS lo
- * vuelven a exigir.
+ * ofrece al Usuario municipal (PR-003 v6.0, CC-022); el Administrador es
+ * solo lectura. El backend y RLS lo vuelven a exigir.
  */
 export function RecordDetailModal({
   title,
@@ -110,7 +109,7 @@ export function RecordDetailModal({
               </>
             ) : (
               <p style={{ fontSize: 12, color: "var(--text-secondary)", margin: 0 }}>
-                La actualización de estado la realiza un Administrador.
+                La actualización de estado la realiza el Usuario municipal del proyecto.
               </p>
             )}
             {error && <p style={{ color: "var(--classification-critical)", fontSize: 12.5, margin: "8px 0 0" }}>{error}</p>}

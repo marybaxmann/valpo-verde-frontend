@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useProjectBase } from "../hooks/useProjectBase";
+import { useCanWrite } from "../hooks/useCanWrite";
 import { getTreeDetail } from "../api/trees";
 import { getLatestTreeRiskAssessment } from "../api/treeRiskAssessments";
 import type { TreeDetailDTO, TreeFeature } from "../types/tree";
@@ -33,6 +34,7 @@ export function TreeContextualPanel({
   const treeId = treeFeature.properties.id;
   const navigate = useNavigate();
   const base = useProjectBase();
+  const canWrite = useCanWrite();
   const [detail, setDetail] = useState<TreeDetailDTO | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -291,7 +293,7 @@ export function TreeContextualPanel({
             </div>
           )}
 
-          {!loadingRisk && !latestAssessment && (
+          {canWrite && !loadingRisk && !latestAssessment && (
             <button
               type="button"
               className="btn btn-primary"
@@ -314,6 +316,8 @@ export function TreeContextualPanel({
           <Icon name="eye" size={14} />
           Ver ficha completa
         </button>
+        {canWrite && (
+        <>
         <button
           className="btn btn-secondary"
           style={{ flex: 1, justifyContent: "center", gap: 6, fontSize: 12 }}
@@ -355,6 +359,8 @@ export function TreeContextualPanel({
               Registrar incidencia
             </button>
           </div>
+        )}
+        </>
         )}
       </footer>
 

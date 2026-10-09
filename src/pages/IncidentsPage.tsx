@@ -12,7 +12,7 @@ import {
   type Incident,
 } from "../api/moduleRecords";
 import { RecordDetailModal } from "../components/RecordDetailModal";
-import { useAuth } from "../hooks/useAuth";
+import { useCanWrite } from "../hooks/useCanWrite";
 import type { TreeFeature } from "../types/tree";
 
 /**
@@ -61,8 +61,7 @@ export default function IncidentsPage() {
   const [creatingFor, setCreatingFor] = useState<string | null>(null);
   const [detailId, setDetailId] = useState<string | null>(null);
   const [states, setStates] = useState<CatalogItem[]>([]);
-  const { profile } = useAuth();
-  const isAdmin = profile?.role === "admin";
+  const canWrite = useCanWrite();
 
   useEffect(() => {
     getModuleCatalogs()
@@ -94,7 +93,7 @@ export default function IncidentsPage() {
   // Acceso contextual desde la ficha/panel: ?arbol=<id>[&nuevo=1]
   useEffect(() => {
     const arbol = params.get("arbol");
-    if (params.get("nuevo") === "1") {
+    if (params.get("nuevo") === "1" && canWrite) {
       setCreatingFor(arbol ?? "");
     } else if (arbol && trees.length > 0) {
       // "Ver en módulo": filtra el listado por el código del árbol.
@@ -102,7 +101,7 @@ export default function IncidentsPage() {
       if (code) setSearch(code);
       setParams({}, { replace: true });
     }
-  }, [params, trees, setParams]);
+  }, [params, trees, setParams, canWrite]);
 
   const treeById = useMemo(() => new Map(trees.map((t) => [t.properties.id, t])), [trees]);
 
@@ -152,7 +151,8 @@ export default function IncidentsPage() {
         loading={loading}
         error={error}
         feedback={feedback}
-        onAction={() => setCreatingFor("")}
+        onAction={canWrite ? () => setCreatingFor("") : undefined}
+        readOnly={!canWrite}
         search={{ value: search, onChange: setSearch }}
         filterValues={filters}
         onFilterChange={(i, v) => setFilters((prev) => prev.map((x, idx) => (idx === i ? v : x)))}
@@ -210,7 +210,7 @@ export default function IncidentsPage() {
               ]}
               states={states}
               currentState={i.estado}
-              canChangeState={isAdmin}
+              canChangeState={canWrite}
               withNote
               onChangeState={async (estado, nota) => {
                 const res = await updateIncidentState(projectId, i.id, estado, nota);

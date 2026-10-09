@@ -8,6 +8,7 @@ import { AgeClassBadge, ClassificationBadge } from "./ClassificationBadge";
 import { EditTreeModal } from "./EditTreeModal";
 import { RiskAssessmentModal } from "./RiskAssessmentModal";
 import { SivuTable } from "./SivuTable";
+import { useCanWrite } from "../hooks/useCanWrite";
 import { TreeModulesSummary } from "./TreeModulesSummary";
 
 function fallaCompacta(r: TreeRiskAssessmentDTO["resultado"]): string {
@@ -51,6 +52,7 @@ export function TreeDetailModal({
   const [assessments, setAssessments] = useState<TreeRiskAssessmentDTO[]>([]);
   const [assessmentsError, setAssessmentsError] = useState<string | null>(null);
   const [isEvaluating, setIsEvaluating] = useState(false);
+  const canWrite = useCanWrite();
 
   useEffect(() => {
     let cancelled = false;
@@ -318,15 +320,17 @@ export function TreeDetailModal({
                   <div className="sivu-form-section__header" style={{ marginBottom: 0, border: "none", padding: 0 }}>
                     <Icon name="check-square" size={15} /> 4. Evaluación de Riesgo
                   </div>
-                  <button
-                    type="button"
-                    className="btn btn-primary"
-                    style={{ fontSize: 12, padding: "5px 10px", gap: 6 }}
-                    onClick={() => setIsEvaluating(true)}
-                  >
-                    <Icon name="plus" size={13} />
-                    Nueva evaluación
-                  </button>
+                  {canWrite && (
+                    <button
+                      type="button"
+                      className="btn btn-primary"
+                      style={{ fontSize: 12, padding: "5px 10px", gap: 6 }}
+                      onClick={() => setIsEvaluating(true)}
+                    >
+                      <Icon name="plus" size={13} />
+                      Nueva evaluación
+                    </button>
+                  )}
                 </div>
 
                 {assessmentsError && (
@@ -445,7 +449,7 @@ export function TreeDetailModal({
           <button className="btn btn-secondary" onClick={onClose} style={{ gap: 6 }}>
             ← Volver al mapa
           </button>
-          {detail && (
+          {detail && canWrite && (
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
               <button className="btn btn-secondary" style={{ gap: 6 }} onClick={() => setIsEditing(true)}>
                 <Icon name="edit" size={13} />

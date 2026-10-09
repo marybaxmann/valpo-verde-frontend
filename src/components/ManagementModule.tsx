@@ -37,6 +37,7 @@ export function ManagementModule({
   onFilterChange,
   hasRows,
   noMatches,
+  readOnly = false,
   children,
 }: {
   config: ManagementModuleConfig;
@@ -52,6 +53,8 @@ export function ManagementModule({
   hasRows?: boolean;
   /** Hay registros pero ninguno coincide con la búsqueda/filtros. */
   noMatches?: boolean;
+  /** Consulta sin acciones (Administrador, CC-022): oculta el botón de alta. */
+  readOnly?: boolean;
   children?: ReactNode;
 }) {
   const { project } = useCurrentProject();
@@ -101,16 +104,22 @@ export function ManagementModule({
           <h3 className="sivu-toolbar__title">{config.listTitle}</h3>
           <div className="sivu-toolbar__action">
             {feedback && <span style={{ fontSize: 12, color: "var(--sivu-primary)", fontWeight: 600 }}>✓ {feedback}</span>}
-            {!enabled && <span className="sivu-next-stage">Disponible en próxima etapa</span>}
-            <button
-              className="btn btn-primary btn-sm"
-              disabled={!enabled}
-              title={enabled ? undefined : "Disponible en próxima etapa"}
-              onClick={onAction}
-            >
-              <Icon name="plus" size={13} />
-              {config.actionLabel}
-            </button>
+            {readOnly ? (
+              <span className="sivu-next-stage">Modo consulta</span>
+            ) : (
+              <>
+                {!enabled && <span className="sivu-next-stage">Disponible en próxima etapa</span>}
+                <button
+                  className="btn btn-primary btn-sm"
+                  disabled={!enabled}
+                  title={enabled ? undefined : "Disponible en próxima etapa"}
+                  onClick={onAction}
+                >
+                  <Icon name="plus" size={13} />
+                  {config.actionLabel}
+                </button>
+              </>
+            )}
           </div>
         </div>
 

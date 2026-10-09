@@ -14,7 +14,7 @@ import {
   type ModuleCatalogs,
 } from "../api/moduleRecords";
 import { RecordDetailModal } from "../components/RecordDetailModal";
-import { useAuth } from "../hooks/useAuth";
+import { useCanWrite } from "../hooks/useCanWrite";
 import type { TreeFeature } from "../types/tree";
 
 /**
@@ -66,8 +66,7 @@ export default function MaintenancePage() {
   const [estadoFilter, setEstadoFilter] = useState("");
   const [creatingFor, setCreatingFor] = useState<string | null>(null);
   const [detailId, setDetailId] = useState<string | null>(null);
-  const { profile } = useAuth();
-  const isAdmin = profile?.role === "admin";
+  const canWrite = useCanWrite();
 
   useEffect(() => {
     let cancelled = false;
@@ -95,7 +94,7 @@ export default function MaintenancePage() {
   // Acceso contextual desde la ficha/panel: ?arbol=<id>[&nuevo=1]
   useEffect(() => {
     const arbol = params.get("arbol");
-    if (params.get("nuevo") === "1") {
+    if (params.get("nuevo") === "1" && canWrite) {
       setCreatingFor(arbol ?? "");
     } else if (arbol && trees.length > 0) {
       // "Ver en módulo": filtra el listado por el código del árbol.
@@ -103,7 +102,7 @@ export default function MaintenancePage() {
       if (code) setSearch(code);
       setParams({}, { replace: true });
     }
-  }, [params, trees, setParams]);
+  }, [params, trees, setParams, canWrite]);
 
   const treeById = useMemo(() => new Map(trees.map((t) => [t.properties.id, t])), [trees]);
 
@@ -146,7 +145,8 @@ export default function MaintenancePage() {
         loading={loading}
         error={error}
         feedback={feedback}
-        onAction={() => setCreatingFor("")}
+        onAction={canWrite ? () => setCreatingFor("") : undefined}
+        readOnly={!canWrite}
         search={{ value: search, onChange: setSearch }}
         filterValues={[estadoFilter]}
         onFilterChange={(_i, v) => setEstadoFilter(v)}
@@ -209,7 +209,7 @@ export default function MaintenancePage() {
               ]}
               states={states}
               currentState={o.estado}
-              canChangeState={isAdmin}
+              canChangeState={canWrite}
               onChangeState={async (estado) => {
                 const res = await updateMaintenanceState(projectId, o.id, estado);
                 setOrders((prev) => prev.map((x) => (x.id === o.id ? res.data : x)));

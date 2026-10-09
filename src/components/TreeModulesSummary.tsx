@@ -15,6 +15,7 @@ import {
   type ModuleCatalogs,
 } from "../api/moduleRecords";
 import { useProjectBase } from "../hooks/useProjectBase";
+import { useCanWrite } from "../hooks/useCanWrite";
 import { Icon, type IconName } from "./Icons";
 import { componentesRegistrados } from "./InfrastructureAssessmentModal";
 
@@ -26,6 +27,7 @@ import { componentesRegistrados } from "./InfrastructureAssessmentModal";
 export function TreeModulesSummary({ treeId, projectId }: { treeId: string; projectId: string }) {
   const navigate = useNavigate();
   const base = useProjectBase();
+  const canWrite = useCanWrite();
   const [infra, setInfra] = useState<InfrastructureAssessmentDTO[] | null>(null);
   const [orders, setOrders] = useState<MaintenanceOrder[] | null>(null);
   const [incidents, setIncidents] = useState<Incident[] | null>(null);
@@ -75,7 +77,7 @@ export function TreeModulesSummary({ treeId, projectId }: { treeId: string; proj
           emptyText="Sin registros."
           onView={() => go("infraestructura", false)}
           actionLabel="Nueva evaluación"
-          onAction={() => go("infraestructura", true)}
+          onAction={canWrite ? () => go("infraestructura", true) : undefined}
         />
         <ModuleBox
           icon="wrench"
@@ -93,7 +95,7 @@ export function TreeModulesSummary({ treeId, projectId }: { treeId: string; proj
           emptyText="Sin registros."
           onView={() => go("mantencion", false)}
           actionLabel="Nueva orden"
-          onAction={() => go("mantencion", true)}
+          onAction={canWrite ? () => go("mantencion", true) : undefined}
         />
         <ModuleBox
           icon="alert"
@@ -111,7 +113,7 @@ export function TreeModulesSummary({ treeId, projectId }: { treeId: string; proj
           emptyText="Sin registros."
           onView={() => go("incidencias", false)}
           actionLabel="Nueva incidencia"
-          onAction={() => go("incidencias", true)}
+          onAction={canWrite ? () => go("incidencias", true) : undefined}
         />
       </div>
     </div>
@@ -135,7 +137,8 @@ function ModuleBox({
   emptyText: string;
   onView: () => void;
   actionLabel: string;
-  onAction: () => void;
+  /** Sin acción para quien solo consulta (Administrador, CC-022). */
+  onAction?: () => void;
 }) {
   return (
     <div className="card card--pad" style={{ padding: 12, display: "flex", flexDirection: "column", gap: 6 }}>
@@ -158,9 +161,11 @@ function ModuleBox({
           </span>
         ))
       )}
+      {onAction && (
       <button type="button" className="btn btn-secondary btn-sm" style={{ marginTop: "auto", justifyContent: "center", gap: 6 }} onClick={onAction}>
         <Icon name="plus" size={12} /> {actionLabel}
       </button>
+      )}
     </div>
   );
 }
