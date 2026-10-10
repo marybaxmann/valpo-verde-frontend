@@ -1,4 +1,5 @@
 import { api } from "./client";
+import { cachedGet } from "./cache";
 import type { CreateProjectInput, Project } from "../types/project";
 
 /**
@@ -10,7 +11,7 @@ export function listProjects(): Promise<Project[]> {
 }
 
 export function getProject(id: string): Promise<Project> {
-  return api.get<{ data: Project }>(`/api/projects/${id}`).then((res) => res.data);
+  return cachedGet(`project:${id}`, () => api.get<{ data: Project }>(`/api/projects/${id}`).then((res) => res.data));
 }
 
 export function createProject(input: CreateProjectInput): Promise<Project> {

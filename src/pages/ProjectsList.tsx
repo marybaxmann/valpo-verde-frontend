@@ -67,9 +67,9 @@ export default function ProjectsList() {
     <div>
       <div className="page-header">
         <div>
-          <h1>Proyectos</h1>
+          <h1>{isAdmin ? "Proyectos" : "Mis proyectos"}</h1>
           <p className="page-header__sub">
-            {isAdmin ? "Todos los proyectos." : "Proyectos donde tienes acceso."}
+            Selecciona el proyecto de gestión territorial en el que deseas trabajar.
           </p>
         </div>
         {isAdmin && (
@@ -97,36 +97,41 @@ export default function ProjectsList() {
       )}
 
       {!loading && !error && projects && projects.length > 0 && (
-        <div className="table-wrap">
-          <table className="dtable">
-            <thead>
-              <tr>
-                <th>Nombre</th>
-                <th>Institución</th>
-                <th>Profesional responsable</th>
-                <th>Estado</th>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody>
-              {projects.map((p) => (
-                <tr key={p.id}>
-                  <td>{p.name}</td>
-                  <td>{p.institution_name}</td>
-                  <td>{p.responsible_professional ?? "—"}</td>
-                  <td>
-                    <Badge tone={p.status === "activo" ? "green" : "slate"}>{p.status}</Badge>
-                  </td>
-                  <td>
-                    <Link className="btn btn-ghost btn-sm" to={`${basePath}/projects/${p.id}`}>
-                      <Icon name="eye" size={13} />
-                      Ver
-                    </Link>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        <div className="sivu-project-grid">
+          {projects.map((p) => (
+            <div key={p.id} className="card card--pad sivu-project-card">
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 10 }}>
+                <div style={{ minWidth: 0 }}>
+                  <h3 className="sivu-project-card__title">{p.name}</h3>
+                  <p className="sivu-project-card__inst">{p.institution_name}</p>
+                </div>
+                <Badge tone={p.status === "activo" ? "green" : "slate"}>{p.status}</Badge>
+              </div>
+              <div className="sivu-project-card__meta">
+                <span>Profesional responsable</span>
+                <strong>{p.responsible_professional ?? "—"}</strong>
+              </div>
+              <div style={{ display: "flex", gap: 8, marginTop: "auto" }}>
+                <Link
+                  className="btn btn-primary"
+                  to={`${basePath}/projects/${p.id}/dashboard`}
+                  style={{ flex: 1, justifyContent: "center", gap: 6 }}
+                >
+                  <Icon name="leaf" size={14} />
+                  Entrar al proyecto
+                </Link>
+                <Link
+                  className="btn btn-secondary"
+                  to={`${basePath}/projects/${p.id}`}
+                  title={isAdmin ? "Ficha, configuración y miembros del proyecto" : "Ficha del proyecto"}
+                  style={{ gap: 6 }}
+                >
+                  <Icon name={isAdmin ? "wrench" : "eye"} size={14} />
+                  {isAdmin ? "Configurar" : "Ficha"}
+                </Link>
+              </div>
+            </div>
+          ))}
         </div>
       )}
 

@@ -2,13 +2,24 @@ import { lazy, Suspense } from "react";
 import { Navigate, Outlet, Route, Routes } from "react-router-dom";
 import { useAuth } from "./hooks/useAuth";
 import Login from "./pages/Login";
-import ProjectsList from "./pages/ProjectsList";
-import ProjectDetail from "./pages/ProjectDetail";
 import AdminLayout from "./layouts/AdminLayout";
 import UserLayout from "./layouts/UserLayout";
 import type { KnownRole } from "./types/authProfile";
 
-/** SIG-1: la página del mapa (y el SDK de ArcGIS) se carga de forma diferida. */
+/**
+ * Cada pantalla se descarga recién cuando se abre (carga diferida): el
+ * primer ingreso no baja el código de todos los módulos. El indicador de
+ * carga vive en RoleLayout (<Suspense> alrededor del <Outlet>), así el
+ * menú lateral se mantiene visible al cambiar de pantalla.
+ * SIG-1: la página del mapa (y el SDK de ArcGIS) ya se cargaba así.
+ */
+const ProjectsList = lazy(() => import("./pages/ProjectsList"));
+const ProjectDetail = lazy(() => import("./pages/ProjectDetail"));
+const ProjectDashboard = lazy(() => import("./pages/ProjectDashboard"));
+const ModulePage = lazy(() => import("./pages/ModulePage"));
+const MaintenancePage = lazy(() => import("./pages/MaintenancePage"));
+const IncidentsPage = lazy(() => import("./pages/IncidentsPage"));
+const IndicesPage = lazy(() => import("./pages/IndicesPage"));
 const ProjectInventoryMap = lazy(() => import("./pages/ProjectInventoryMap"));
 
 function InventoryMapRoute() {
@@ -40,7 +51,14 @@ export default function App() {
           <Route index element={<Navigate to="projects" replace />} />
           <Route path="projects" element={<ProjectsList />} />
           <Route path="projects/:projectId" element={<ProjectDetail />} />
+          <Route path="projects/:projectId/dashboard" element={<ProjectDashboard />} />
           <Route path="projects/:projectId/mapa" element={<InventoryMapRoute />} />
+          <Route path="projects/:projectId/inventario" element={<Navigate to="../mapa" replace />} />
+          <Route path="projects/:projectId/inspeccion" element={<ModulePage module="inspeccion" />} />
+          <Route path="projects/:projectId/infraestructura" element={<ModulePage module="infraestructura" />} />
+          <Route path="projects/:projectId/mantencion" element={<MaintenancePage />} />
+          <Route path="projects/:projectId/incidencias" element={<IncidentsPage />} />
+          <Route path="projects/:projectId/indices" element={<IndicesPage />} />
         </Route>
       </Route>
 
@@ -49,7 +67,14 @@ export default function App() {
           <Route index element={<Navigate to="projects" replace />} />
           <Route path="projects" element={<ProjectsList />} />
           <Route path="projects/:projectId" element={<ProjectDetail />} />
+          <Route path="projects/:projectId/dashboard" element={<ProjectDashboard />} />
           <Route path="projects/:projectId/mapa" element={<InventoryMapRoute />} />
+          <Route path="projects/:projectId/inventario" element={<Navigate to="../mapa" replace />} />
+          <Route path="projects/:projectId/inspeccion" element={<ModulePage module="inspeccion" />} />
+          <Route path="projects/:projectId/infraestructura" element={<ModulePage module="infraestructura" />} />
+          <Route path="projects/:projectId/mantencion" element={<MaintenancePage />} />
+          <Route path="projects/:projectId/incidencias" element={<IncidentsPage />} />
+          <Route path="projects/:projectId/indices" element={<IndicesPage />} />
         </Route>
       </Route>
 

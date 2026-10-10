@@ -1,4 +1,5 @@
 import { supabase } from "../lib/supabase";
+import { clearApiCache } from "./cache";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
@@ -34,23 +35,45 @@ async function getAccessToken(): Promise<string> {
   return data.session.access_token;
 }
 
-type Method = "GET" | "POST" | "DELETE";
+type Method = "GET" | "POST" | "PATCH" | "DELETE";
+
+const SESSION_EXPIRED_MESSAGE = "Tu sesión expiró. Vuelve a iniciar sesión para continuar.";
 
 async function request<T>(method: Method, path: string, body?: unknown): Promise<T> {
   if (!API_BASE_URL) {
     throw new Error("Falta VITE_API_BASE_URL. Revisa tu .env (ver .env.example).");
   }
 
-  const accessToken = await getAccessToken();
+  const send = (token: string) =>
+    fetch(`${API_BASE_URL}${path}`, {
+      method,
+      headers: {
+        Authorization: `Bearer ${token}`,
+        ...(body !== undefined ? { "Content-Type": "application/json" } : {}),
+      },
+      body: body !== undefined ? JSON.stringify(body) : undefined,
+    });
 
-  const res = await fetch(`${API_BASE_URL}${path}`, {
-    method,
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-      ...(body !== undefined ? { "Content-Type": "application/json" } : {}),
-    },
-    body: body !== undefined ? JSON.stringify(body) : undefined,
-  });
+  let res = await send(await getAccessToken());
+
+  // getSession() puede devolver un access_token ya vencido si el refresco
+  // automático de supabase-js no alcanzó a ejecutarse (pestaña en segundo
+  // plano, equipo suspendido, desfase de reloj). Ante un 401 se fuerza un
+  // refresco con el refresh_token y se reintenta UNA sola vez; la
+  // autorización la sigue decidiendo el backend.
+  if (res.status === 401) {
+    const { data, error } = await supabase.auth.refreshSession();
+    if (error || !data.session) {
+      throw new ApiError(401, SESSION_EXPIRED_MESSAGE);
+    }
+    res = await send(data.session.access_token);
+    if (res.status === 401) {
+      throw new ApiError(401, SESSION_EXPIRED_MESSAGE);
+    }
+  }
+
+  // Una escritura exitosa invalida todas las lecturas en caché (ver cache.ts).
+  if (method !== "GET" && res.ok) clearApiCache();
 
   if (res.status === 204) {
     return undefined as T;
@@ -79,5 +102,6 @@ async function request<T>(method: Method, path: string, body?: unknown): Promise
 export const api = {
   get: <T>(path: string) => request<T>("GET", path),
   post: <T>(path: string, body?: unknown) => request<T>("POST", path, body),
+  patch: <T>(path: string, body?: unknown) => request<T>("PATCH", path, body),
   delete: <T = void>(path: string) => request<T>("DELETE", path),
 };
