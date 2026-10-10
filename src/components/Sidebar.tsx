@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, NavLink, useLocation } from "react-router-dom";
 import { Icon, type IconName } from "./Icons";
 import { useCurrentProject } from "../hooks/useCurrentProject";
+import { useTheme } from "../hooks/useTheme";
 
 export interface NavItem {
   to?: string;
@@ -30,6 +31,9 @@ export function Sidebar({
   const location = useLocation();
   const [compact, setCompact] = useState(initialCompact);
   const { projectId, project } = useCurrentProject();
+
+  const { theme, toggleTheme } = useTheme();
+  const dark = theme === "dark";
 
   const userInitial = (userName || "U").charAt(0).toUpperCase();
 
@@ -133,6 +137,17 @@ export function Sidebar({
               <span className="sivu-rail__sub">{roleLabel}</span>
             </div>
           )}
+
+          <button
+            type="button"
+            className="sivu-rail__logout"
+            onClick={toggleTheme}
+            title={dark ? "Cambiar a modo claro" : "Cambiar a modo oscuro"}
+            aria-label={dark ? "Cambiar a modo claro" : "Cambiar a modo oscuro"}
+          >
+            <Icon name={dark ? "sun" : "moon"} size={13} />
+            <span>{dark ? "Modo claro" : "Modo oscuro"}</span>
+          </button>
 
           {onLogout && (
             <button className="sivu-rail__logout" onClick={onLogout} title="Cerrar sesión">

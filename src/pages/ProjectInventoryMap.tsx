@@ -507,7 +507,7 @@ export default function ProjectInventoryMap() {
                     if (riesgo === null)
                       return (
                         <span className="status-pill" style={{ fontSize: 10, padding: "1px 6px" }}>
-                          No determinado
+                          Sin clasificación
                         </span>
                       );
                     return (
@@ -555,7 +555,7 @@ export default function ProjectInventoryMap() {
                 <button
                   className="btn btn-secondary"
                   style={{
-                    background: "#ffffff",
+                    background: "var(--surface)",
                     color: "var(--sivu-primary-dark)",
                     padding: "3px 8px",
                     fontSize: 11.5,

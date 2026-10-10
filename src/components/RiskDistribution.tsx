@@ -23,7 +23,7 @@ export function RiskDistribution({ counts, total }: { counts: RiskCounts; total:
     { key: "Bajo", badge: <ClassificationBadge level="Bajo" />, value: counts.Bajo },
   ];
   if (counts.noDeterminado > 0) {
-    rows.push({ key: "nd", badge: <span className="status-pill">No determinado</span>, value: counts.noDeterminado });
+    rows.push({ key: "nd", badge: <span className="status-pill">Sin clasificación</span>, value: counts.noDeterminado });
   }
   rows.push({ key: "sin", badge: <span className="status-pill">Sin evaluación</span>, value: counts.sinEvaluacion });
 

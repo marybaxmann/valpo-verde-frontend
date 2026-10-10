@@ -63,6 +63,90 @@
 
   --sidebar-w: 240px;
   --topbar-h: 56px;
+  /* Tokens de superficie y estado (modo claro / oscuro) */
+  --primary-hover: var(--sivu-primary-dark);
+  --surface-subtle: #fbfdfb;
+  --surface-sunken: #eceff0;
+  --surface-overlay: rgba(255, 255, 255, 0.94);
+  --border-soft: #edf0ed;
+  --border-green: #d4e2d8;
+  --badge-critical-fg: #7a0c10;
+  --badge-critical-bg: #fce8e8;
+  --badge-critical-border: #f7c5c7;
+  --badge-high-fg: #931e0f;
+  --badge-high-bg: #fdeee9;
+  --badge-high-border: #faccc3;
+  --badge-medium-fg: #7f5500;
+  --badge-medium-bg: #fef7e7;
+  --badge-medium-border: #fde5af;
+  --badge-low-fg: #435b1b;
+  --badge-low-bg: #f5f8ea;
+  --badge-low-border: #e2ecc2;
+  --badge-low-dot: #8fa73b;
+  --risk-text-low: #4d6a2e;
+  --risk-text-medium: #946200;
+  --diagram-neutral: #D3DDD6;
+  --diagram-outline: rgba(38, 51, 45, 0.45);
+  color-scheme: light;
+}
+
+
+/* ==================================================
+   MODO OSCURO — se activa con <html data-theme="dark">
+   (index.html resuelve la preferencia antes de pintar).
+   La paleta de clasificación de riesgo NO cambia.
+   ================================================== */
+:root[data-theme="dark"] {
+  --sivu-primary: #2A8F66;
+  --sivu-primary-medium: #4FB386;
+  --sivu-primary-surface: #1C3328;
+  /* En oscuro, los verdes "oscuros" se usan como texto: se aclaran. */
+  --sivu-primary-dark: #8FD3AE;
+  --green-100: #234434;
+  --green-700: #CDE8D8;
+  --primary-hover: #237A57;
+
+  --surface-background: #0F1613;
+  --surface-primary: #172019;
+  --text-primary: #E3ECE6;
+  --text-secondary: #A0B1A7;
+  --text-faint: #74857B;
+  --border-default: #2C3A32;
+
+  --amber-50: #33290F;
+  --red-50: #3A1A1A;
+  --blue-50: #172A3A;
+  --blue-500: #7FB0DE;
+  --slate-50: #1E2723;
+  --slate-500: #9AA9A0;
+
+  --surface-subtle: #1A241E;
+  --surface-sunken: #212C26;
+  --surface-overlay: rgba(23, 32, 25, 0.94);
+  --border-soft: #26332C;
+  --border-green: #2F4A3B;
+
+  --badge-critical-fg: #FFB3B5;
+  --badge-critical-bg: #3A1416;
+  --badge-critical-border: #6E2226;
+  --badge-high-fg: #FFB4A5;
+  --badge-high-bg: #3A1A12;
+  --badge-high-border: #6E3022;
+  --badge-medium-fg: #FFD98A;
+  --badge-medium-bg: #33270C;
+  --badge-medium-border: #6B5214;
+  --badge-low-fg: #DCE8A9;
+  --badge-low-bg: #252C14;
+  --badge-low-border: #4A5A22;
+  --badge-low-dot: #B5CC63;
+  --risk-text-low: #C5DA7E;
+  --risk-text-medium: #F9B52B;
+  --diagram-neutral: #3A4A41;
+  --diagram-outline: rgba(227, 236, 230, 0.4);
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 4px 12px -2px rgba(0, 0, 0, 0.5);
+  color-scheme: dark;
 }
 
 * {
@@ -354,7 +438,7 @@ button {
 }
 
 .btn-primary:hover {
-  background: var(--green-600);
+  background: var(--primary-hover);
 }
 
 .btn-secondary {
@@ -689,7 +773,7 @@ table.dtable {
 }
 
 .wizard__step.current .wizard__step-num {
-  background: var(--green-600);
+  background: var(--primary-hover);
   color: #fff;
 }
 
@@ -1144,7 +1228,7 @@ table.dtable {
   text-align: center;
   font-size: 13px;
   color: var(--red-500);
-  background: rgba(255, 255, 255, 0.92);
+  background: var(--surface-overlay);
 }
 
 .inventory-popup {
@@ -1268,39 +1352,39 @@ table.dtable {
 }
 
 .classification-badge--critical {
-  color: #7a0c10;
-  background-color: #fce8e8;
-  border-color: #f7c5c7;
+  color: var(--badge-critical-fg);
+  background-color: var(--badge-critical-bg);
+  border-color: var(--badge-critical-border);
 }
 .classification-badge--critical .classification-badge__dot {
   background-color: var(--classification-critical);
 }
 
 .classification-badge--high {
-  color: #931e0f;
-  background-color: #fdeee9;
-  border-color: #faccc3;
+  color: var(--badge-high-fg);
+  background-color: var(--badge-high-bg);
+  border-color: var(--badge-high-border);
 }
 .classification-badge--high .classification-badge__dot {
   background-color: var(--classification-high);
 }
 
 .classification-badge--medium {
-  color: #7f5500;
-  background-color: #fef7e7;
-  border-color: #fde5af;
+  color: var(--badge-medium-fg);
+  background-color: var(--badge-medium-bg);
+  border-color: var(--badge-medium-border);
 }
 .classification-badge--medium .classification-badge__dot {
   background-color: var(--classification-medium);
 }
 
 .classification-badge--low {
-  color: #435b1b;
-  background-color: #f5f8ea;
-  border-color: #e2ecc2;
+  color: var(--badge-low-fg);
+  background-color: var(--badge-low-bg);
+  border-color: var(--badge-low-border);
 }
 .classification-badge--low .classification-badge__dot {
-  background-color: #8fa73b;
+  background-color: var(--badge-low-dot);
 }
 
 /* Resultado destacado del nivel de riesgo (paso 6 de la evaluación) */
@@ -1312,6 +1396,110 @@ table.dtable {
 .classification-badge.risk-result-badge .classification-badge__dot {
   width: 10px;
   height: 10px;
+}
+
+/* Asistente de evaluación: datos que faltan para continuar */
+.risk-wizard-missing {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  margin: 0 20px 10px;
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  background: var(--amber-50);
+  border: 1px solid var(--badge-medium-border);
+  color: var(--badge-medium-fg);
+  font-size: 12px;
+}
+.risk-wizard-missing ul {
+  margin: 2px 0 0;
+  padding-left: 16px;
+}
+
+/* Diagnóstico por componente (silueta del árbol) */
+.risk-diagram {
+  display: grid;
+  grid-template-columns: 112px minmax(0, 1fr);
+  gap: 14px;
+  align-items: center;
+  margin-top: 4px;
+}
+.risk-diagram__svg {
+  width: 112px;
+  height: 150px;
+  border-radius: var(--radius-sm);
+}
+.risk-diagram__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+.risk-diagram__list li {
+  display: grid;
+  grid-template-columns: 12px minmax(0, 1fr);
+  gap: 8px;
+  align-items: start;
+}
+.risk-diagram__list li > i {
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+  margin-top: 3px;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+}
+.risk-diagram__list strong {
+  display: block;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+.risk-diagram__list li.is-critical strong {
+  font-weight: 800;
+}
+.risk-diagram__list span {
+  font-size: 11.5px;
+  color: var(--text-secondary);
+}
+.risk-diagram__flag {
+  margin-left: 6px;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 1px 6px;
+  border-radius: 4px;
+  border: 1px solid var(--text-primary);
+  color: var(--text-primary);
+}
+.risk-diagram--compact {
+  grid-template-columns: 78px minmax(0, 1fr);
+  gap: 10px;
+}
+.risk-diagram--compact .risk-diagram__svg {
+  width: 78px;
+  height: 104px;
+}
+.risk-diagram--compact .risk-diagram__list {
+  gap: 6px;
+}
+.risk-diagram--compact .risk-diagram__list strong {
+  font-size: 11.5px;
+}
+.risk-diagram--compact .risk-diagram__list span {
+  font-size: 10.5px;
+}
+.risk-diagram--compact .risk-diagram__flag {
+  display: inline-block;
+  margin: 2px 0 0;
+  font-size: 9px;
+}
+@media (max-width: 480px) {
+  .risk-diagram {
+    grid-template-columns: minmax(0, 1fr);
+    justify-items: center;
+  }
 }
 
 /* Variante compacta para usar dentro de filas de listado */
@@ -1544,7 +1732,7 @@ table.dtable {
   justify-content: center;
   font-size: 12px;
   font-weight: 700;
-  border: 1px solid #c9decb;
+  border: 1px solid var(--border-green);
 }
 
 .sivu-rail__logout {
@@ -1573,7 +1761,7 @@ table.dtable {
 }
 
 .sivu-rail__logout:hover {
-  background: #ffffff;
+  background: var(--surface);
   color: var(--classification-critical);
   border-color: var(--classification-critical);
 }
@@ -1630,7 +1818,7 @@ table.dtable {
   display: flex;
   align-items: center;
   gap: 6px;
-  border: 1px solid #d4e5da;
+  border: 1px solid var(--border-green);
 }
 
 .sivu-territorial-topbar__right {
@@ -1723,7 +1911,7 @@ table.dtable {
 /* KPI Summary Card (Inspirado en City Dashboard) */
 .sivu-inv-kpi-card {
   padding: 12px 14px;
-  background: #fbfdfb;
+  background: var(--surface-subtle);
   border-bottom: 1px solid var(--border-default);
   display: flex;
   flex-direction: column;
@@ -1753,7 +1941,7 @@ table.dtable {
 
 .sivu-inv-kpi-bar {
   height: 5px;
-  background: #e2ece5;
+  background: var(--surface-sunken);
   border-radius: 3px;
   overflow: hidden;
   width: 100%;
@@ -1804,7 +1992,7 @@ table.dtable {
 }
 
 .sivu-inv-panel__btn-add:hover {
-  background: var(--sivu-primary-dark);
+  background: var(--primary-hover);
 }
 
 /* Filter Section */
@@ -1836,7 +2024,7 @@ table.dtable {
   font-size: 11.5px;
   border: 1px solid var(--border-default);
   border-radius: var(--radius-sm);
-  background: #ffffff;
+  background: var(--surface);
   outline: none;
   box-sizing: border-box;
 }
@@ -1868,7 +2056,7 @@ table.dtable {
   font-size: 10.5px;
   font-weight: 600;
   border: 1px solid var(--border-default);
-  background: #ffffff;
+  background: var(--surface);
   color: var(--text-secondary);
   cursor: pointer;
   transition: all 0.1s ease;
@@ -1895,7 +2083,7 @@ table.dtable {
 
 .sivu-inv-tree-row {
   padding: 9px 14px;
-  border-bottom: 1px solid #f0f2f0;
+  border-bottom: 1px solid var(--border-soft);
   cursor: pointer;
   transition: all 0.1s ease;
   display: flex;
@@ -1971,7 +2159,7 @@ table.dtable {
   flex: 1;
   min-height: 0;
   overflow: hidden;
-  background: #e8ece9;
+  background: var(--surface-sunken);
 }
 
 .sivu-map-pane__canvas .inventory-map {
@@ -1992,7 +2180,7 @@ table.dtable {
   right: 12px;
   bottom: 12px;
   z-index: 10;
-  background: rgba(255, 255, 255, 0.95);
+  background: var(--surface-overlay);
   border: 1px solid var(--border-default);
   border-radius: var(--radius-sm);
   padding: 8px 10px;
@@ -2021,11 +2209,14 @@ table.dtable {
 }
 
 .sivu-map-legend__dot {
-  width: 9px;
-  height: 9px;
-  border-radius: 50%;
+  /* Gota como el pin del mapa: cuadrado con una esquina recta, girado. */
+  width: 10px;
+  height: 10px;
+  border-radius: 50% 50% 50% 0;
+  transform: rotate(-45deg);
   flex-shrink: 0;
-  border: 1px solid rgba(0, 0, 0, 0.15);
+  margin: 0 2px;
+  border: 1px solid rgba(0, 0, 0, 0.25);
 }
 
 /* Panel Contextual Lateral Acoplado (Docked) */
@@ -2252,8 +2443,8 @@ table.dtable {
 }
 
 .sivu-form-section--highlight {
-  background: #fbfdfb;
-  border: 1px solid #d4e2d8;
+  background: var(--surface-subtle);
+  border: 1px solid var(--border-green);
   border-radius: var(--radius-sm);
   padding: 14px;
 }
@@ -2528,7 +2719,7 @@ table.table thead th {
   text-transform: uppercase;
   letter-spacing: 0.04em;
   color: var(--sivu-primary-dark);
-  background: #eef3ee;
+  background: var(--surface-sunken);
   border-bottom: 1px solid var(--border-default);
   white-space: nowrap;
   overflow: hidden;
@@ -2539,7 +2730,7 @@ table.table thead th {
 table.table tbody td {
   padding: 10px 14px;
   vertical-align: middle;
-  border-bottom: 1px solid #edf0ed;
+  border-bottom: 1px solid var(--border-soft);
 }
 
 .sivu-table tbody tr:last-child td,
@@ -2552,7 +2743,7 @@ table.table tbody tr:last-child td {
 }
 
 .sivu-table tbody tr.sivu-table__row--interactive:hover td {
-  background: #f6f9f6;
+  background: var(--surface-subtle);
 }
 
 .sivu-table__num {
@@ -2692,7 +2883,7 @@ table.table tbody tr:last-child td {
 /* Listado territorial (Inventario / Inspección / Infraestructura) */
 .sivu-inv-tree-row {
   min-height: 46px;
-  border-bottom: 1px solid #edf0ed;
+  border-bottom: 1px solid var(--border-soft);
 }
 
 .sivu-inv-tree-row.active {

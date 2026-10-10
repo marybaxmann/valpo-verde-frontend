@@ -10,6 +10,7 @@ import { Icon } from "./Icons";
 import { AgeClassBadge, ClassificationBadge } from "./ClassificationBadge";
 import { EditTreeModal } from "./EditTreeModal";
 import { RiskAssessmentModal } from "./RiskAssessmentModal";
+import { RiskComponentDiagram } from "./RiskComponentDiagram";
 
 export function TreeContextualPanel({
   treeFeature,
@@ -286,9 +287,13 @@ export function TreeContextualPanel({
                   {latestAssessment.resultado.clasificacion_riesgo ? (
                     <ClassificationBadge level={latestAssessment.resultado.clasificacion_riesgo} />
                   ) : (
-                    <span className="status-pill">No determinado</span>
+                    <span className="status-pill">Sin clasificación</span>
                   )}
                 </div>
+              </div>
+              <div className="sivu-tech-cell sivu-tech-cell--full">
+                <span className="sivu-tech-cell__label">Diagnóstico por componente</span>
+                <RiskComponentDiagram resultado={latestAssessment.resultado} compact />
               </div>
             </div>
           )}

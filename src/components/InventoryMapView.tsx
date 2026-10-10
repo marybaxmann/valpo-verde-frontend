@@ -51,9 +51,41 @@ const RIESGO_COLORS: Record<string, [number, number, number]> = {
   Extremo: [199, 37, 43], // #C7252B
 };
 const SIN_EVALUACION_COLOR: [number, number, number] = [154, 166, 158]; // neutro
+const SIN_CLASIFICACION = "Sin clasificación";
 
-/** Diámetro (px) del punto de cada árbol en el mapa. */
-const TREE_MARKER_SIZE = 13;
+/** Tamaño (px) del pin de cada árbol en el mapa; la punta marca la ubicación. */
+const PIN_WIDTH = 26;
+const PIN_HEIGHT = 34;
+const PIN_SCALE_SELECTED = 1.3;
+
+/**
+ * Pin en gota con el color del nivel de riesgo y la silueta de un árbol en
+ * el centro. `selected` cambia el borde blanco por uno oscuro.
+ */
+function treePinSymbol(rgb: [number, number, number], selected = false, hollow = false) {
+  // hollow: evaluado pero sin clasificación (N13, CC-024) — gota blanca con
+  // borde neutro, distinta de "sin evaluación" (gota neutra rellena).
+  const fill = hollow ? "#FFFFFF" : `rgb(${rgb.join(",")})`;
+  const ring = selected ? "#17241D" : hollow ? `rgb(${rgb.join(",")})` : "#FFFFFF";
+  const drop = "M20 2C10.6 2 3 9.6 3 19c0 12.2 17 31 17 31s17-18.8 17-31C37 9.6 29.4 2 20 2Z";
+  const svg =
+    `<svg xmlns="http://www.w3.org/2000/svg" width="40" height="52" viewBox="0 0 40 52">` +
+    `<path d="${drop}" fill="none" stroke="rgba(23,36,29,0.45)" stroke-width="5.5"/>` +
+    `<path d="${drop}" fill="${fill}" stroke="${ring}" stroke-width="3"/>` +
+    `<circle cx="20" cy="19" r="10" fill="#FFFFFF"/>` +
+    `<circle cx="20" cy="16.4" r="5.4" fill="#176B4D"/>` +
+    `<rect x="18.7" y="19" width="2.6" height="7.4" rx="1.1" fill="#23523F"/>` +
+    `</svg>`;
+  const scale = selected ? PIN_SCALE_SELECTED : 1;
+  return {
+    type: "picture-marker" as const,
+    url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`,
+    width: `${PIN_WIDTH * scale}px`,
+    height: `${PIN_HEIGHT * scale}px`,
+    // Sube el pin media altura para que la punta quede sobre el árbol.
+    yoffset: `${(PIN_HEIGHT * scale) / 2}px`,
+  };
+}
 
 /**
  * Cancelaciones normales de ArcGIS: un goTo interrumpido por otro
@@ -84,10 +116,27 @@ function toGraphics(features: TreeFeature[], riskByTreeId: Record<string, string
         direccion: feature.properties.direccion,
         comuna: feature.properties.comuna,
         lugar_referencia: feature.properties.lugar_referencia,
-        riesgo: riesgo ?? "Sin evaluación",
+        // undefined = nunca evaluado; null = evaluado, pero un componente
+        // quedó "No determinado" y el árbol no tiene clasificación (N13).
+        riesgo: riesgo === undefined ? "Sin evaluación" : riesgo ?? SIN_CLASIFICACION,
       },
     });
   });
+}
+
+/**
+ * Id del árbol de un gráfico de la capa. ArcGIS puede devolver en el
+ * hitTest solo los campos que usa para dibujar; si falta `id`, se consulta
+ * a la capa por su objectId.
+ */
+async function resolveTreeId(layer: FeatureLayer, graphic: Graphic): Promise<string | null> {
+  const direct = graphic.attributes?.id;
+  if (typeof direct === "string" && direct) return direct;
+  const objectId = graphic.attributes?.[layer.objectIdField];
+  if (objectId === undefined || objectId === null) return null;
+  const result = await layer.queryFeatures({ objectIds: [Number(objectId)], outFields: ["id"] });
+  const id = result.features[0]?.attributes?.id;
+  return typeof id === "string" && id ? id : null;
 }
 
 function createInventoryLayer(graphics: Graphic[]): FeatureLayer {
@@ -95,6 +144,7 @@ function createInventoryLayer(graphics: Graphic[]): FeatureLayer {
     title: "Inventario de árboles",
     source: graphics,
     objectIdField: "OBJECTID",
+    outFields: ["*"],
     geometryType: "point",
     spatialReference: WGS84,
     fields: [
@@ -114,23 +164,14 @@ function createInventoryLayer(graphics: Graphic[]): FeatureLayer {
     renderer: {
       type: "unique-value",
       field: "riesgo",
-      defaultSymbol: {
-        type: "simple-marker",
-        style: "circle",
-        size: TREE_MARKER_SIZE,
-        color: [...SIN_EVALUACION_COLOR, 0.9],
-        outline: { color: [255, 255, 255, 1], width: 2 },
-      },
-      uniqueValueInfos: Object.entries(RIESGO_COLORS).map(([value, rgb]) => ({
-        value,
-        symbol: {
-          type: "simple-marker",
-          style: "circle",
-          size: TREE_MARKER_SIZE,
-          color: [...rgb, 0.92],
-          outline: { color: [255, 255, 255, 1], width: 2 },
-        },
-      })),
+      defaultSymbol: treePinSymbol(SIN_EVALUACION_COLOR),
+      uniqueValueInfos: [
+        ...Object.entries(RIESGO_COLORS).map(([value, rgb]) => ({
+          value,
+          symbol: treePinSymbol(rgb),
+        })),
+        { value: SIN_CLASIFICACION, symbol: treePinSymbol(SIN_EVALUACION_COLOR, false, true) },
+      ],
     },
     popupEnabled: false, // Desactivamos el popup flotante por defecto en favor del panel contextual lateral
   });
@@ -321,13 +362,14 @@ export default function InventoryMapView({
           return;
         }
 
-        const response = await mapView.hitTest(event);
+        const response = await mapView.hitTest(event, { include: [treeLayer] });
         const hit = response.results.find(
           (r) => "graphic" in r && r.graphic.layer === treeLayer
         );
+        const treeId = hit && "graphic" in hit ? await resolveTreeId(treeLayer, hit.graphic) : null;
 
-        if (hit && "graphic" in hit && hit.graphic.attributes?.id) {
-          onSelectTree?.(hit.graphic.attributes.id as string);
+        if (treeId) {
+          onSelectTree?.(treeId);
         } else if (!isPickingLocation) {
           onSelectTree?.(null);
         }
@@ -409,16 +451,12 @@ export default function InventoryMapView({
             latitude: selectedFeature.geometry.coordinates[1],
             spatialReference: WGS84,
           }),
-          symbol: {
-            type: "simple-marker",
-            style: "circle",
-            size: TREE_MARKER_SIZE + 11,
-            color: [63, 147, 111, 0.35], // --sivu-primary-medium con transparencia
-            outline: {
-              color: [35, 82, 63, 1], // --sivu-primary-dark
-              width: 2.5,
-            },
-          },
+          // Mismo pin, más grande y con borde oscuro, sobre el original.
+          symbol: treePinSymbol(
+            RIESGO_COLORS[riskByTreeIdRef.current[selectedTreeId] ?? ""] ?? SIN_EVALUACION_COLOR,
+            true,
+            riskByTreeIdRef.current[selectedTreeId] === null
+          ),
         });
         interactionLayer.add(highlightGraphic);
       }
@@ -442,7 +480,7 @@ export default function InventoryMapView({
       });
       interactionLayer.add(pinGraphic);
     }
-  }, [selectedTreeId, pickedLocation, features]);
+  }, [selectedTreeId, pickedLocation, features, riskByTreeId]);
 
   // Centra y acerca la vista al árbol seleccionado (mapa, listado o búsqueda
   // producen la misma selección — ver ProjectInventoryMap). No depende de
@@ -498,6 +536,13 @@ export default function InventoryMapView({
           </span>
           <span className="sivu-map-legend__item">
             <span className="sivu-map-legend__dot" style={{ background: "#9AA69E" }} /> Sin evaluación
+          </span>
+          <span className="sivu-map-legend__item">
+            <span
+              className="sivu-map-legend__dot"
+              style={{ background: "#FFFFFF", border: "1.5px solid #9AA69E" }}
+            />{" "}
+            Sin clasificación
           </span>
         </div>
       )}

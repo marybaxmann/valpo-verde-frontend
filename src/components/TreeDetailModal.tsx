@@ -10,6 +10,7 @@ import { RiskAssessmentModal } from "./RiskAssessmentModal";
 import { SivuTable } from "./SivuTable";
 import { useCanWrite } from "../hooks/useCanWrite";
 import { TreeModulesSummary } from "./TreeModulesSummary";
+import { RiskComponentDiagram } from "./RiskComponentDiagram";
 
 function fallaCompacta(r: TreeRiskAssessmentDTO["resultado"]): string {
   return `RC: ${r.probabilidad_falla_raices_cuello ?? "—"} · TR: ${r.probabilidad_falla_tronco ?? "—"} · CR: ${r.probabilidad_falla_copa_ramas ?? "—"}`;
@@ -17,16 +18,6 @@ function fallaCompacta(r: TreeRiskAssessmentDTO["resultado"]): string {
 
 function consecuenciaCompacta(r: TreeRiskAssessmentDTO["resultado"]): string {
   return `RC: ${r.consecuencia_raices_cuello} · TR: ${r.consecuencia_tronco} · CR: ${r.consecuencia_copa_ramas}`;
-}
-
-/** Clasificación (M02+M03) de un componente, tal como la devolvió el backend. */
-function ComponenteRiesgo({ label, level }: { label: string; level: string | null }) {
-  return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
-      <span style={{ fontSize: 10.5, color: "var(--text-secondary)" }}>{label}</span>
-      {level ? <ClassificationBadge level={level} /> : <span className="status-pill">No determinado</span>}
-    </div>
-  );
 }
 
 export function TreeDetailModal({
@@ -176,7 +167,7 @@ export function TreeDetailModal({
                   {ultimaEvaluacion?.resultado.clasificacion_riesgo ? (
                     <ClassificationBadge level={ultimaEvaluacion.resultado.clasificacion_riesgo} />
                   ) : ultimaEvaluacion ? (
-                    <span className="status-pill">No determinado</span>
+                    <span className="status-pill">Sin clasificación</span>
                   ) : (
                     <span className="status-pill">Sin evaluación</span>
                   )}
@@ -363,7 +354,7 @@ export function TreeDetailModal({
                           className="risk-result-badge"
                         />
                       ) : (
-                        <span className="status-pill">No determinado</span>
+                        <span className="status-pill">Sin clasificación</span>
                       )}
                     </div>
 
@@ -395,12 +386,11 @@ export function TreeDetailModal({
                         </span>
                       </div>
                       <div className="sivu-tech-cell sivu-tech-cell--full">
-                        <span className="sivu-tech-cell__label">Clasificación por componente</span>
-                        <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginTop: 4 }}>
-                          <ComponenteRiesgo label="Raíces y cuello" level={ultimaEvaluacion.resultado.clasificacion_raices_cuello} />
-                          <ComponenteRiesgo label="Tronco" level={ultimaEvaluacion.resultado.clasificacion_tronco} />
-                          <ComponenteRiesgo label="Copa y ramas" level={ultimaEvaluacion.resultado.clasificacion_copa_ramas} />
-                        </div>
+                        <span className="sivu-tech-cell__label">Diagnóstico por componente</span>
+                        <RiskComponentDiagram resultado={ultimaEvaluacion.resultado} />
+                        <span style={{ fontSize: 11, color: "var(--text-secondary)", marginTop: 6 }}>
+                          El nivel del árbol corresponde al componente más desfavorable.
+                        </span>
                       </div>
                     </div>
 
@@ -428,7 +418,7 @@ export function TreeDetailModal({
                                 {a.resultado.clasificacion_riesgo ? (
                                   <ClassificationBadge level={a.resultado.clasificacion_riesgo} />
                                 ) : (
-                                  <span className="status-pill">No determinado</span>
+                                  <span className="status-pill">Sin clasificación</span>
                                 )}
                               </td>
                             </tr>

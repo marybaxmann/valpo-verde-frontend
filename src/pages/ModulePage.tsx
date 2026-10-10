@@ -10,6 +10,7 @@ import { getArcgisApiKey } from "../lib/arcgis";
 import { Icon, type IconName } from "../components/Icons";
 import { MapPlaceholder } from "../components/MapPlaceholder";
 import { TreeDetailModal } from "../components/TreeDetailModal";
+import { RiskComponentDiagram } from "../components/RiskComponentDiagram";
 import { RiskAssessmentModal } from "../components/RiskAssessmentModal";
 import { ClassificationBadge } from "../components/ClassificationBadge";
 import { listProjectInfrastructureAssessments, type InfrastructureAssessmentDTO } from "../api/moduleRecords";
@@ -370,8 +371,8 @@ export default function ModulePage({ module }: { module: ModuleKey }) {
               >
                 <IndicadorChip label="Evaluados" value={inspectionStats.arbolesEvaluados} />
                 <IndicadorChip label="Sin evaluar" value={inspectionStats.arbolesSinEvaluar} />
-                <IndicadorChip label="Bajo" value={inspectionStats.Bajo} color="#4d6a2e" />
-                <IndicadorChip label="Moderado" value={inspectionStats.Moderado} color="#946200" />
+                <IndicadorChip label="Bajo" value={inspectionStats.Bajo} color="var(--risk-text-low)" />
+                <IndicadorChip label="Moderado" value={inspectionStats.Moderado} color="var(--risk-text-medium)" />
                 <IndicadorChip label="Alto" value={inspectionStats.Alto} color="#F04A32" />
                 <IndicadorChip label="Extremo" value={inspectionStats.Extremo} color="#C7252B" />
               </div>
@@ -589,7 +590,7 @@ export default function ModulePage({ module }: { module: ModuleKey }) {
                           {latest.resultado.clasificacion_riesgo ? (
                             <ClassificationBadge level={latest.resultado.clasificacion_riesgo} className="risk-result-badge" />
                           ) : (
-                            <span className="status-pill">No determinado</span>
+                            <span className="status-pill">Sin clasificación</span>
                           )}
                         </div>
                         <div className="sivu-tech-grid">
@@ -600,6 +601,10 @@ export default function ModulePage({ module }: { module: ModuleKey }) {
                           <div className="sivu-tech-cell">
                             <span className="sivu-tech-cell__label">Inspector</span>
                             <span className="sivu-tech-cell__value">{latest.inspector_nombre || "—"}</span>
+                          </div>
+                          <div className="sivu-tech-cell sivu-tech-cell--full">
+                            <span className="sivu-tech-cell__label">Diagnóstico por componente</span>
+                            <RiskComponentDiagram resultado={latest.resultado} compact />
                           </div>
                         </div>
                       </div>
@@ -627,7 +632,7 @@ export default function ModulePage({ module }: { module: ModuleKey }) {
                               {a.resultado.clasificacion_riesgo ? (
                                 <ClassificationBadge level={a.resultado.clasificacion_riesgo} className="risk-list-badge" />
                               ) : (
-                                <span className="status-pill" style={{ fontSize: 10 }}>No determinado</span>
+                                <span className="status-pill" style={{ fontSize: 10 }}>Sin clasificación</span>
                               )}
                             </div>
                           ))}
@@ -779,7 +784,7 @@ export default function ModulePage({ module }: { module: ModuleKey }) {
                           {dto.resultado.clasificacion_riesgo ? (
                             <ClassificationBadge level={dto.resultado.clasificacion_riesgo} className="risk-list-badge" />
                           ) : (
-                            <span className="status-pill" style={{ fontSize: 10 }}>No determinado</span>
+                            <span className="status-pill" style={{ fontSize: 10 }}>Sin clasificación</span>
                           )}
                           <span style={{ fontSize: 11, color: "var(--sivu-primary)", fontWeight: 600 }}>Ver árbol →</span>
                         </div>

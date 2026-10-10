@@ -63,12 +63,61 @@ function defaultVariables(): TreeRiskVariables {
   };
 }
 
+/** Fecha de hoy en la zona horaria del navegador (AAAA-MM-DD), no en UTC. */
+function hoyLocal(): string {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
+const fueraDe = (x: number | null, min: number, max: number) => x !== null && (Number.isNaN(x) || x < min || x > max);
+
+/**
+ * Datos que exigen las reglas para poder clasificar (REGLAS_INDICADORES v3),
+ * por paso del asistente. Es solo ayuda de llenado: el backend vuelve a
+ * validar lo mismo y es quien decide. SL% y t/R pueden quedar vacíos:
+ * la regla los resuelve como "No determinado".
+ */
+function datosFaltantes(step: number, v: TreeRiskVariables, fecha: string): string[] {
+  const f: string[] = [];
+  if (step === 1) {
+    if (!fecha) f.push("Fecha de evaluación");
+    else if (fecha > hoyLocal()) f.push("La fecha de evaluación no puede ser futura");
+  }
+  if (step === 2) {
+    if (fueraDe(v.angulo_inclinacion, 0, 90)) f.push("Ángulo de inclinación entre 0 y 90°");
+    if (v.raices_expuestas && v.necrosis_radicular === null) f.push("¿Necrosis radicular?");
+    if (v.raices_expuestas && v.raices_cortadas === null) f.push("¿Raíces cortadas?");
+    if (v.cavidad_pudricion_basal && v.cavidad_basal_externa === null) f.push("¿La cavidad basal es visible desde el exterior?");
+    if (fueraDe(v.sl_basal_pct, 0, 100)) f.push("SL basal entre 0 y 100 %");
+    if (fueraDe(v.t_r_basal, 0, 1)) f.push("t/R basal entre 0 y 1");
+  }
+  if (step === 3) {
+    if (v.presenta_cavidad_pudricion_tronco && v.cavidad_externa_tronco === null)
+      f.push("¿La cavidad del tronco es visible desde el exterior?");
+    if (fueraDe(v.sl_tronco_pct, 0, 100)) f.push("SL del tronco entre 0 y 100 %");
+    if (fueraDe(v.t_r_tronco, 0, 1)) f.push("t/R del tronco entre 0 y 1");
+    if (v.presenta_heridas_tronco && v.condicion_heridas_tronco === null) f.push("Condición de la herida");
+    if (v.presenta_fisura_grieta_tronco && v.afectacion_fisura_grieta === null) f.push("Afectación de la grieta");
+    if (v.afectacion_fisura_grieta === "Penetra en madera" && v.direccion_grieta === null) f.push("Dirección de la grieta");
+    if (v.troncos_codominantes && v.grieta_union_codominante === null) f.push("¿Grieta en la unión codominante?");
+    if (v.troncos_codominantes && v.grieta_union_codominante === false && v.corteza_incluida === null)
+      f.push("¿La unión presenta corteza incluida?");
+  }
+  if (step === 4 && v.ramas_secas) {
+    const pct = v.ramas_secas_pct_copa;
+    if (pct === null) f.push("Porcentaje de copa con ramas secas");
+    else if (Number.isNaN(pct) || pct <= 0 || pct > 100) f.push("Porcentaje de ramas secas mayor que 0 y hasta 100");
+  }
+  return f;
+}
+
 function YesNo({
   value,
   onChange,
   label,
 }: {
-  value: boolean;
+  /** null = sin responder (ninguna opción marcada). */
+  value: boolean | null;
   onChange: (v: boolean) => void;
   label: string;
 }) {
@@ -112,7 +161,7 @@ function CavidadFields({
         <>
           <YesNo
             label="¿La cavidad/pudrición es visible desde el exterior?"
-            value={externa === true}
+            value={externa}
             onChange={(v) => onChange({ externa: v, slPct: null, tR: null })}
           />
           {externa === true && (
@@ -163,7 +212,7 @@ export function RiskAssessmentModal({
   onSuccess: (dto: TreeRiskAssessmentDTO) => void;
 }) {
   const [step, setStep] = useState(1);
-  const [fechaEvaluacion, setFechaEvaluacion] = useState(new Date().toISOString().slice(0, 10));
+  const [fechaEvaluacion, setFechaEvaluacion] = useState(hoyLocal);
   const [v, setV] = useState<TreeRiskVariables>(defaultVariables());
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -173,7 +222,10 @@ export function RiskAssessmentModal({
     setV((prev) => ({ ...prev, [key]: value }));
   }
 
+  const faltan = datosFaltantes(step, v, fechaEvaluacion);
+
   async function handleSubmit() {
+    if (faltan.length > 0) return;
     setSubmitting(true);
     setError(null);
     try {
@@ -230,7 +282,7 @@ export function RiskAssessmentModal({
                 <label>Fecha de evaluación</label>
                 <input
                   type="date"
-                  max={new Date().toISOString().slice(0, 10)}
+                  max={hoyLocal()}
                   value={fechaEvaluacion}
                   onChange={(e) => setFechaEvaluacion(e.target.value)}
                 />
@@ -274,12 +326,12 @@ export function RiskAssessmentModal({
                 <>
                   <YesNo
                     label="¿Necrosis radicular?"
-                    value={v.necrosis_radicular === true}
+                    value={v.necrosis_radicular}
                     onChange={(val) => update("necrosis_radicular", val)}
                   />
                   <YesNo
                     label="¿Raíces cortadas?"
-                    value={v.raices_cortadas === true}
+                    value={v.raices_cortadas}
                     onChange={(val) => update("raices_cortadas", val)}
                   />
                 </>
@@ -426,13 +478,13 @@ export function RiskAssessmentModal({
                 <>
                   <YesNo
                     label="¿Grieta en la unión codominante?"
-                    value={v.grieta_union_codominante === true}
-                    onChange={(val) => update("grieta_union_codominante", val)}
+                    value={v.grieta_union_codominante}
+                    onChange={(val) => setV((prev) => ({ ...prev, grieta_union_codominante: val, corteza_incluida: null }))}
                   />
-                  {v.grieta_union_codominante !== true && (
+                  {v.grieta_union_codominante === false && (
                     <YesNo
                       label="¿La unión presenta corteza incluida?"
-                      value={v.corteza_incluida === true}
+                      value={v.corteza_incluida}
                       onChange={(val) => update("corteza_incluida", val)}
                     />
                   )}
@@ -567,24 +619,39 @@ export function RiskAssessmentModal({
 
               <div style={{ textAlign: "center", padding: "18px 0" }}>
                 <div style={{ fontSize: 11, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--text-secondary)", marginBottom: 8 }}>
-                  Nivel de riesgo
+                  Riesgo del árbol
                 </div>
                 {result.resultado.clasificacion_riesgo ? (
                   <ClassificationBadge level={result.resultado.clasificacion_riesgo} className="risk-result-badge" />
                 ) : (
-                  <span className="status-pill">No determinado — ver nota abajo</span>
+                  <span className="status-pill">Sin clasificación — ver nota abajo</span>
                 )}
               </div>
 
               {!result.resultado.clasificacion_riesgo && (
                 <p style={{ fontSize: 11.5, color: "var(--text-secondary)" }}>
                   Al menos un componente quedó "No determinado" (faltó una medición requerida, p. ej. SL% o t/R
-                  en una cavidad). El riesgo global no se calcula con un valor inventado en su lugar.
+                  en una cavidad), así que el árbol queda sin clasificación de riesgo hasta completarla. No se
+                  usa un valor inventado en su lugar. La evaluación de infraestructura es independiente.
                 </p>
               )}
             </div>
           )}
         </div>
+
+        {step < 6 && faltan.length > 0 && (
+          <div className="risk-wizard-missing" role="status">
+            <Icon name="alert" size={13} />
+            <div>
+              <strong>Completa para continuar:</strong>
+              <ul>
+                {faltan.map((f) => (
+                  <li key={f}>{f}</li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        )}
 
         <footer className="sivu-modal-footer">
           {step < 6 && (
@@ -598,11 +665,16 @@ export function RiskAssessmentModal({
                 {step === 1 ? "Cancelar" : "Atrás"}
               </button>
               {step < 5 ? (
-                <button type="button" className="btn btn-primary" onClick={() => setStep(step + 1)}>
+                <button
+                  type="button"
+                  className="btn btn-primary"
+                  onClick={() => setStep(step + 1)}
+                  disabled={faltan.length > 0}
+                >
                   Siguiente
                 </button>
               ) : (
-                <button type="button" className="btn btn-primary" onClick={handleSubmit} disabled={submitting}>
+                <button type="button" className="btn btn-primary" onClick={handleSubmit} disabled={submitting || faltan.length > 0}>
                   {submitting ? "Calculando..." : "Calcular y guardar evaluación"}
                 </button>
               )}

@@ -202,7 +202,7 @@ export function InfrastructureAssessmentSummary({ dto }: { dto: InfrastructureAs
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
       {displayBlocks(dto.variables).map((b) => (
-        <div key={b.title} style={{ fontSize: 12, borderBottom: "1px solid #edf0ed", paddingBottom: 6 }}>
+        <div key={b.title} style={{ fontSize: 12, borderBottom: "1px solid var(--border-soft)", paddingBottom: 6 }}>
           <div style={{ display: "flex", justifyContent: "space-between", gap: 8 }}>
             <strong style={{ color: "var(--text-primary)" }}>{b.title}</strong>
             <span className="status-pill" style={{ fontSize: 10.5 }} title={b.gateLabel}>
