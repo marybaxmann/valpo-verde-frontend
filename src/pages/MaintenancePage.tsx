@@ -16,6 +16,7 @@ import {
 import { RecordDetailModal } from "../components/RecordDetailModal";
 import { useCanWrite } from "../hooks/useCanWrite";
 import type { TreeFeature } from "../types/tree";
+import { fechaChile, hoyChile } from "../lib/dates";
 
 /**
  * Mantención — órdenes de trabajo mínimas (corte demo), SIN mapa.
@@ -50,8 +51,6 @@ const CONFIG: ManagementModuleConfig = {
   emptyTitle: "No hay intervenciones registradas en este proyecto.",
   emptyText: "Las órdenes de trabajo aparecerán aquí cuando se registren intervenciones sobre el arbolado.",
 };
-
-const today = () => new Date().toISOString().slice(0, 10);
 
 export default function MaintenancePage() {
   const { projectId = "" } = useParams();
@@ -109,7 +108,7 @@ export default function MaintenancePage() {
   const states = catalogs?.maintenance_states ?? [];
   // Vencida = fecha programada pasada y estado no final (Completada/Cancelada).
   const esVencida = (o: MaintenanceOrder) =>
-    !MAINTENANCE_FINAL.includes(o.estado) && !!o.fecha_programada && o.fecha_programada < today();
+    !MAINTENANCE_FINAL.includes(o.estado) && !!o.fecha_programada && o.fecha_programada < hoyChile();
   const stats = useMemo(
     () => [
       orders.filter((o) => o.estado === "pendiente").length,
@@ -198,7 +197,7 @@ export default function MaintenancePage() {
                 { label: "Especie", value: t?.properties.nombre_comun || t?.properties.nombre_cientifico || "—" },
                 { label: "Acción solicitada", value: accion?.etiqueta ?? o.tipo_intervencion },
                 { label: "Subtipo", value: accion?.subtipos.find((x) => x.codigo === o.subtipo_accion)?.etiqueta ?? o.subtipo_accion },
-                { label: "Fecha de creación", value: o.created_at.slice(0, 10) },
+                { label: "Fecha de creación", value: fechaChile(o.created_at) },
                 { label: "Fecha programada", value: o.fecha_programada ?? "Sin fecha" },
                 { label: "Responsable", value: o.responsable },
                 {

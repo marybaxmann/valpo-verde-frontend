@@ -14,6 +14,7 @@ import {
 import { RecordDetailModal } from "../components/RecordDetailModal";
 import { useCanWrite } from "../hooks/useCanWrite";
 import type { TreeFeature } from "../types/tree";
+import { fechaChile } from "../lib/dates";
 
 /**
  * Incidencias — registro mínimo (corte demo), SIN mapa. Crear → guardar →
@@ -164,7 +165,7 @@ export default function IncidentsPage() {
           return (
             <tr key={i.id} className="sivu-table__row--interactive" onClick={() => setDetailId(i.id)} title="Ver detalle">
               <td className="sivu-table__strong" style={{ fontSize: 11 }}>{i.codigo_incidencia ?? "—"}</td>
-              <td className="sivu-table__num">{i.created_at.slice(0, 10)}</td>
+              <td className="sivu-table__num">{fechaChile(i.created_at)}</td>
               <td>
                 <div className="sivu-table__strong">{t?.properties.tree_code ?? "Sin árbol identificado"}</div>
                 <div style={{ fontSize: 11, color: "var(--text-secondary)" }}>
@@ -194,7 +195,7 @@ export default function IncidentsPage() {
               title="Incidencia"
               code={i.codigo_incidencia}
               fields={[
-                { label: "Fecha de reporte", value: i.created_at.slice(0, 10) },
+                { label: "Fecha de reporte", value: fechaChile(i.created_at) },
                 { label: "Estado", value: estadoLabel(i.estado, states) },
                 { label: "Árbol relacionado", value: t?.properties.tree_code ?? "Sin árbol identificado" },
                 { label: "Especie", value: t?.properties.nombre_comun || t?.properties.nombre_cientifico || "—" },

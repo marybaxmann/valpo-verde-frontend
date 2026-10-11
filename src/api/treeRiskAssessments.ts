@@ -15,13 +15,17 @@ export function createTreeRiskAssessment(
 }
 
 export function listTreeRiskAssessments(treeId: string): Promise<{ data: TreeRiskAssessmentDTO[] }> {
-  return api.get<{ data: TreeRiskAssessmentDTO[] }>(`/api/trees/${treeId}/risk-assessments`);
+  return cachedGet(`risk-history:${treeId}`, () =>
+    api.get<{ data: TreeRiskAssessmentDTO[] }>(`/api/trees/${treeId}/risk-assessments`)
+  );
 }
 
 export function getLatestTreeRiskAssessment(
   treeId: string
 ): Promise<{ data: TreeRiskAssessmentDTO | null }> {
-  return api.get<{ data: TreeRiskAssessmentDTO | null }>(`/api/trees/${treeId}/risk-assessments/latest`);
+  return cachedGet(`risk-latest:${treeId}`, () =>
+    api.get<{ data: TreeRiskAssessmentDTO | null }>(`/api/trees/${treeId}/risk-assessments/latest`)
+  );
 }
 
 /**

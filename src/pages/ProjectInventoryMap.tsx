@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useMemo, useState } from "react";
+import { lazy, Suspense, useDeferredValue, useEffect, useMemo, useState } from "react";
 import { Link, useLocation, useParams } from "react-router-dom";
 import { getProject } from "../api/projects";
 import { listProjectTrees } from "../api/trees";
@@ -16,9 +16,13 @@ import { CreateTreeModal } from "../components/CreateTreeModal";
 import { ClassificationBadge } from "../components/ClassificationBadge";
 import { RiskDistribution, countRisks } from "../components/RiskDistribution";
 import { useCanWrite } from "../hooks/useCanWrite";
+import { riskLevelsByTree } from "../lib/risk";
 
 /** SDK de ArcGIS cargado de forma diferida */
 const InventoryMapView = lazy(() => import("../components/InventoryMapView"));
+
+/** Referencia estable para "sin inventario" (el mapa sincroniza al cambiar la referencia). */
+const NO_FEATURES: TreeFeature[] = [];
 
 /**
  * INV-1C — Workspace Territorial de Inventario de Arbolado Urbano (SIVU).
@@ -53,6 +57,7 @@ export default function ProjectInventoryMap() {
   // Última evaluación vigente por árbol (para colorear el mapa y filtrar).
   // Nunca se recalcula aquí: es exactamente lo que persistió el backend.
   const [riskSummary, setRiskSummary] = useState<Record<string, TreeRiskAssessmentDTO>>({});
+  const [riskSummaryReady, setRiskSummaryReady] = useState(false);
 
   // Estados de Creación de Árbol (+ Nuevo Árbol)
   const [isCreatingTree, setIsCreatingTree] = useState(false);
@@ -84,10 +89,12 @@ export default function ProjectInventoryMap() {
       .then((res) => {
         if (cancelled) return;
         setRiskSummary(res.data);
+        setRiskSummaryReady(true);
       })
       .catch(() => {
         if (cancelled) return;
         setRiskSummary({});
+        setRiskSummaryReady(false);
       });
 
     return () => {
@@ -116,13 +123,7 @@ export default function ProjectInventoryMap() {
 
   // tree_id -> clasificacion_riesgo de su última evaluación (solo lectura
   // de lo ya calculado por el backend; null = evaluado pero "No determinado").
-  const riskByTreeId = useMemo(() => {
-    const map: Record<string, string | null> = {};
-    for (const [treeId, dto] of Object.entries(riskSummary)) {
-      map[treeId] = dto.resultado.clasificacion_riesgo;
-    }
-    return map;
-  }, [riskSummary]);
+  const riskByTreeId = useMemo(() => riskLevelsByTree(riskSummary), [riskSummary]);
 
   // Conteos por nivel de riesgo (lectura analítica sobre resultados reales
   // ya persistidos, no un cálculo metodológico nuevo).
@@ -138,19 +139,23 @@ export default function ProjectInventoryMap() {
     return counts;
   }, [riskSummary, inventory]);
 
-  // Filtrado reactivo de features
+  // Filtrado reactivo de features. La búsqueda usa un valor diferido: el
+  // campo responde de inmediato y el listado/mapa se actualizan cuando React
+  // tiene tiempo, sin recalcular en cada tecla mientras se escribe rápido.
+  const deferredSearch = useDeferredValue(searchTerm);
   const filteredFeatures = useMemo(() => {
     if (!inventory?.data?.features) return [];
+    const term = deferredSearch.trim().toLowerCase();
     return inventory.data.features.filter((f) => {
       const matchSearch =
-        !searchTerm.trim() ||
-        f.properties.tree_code.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        !term ||
+        f.properties.tree_code.toLowerCase().includes(term) ||
         (f.properties.nombre_comun &&
-          f.properties.nombre_comun.toLowerCase().includes(searchTerm.toLowerCase())) ||
+          f.properties.nombre_comun.toLowerCase().includes(term)) ||
         (f.properties.nombre_cientifico &&
-          f.properties.nombre_cientifico.toLowerCase().includes(searchTerm.toLowerCase())) ||
+          f.properties.nombre_cientifico.toLowerCase().includes(term)) ||
         (f.properties.direccion &&
-          f.properties.direccion.toLowerCase().includes(searchTerm.toLowerCase()));
+          f.properties.direccion.toLowerCase().includes(term));
 
       const matchStatus =
         statusFilter === "all" ||
@@ -163,7 +168,17 @@ export default function ProjectInventoryMap() {
 
       return matchSearch && matchStatus && matchRisk;
     });
-  }, [inventory, searchTerm, statusFilter, riskFilter, riskByTreeId]);
+  }, [inventory, deferredSearch, statusFilter, riskFilter, riskByTreeId]);
+
+  const allFeatures = useMemo(() => inventory?.data?.features ?? NO_FEATURES, [inventory]);
+
+  // Ids visibles para el mapa: el mapa recibe siempre el inventario completo
+  // y solo oculta lo filtrado, sin borrar y redibujar todos los pines.
+  const visibleTreeIds = useMemo(() => {
+    const total = inventory?.data?.features.length ?? 0;
+    if (filteredFeatures.length === total) return null;
+    return new Set(filteredFeatures.map((f) => f.properties.id));
+  }, [filteredFeatures, inventory]);
 
   // Árbol seleccionado actualmente
   const selectedFeature: TreeFeature | undefined = useMemo(() => {
@@ -596,7 +611,8 @@ export default function ProjectInventoryMap() {
                   <InventoryMapView
                     key={projectId}
                     apiKey={apiKey}
-                    features={filteredFeatures}
+                    features={allFeatures}
+                    visibleTreeIds={visibleTreeIds}
                     selectedTreeId={selectedTreeId}
                     onSelectTree={(id) => setSelectedTreeId(id)}
                     isPickingLocation={isPickingLocation}
@@ -625,6 +641,7 @@ export default function ProjectInventoryMap() {
             onTreeUpdated={handleTreeUpdated}
             onRiskAssessmentCreated={handleRiskAssessmentCreated}
             summaryAssessment={riskSummary[selectedFeature.properties.id]}
+            summaryReady={riskSummaryReady}
             docked={true}
           />
         ) : (

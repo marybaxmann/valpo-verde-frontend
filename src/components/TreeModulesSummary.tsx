@@ -18,6 +18,7 @@ import { useProjectBase } from "../hooks/useProjectBase";
 import { useCanWrite } from "../hooks/useCanWrite";
 import { Icon, type IconName } from "./Icons";
 import { componentesRegistrados } from "./InfrastructureAssessmentModal";
+import { fechaChile } from "../lib/dates";
 
 /**
  * Ficha → resumen del árbol en Infraestructura, Mantención e Incidencias
@@ -105,7 +106,7 @@ export function TreeModulesSummary({ treeId, projectId }: { treeId: string; proj
             incidents && incidents[0]
               ? [
                   `Incidencias abiertas: ${incidents.filter((i) => !INCIDENT_FINAL.includes(i.estado)).length} de ${incidents.length}`,
-                  `Última: ${incidents[0].codigo_incidencia ?? ""} · ${incidents[0].tipo} · ${incidents[0].created_at.slice(0, 10)}`,
+                  `Última: ${incidents[0].codigo_incidencia ?? ""} · ${incidents[0].tipo} · ${fechaChile(incidents[0].created_at)}`,
                   `Estado: ${estadoLabel(incidents[0].estado, catalogs?.incident_states)}`,
                 ]
               : []

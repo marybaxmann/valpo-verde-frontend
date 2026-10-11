@@ -3,6 +3,8 @@ import esriConfig from "@arcgis/core/config";
 import ArcGISMap from "@arcgis/core/Map";
 import MapView from "@arcgis/core/views/MapView";
 import FeatureLayer from "@arcgis/core/layers/FeatureLayer";
+import FeatureFilter from "@arcgis/core/layers/support/FeatureFilter";
+import type FeatureLayerView from "@arcgis/core/views/layers/FeatureLayerView";
 import GraphicsLayer from "@arcgis/core/layers/GraphicsLayer";
 import Graphic from "@arcgis/core/Graphic";
 import Point from "@arcgis/core/geometry/Point";
@@ -139,6 +141,17 @@ async function resolveTreeId(layer: FeatureLayer, graphic: Graphic): Promise<str
   return typeof id === "string" && id ? id : null;
 }
 
+/**
+ * Filtro de visualización de la capa: muestra solo los árboles visibles sin
+ * reconstruir la capa (`null` = todos). Se aplica en la vista de la capa.
+ */
+function visibilityFilter(visibleTreeIds: ReadonlySet<string> | null | undefined): FeatureFilter | null {
+  if (!visibleTreeIds) return null;
+  if (visibleTreeIds.size === 0) return new FeatureFilter({ where: "1=0" });
+  const ids = [...visibleTreeIds].map((id) => `'${id.replace(/'/g, "''")}'`).join(",");
+  return new FeatureFilter({ where: `id IN (${ids})` });
+}
+
 function createInventoryLayer(graphics: Graphic[]): FeatureLayer {
   return new FeatureLayer({
     title: "Inventario de árboles",
@@ -186,6 +199,7 @@ export default function InventoryMapView({
   pickedLocation,
   onPickLocation,
   riskByTreeId,
+  visibleTreeIds,
   showLegend = false,
 }: {
   apiKey: string;
@@ -197,6 +211,11 @@ export default function InventoryMapView({
   onPickLocation?: (coords: { lon: number; lat: number }) => void;
   /** tree id -> clasificacion_riesgo de su última evaluación (null/undefined = sin evaluación). */
   riskByTreeId?: Record<string, string | null | undefined>;
+  /**
+   * Árboles que deben verse (búsqueda / filtros). Se aplica como filtro de la
+   * vista sin redibujar la capa; omitido = todos los de `features`.
+   */
+  visibleTreeIds?: ReadonlySet<string> | null;
   showLegend?: boolean;
 }) {
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -204,6 +223,7 @@ export default function InventoryMapView({
   const viewRef = useRef<MapView | null>(null);
   const interactionLayerRef = useRef<GraphicsLayer | null>(null);
   const treeLayerRef = useRef<FeatureLayer | null>(null);
+  const treeLayerViewRef = useRef<FeatureLayerView | null>(null);
   const hasZoomedRef = useRef(false);
 
   // Mantenemos referencias a callbacks y a los features vigentes para no
@@ -223,6 +243,38 @@ export default function InventoryMapView({
   useEffect(() => {
     riskByTreeIdRef.current = riskByTreeId ?? {};
   }, [riskByTreeId]);
+
+  const visibleTreeIdsRef = useRef(visibleTreeIds);
+  useEffect(() => {
+    visibleTreeIdsRef.current = visibleTreeIds;
+    if (treeLayerViewRef.current) treeLayerViewRef.current.filter = visibilityFilter(visibleTreeIds);
+  }, [visibleTreeIds]);
+
+  /**
+   * Las sincronizaciones se ejecutan de a una: si llega otra mientras una
+   * está en curso (p. ej. el inventario y el resumen de riesgo llegan casi a
+   * la vez), se repite una sola vez al terminar con los datos más recientes.
+   * Así dos sincronizaciones nunca leen los mismos ids y agregan dos veces.
+   */
+  const syncStateRef = useRef<{ running: Promise<void> | null; again: boolean }>({ running: null, again: false });
+  function requestSync(): Promise<void> {
+    const state = syncStateRef.current;
+    if (state.running) {
+      state.again = true;
+      return state.running;
+    }
+    state.running = (async () => {
+      try {
+        do {
+          state.again = false;
+          await syncTreeLayer();
+        } while (state.again);
+      } finally {
+        state.running = null;
+      }
+    })();
+    return state.running;
+  }
 
   /**
    * Reemplaza el contenido de la capa de árboles por los features vigentes
@@ -382,7 +434,17 @@ export default function InventoryMapView({
       mapView.when(
         () => {
           if (destroyed) return;
-          syncTreeLayer().catch((err: unknown) => {
+          mapView
+            .whenLayerView(treeLayer)
+            .then((layerView) => {
+              if (destroyed) return;
+              treeLayerViewRef.current = layerView;
+              layerView.filter = visibilityFilter(visibleTreeIdsRef.current);
+            })
+            .catch((err: unknown) => {
+              if (!destroyed && !isInterruption(err)) console.error("No se pudo preparar la vista de la capa de árboles", err);
+            });
+          requestSync().catch((err: unknown) => {
             if (destroyed || isInterruption(err)) return;
             console.error("No se pudo dibujar la capa de árboles", err);
             setMapError("No se pudieron dibujar los árboles en el mapa. Recarga la página.");
@@ -412,14 +474,16 @@ export default function InventoryMapView({
       viewRef.current = null;
       interactionLayerRef.current = null;
       treeLayerRef.current = null;
+      treeLayerViewRef.current = null;
     };
   }, [apiKey]);
 
   // Efecto 2: sincroniza la capa cuando cambian los árboles reales del backend
-  // (alta nueva, filtros, recarga) — sin tocar el MapView ni el basemap.
+  // (alta nueva, edición, recarga) — sin tocar el MapView ni el basemap. La
+  // búsqueda y los filtros no pasan por aquí: usan `visibleTreeIds`.
   useEffect(() => {
     if (!treeLayerRef.current) return; // El mapa aún no terminó de crearse (efecto 1 lo hará con estos datos).
-    syncTreeLayer().catch((err: unknown) => {
+    requestSync().catch((err: unknown) => {
       console.error("No se pudo sincronizar la capa de árboles del inventario", err);
     });
   }, [features]);
@@ -428,7 +492,7 @@ export default function InventoryMapView({
   // proyecto (p. ej. tras guardar una evaluación), sin recrear el mapa.
   useEffect(() => {
     if (!treeLayerRef.current) return;
-    syncTreeLayer().catch((err: unknown) => {
+    requestSync().catch((err: unknown) => {
       console.error("No se pudo recolorear la capa de árboles por riesgo", err);
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps

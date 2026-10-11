@@ -20,9 +20,15 @@ export function TreeContextualPanel({
   onRiskAssessmentCreated,
   docked = true,
   summaryAssessment,
+  summaryReady = false,
 }: {
   /** Última evaluación según el resumen del proyecto (se actualiza cuando se evalúa desde la ficha). */
   summaryAssessment?: TreeRiskAssessmentDTO;
+  /**
+   * El resumen de riesgo del proyecto ya llegó bien: `summaryAssessment` es la
+   * última evaluación (o no hay ninguna) y no hace falta volver a pedirla.
+   */
+  summaryReady?: boolean;
   treeFeature: TreeFeature;
   onClose: () => void;
   onViewFullDetail: (treeId: string) => void;
@@ -62,6 +68,18 @@ export function TreeContextualPanel({
         setLoading(false);
       });
 
+    return () => {
+      cancelled = true;
+    };
+  }, [treeId]);
+
+  useEffect(() => {
+    if (summaryReady) {
+      setLatestAssessment(summaryAssessment ?? null);
+      setLoadingRisk(false);
+      return;
+    }
+    let cancelled = false;
     setLoadingRisk(true);
     getLatestTreeRiskAssessment(treeId)
       .then((res) => {
@@ -78,7 +96,8 @@ export function TreeContextualPanel({
     return () => {
       cancelled = true;
     };
-  }, [treeId]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [treeId, summaryReady]);
 
   // Si se registró una evaluación desde otra vista (p. ej. la ficha), el
   // resumen del proyecto trae la nueva; se refleja sin recargar el panel.
