@@ -38,7 +38,7 @@ Según la tarea (fuentes canónicas, en el repositorio backend):
 
 Repositorio remoto del backend: `marybaxmann/valpo-verde-backend`.
 
-## Jerarquía de fuentes (PR-016 v4.0, CC-021)
+## Jerarquía de fuentes (PR-016 v6.0; CC-021, CC-023, CC-025)
 
 Ante contradicción, manda la de mayor nivel:
 
@@ -55,7 +55,8 @@ Ante contradicción, manda la de mayor nivel:
 |---|---|---|
 | Figma original (8 pantallas) | `docs/referencias/figma-original/` | Intención funcional histórica de cada pantalla. Puede contener módulos, campos, categorías y cálculos superados; no restablece decisiones posteriormente modificadas. |
 | Prototipo navegable | `marybaxmann/Valpo-Verde-Conecta` | Intención funcional histórica (mismo nivel que el Figma, PR-001 v3.0). |
-| Referencia visual principal | `docs/referencias/visuales/03_CityDashboardsButton.jpg` | Composición, lenguaje gráfico, relación mapa–paneles, densidad informativa y paleta. No define funcionalidad ni metodología. |
+| Referencia visual principal (PR-016 v6.0, CC-025) | Rama `prototype/sivu-territorio-v1` (`c852104`), `prototypes/sivu-territorio-lab/` | Dirección visual del rediseño: composición, navegación, ficha y mapa. Aprueba la dirección, no cada componente. No es una implementación funcional: usa datos de ejemplo y representa los roles de CC-022 mientras CC-015 sigue en conciliación. Se integra módulo por módulo, conservando todos los módulos, campos, rutas, funcionalidades, permisos y reglas, sin datos ficticios ni copiar su código. |
+| Antecedente visual | `docs/referencias/visuales/03_CityDashboardsButton.jpg` | Inspiración complementaria: relación mapa–paneles y densidad informativa. |
 | Referencias complementarias (PR-016 v5.0, CC-023) | Fuera del repositorio (material de terceros) | Inspiración UX/UI: ficha lateral con pestañas y pines legibles (vista de árbol de Groundzy), resumen flotante sobre el mapa, donas y tarjetas tintadas, barras ordenadas. Se adaptan a la arquitectura de SIVU sin copiar identidad ni composición; la paleta de riesgo no cambia; sin funciones que SIVU no calcula; gráficos solo con datos reales; rediseño solo tras validar una maqueta con la autora. |
 
 Los diagramas de decisión metodológicos **no** son referencias de UI y no
