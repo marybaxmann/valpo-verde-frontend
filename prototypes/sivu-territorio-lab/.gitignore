@@ -1,0 +1,7 @@
+node_modules
+dist
+tiles
+
+# Imagen aérea de terceros (Esri/Maxar): no se versiona (CC-023)
+src/assets/valparaiso-z19.jpg
+*.tsbuildinfo
