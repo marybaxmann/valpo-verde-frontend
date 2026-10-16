@@ -21,7 +21,7 @@ lógica de negocio.
     UX/UI DE SIVU
 
 **El frontend representa la lógica; no la redefine.** La jerarquía de
-fuentes está en `CLAUDE.md` (PR-016 v4.0, CC-021).
+fuentes está en `CLAUDE.md` (PR-016 v6.0).
 
 ## Regla de oro
 
@@ -58,7 +58,7 @@ Figma.
 | Qué datos y operaciones existen | Contrato real de la API (README del backend, `src/routes/`). |
 | Qué significan los datos y las clasificaciones | Metodología vigente (fuentes canónicas del backend). |
 | Qué experiencia se buscaba en una pantalla equivalente | Figma original (`docs/referencias/figma-original/`). |
-| Cómo debe verse | Referencia visual aprobada (`docs/referencias/visuales/`). |
+| Cómo debe verse | Referencia visual principal: prototipo SIVU Territorio (rama `prototype/sivu-territorio-v1`, `prototypes/sivu-territorio-lab/`; PR-016 v6.0). Antecedente: `docs/referencias/visuales/`. |
 
 ## Reconciliación (en cada pantalla)
 
@@ -121,6 +121,10 @@ documentada. Representar un resultado no equivale a crear un módulo para
   preservarse.
 - La dirección visual sigue la referencia visual aprobada: composición,
   lenguaje gráfico, relación mapa–paneles, densidad informativa y paleta.
+- El prototipo SIVU Territorio aprueba la dirección visual, no cada
+  componente: se integra módulo por módulo, sin quitar módulos, campos,
+  rutas, funcionalidades ni permisos, sin datos ficticios y sin copiar su
+  código (PR-016 v6.0).
 - Libertad para innovar en composición, navegación, paneles, mapa,
   jerarquía, microinteracciones, responsive, visualización de datos y
   revelación progresiva.
