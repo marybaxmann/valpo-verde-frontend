@@ -61,6 +61,17 @@ El rol se resuelve **siempre** desde `profile.role`, obtenido de
 `GET /api/auth/me`. Nunca desde `sessionStorage`, nunca inferido por
 email, nunca hardcodeado.
 
+> **Modelo de roles aprobado (CC-026, 2026-10-18; backend ADR-006 v2.0):**
+> Administrador, Usuario municipal, **Inspector** y **Encargado de
+> mantención**. El Usuario municipal da de alta el árbol solo con
+> nombre y ubicación y no registra datos técnicos; el Inspector
+> registra los datos técnicos e inspecciones y revisa el mantenimiento
+> cuando la OT lo requiere; el Encargado de mantención registra la
+> ejecución. El frontend sigue reconociendo solo `admin` y
+> `usuario_municipal`: los identificadores de los roles nuevos están
+> pendientes en el backend y su implementación no está autorizada
+> todavía (PR-003 v7.0, PR-019 v1.0, PR-020 v1.0).
+
 ---
 
 ## 3. Routing y guards (`src/App.tsx`)

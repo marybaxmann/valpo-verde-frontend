@@ -120,6 +120,15 @@ navegador como fuente de verdad.
 
 **[Implementado y validado]**
 
+El modelo de datos auditado el 2026-10-18 (CC-026 del backend) define
+cuatro roles: Administrador, Usuario municipal, Inspector y Encargado
+de mantención. El Inspector registra los datos técnicos de los árboles
+y sus inspecciones; el Encargado de mantención registra la ejecución de
+las órdenes de mantenimiento. El frontend todavía implementa solo los
+dos roles anteriores.
+
+**[Aprobado / pendiente de implementación]**
+
 ## 5. El desarrollo por fases
 
 El frontend se construyó en fases incrementales, cada una validada
