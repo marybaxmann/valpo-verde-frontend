@@ -17,10 +17,16 @@ propio, después de sincronizar la base de datos maestra.
 ## Qué contiene
 
 - **Nuevo logotipo SIVU** y modo claro/oscuro.
-- **Login** (`#login`) con una ilustración propia en SVG de copas vistas desde
-  abajo. Los campos son los del login real (correo y contraseña). Propone además
-  "¿Olvidaste tu contraseña?" y un acceso a Conecta, que no existen en el sistema
-  actual.
+- **Login** (`#login`): **diseño oficial de la pantalla de acceso, definido por la
+  autora el 2026-10-18.**
+  - Usa una fotografía propia de un árbol callejero de Valparaíso
+    (`src/assets/login-calle.jpg`), con la patente y un teléfono difuminados y sin
+    metadatos.
+  - Sobre la foto aparecen marcas animadas de observación: cavidad en el fuste,
+    acera levantada y alcorque. Son ilustrativas y no constituyen una evaluación.
+  - Los campos son los del login real (correo y contraseña).
+  - Propone además "¿Olvidaste tu contraseña?" y un acceso a Valpo Verde Conecta,
+    que no existen en el sistema actual.
 - **Dashboard** solo con información, sin mapa.
 - **Inventario**: la tabla es la protagonista. Al lado tiene un filtro por especie y
   un minimapa.
