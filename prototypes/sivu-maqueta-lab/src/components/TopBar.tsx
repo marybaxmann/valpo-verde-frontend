@@ -51,6 +51,7 @@ export function TopBar({
   onRole,
   onPick,
   onHome,
+  onLogout,
   theme,
   onTheme,
 }: {
@@ -63,6 +64,7 @@ export function TopBar({
   onTheme: () => void;
   onPick: (i: NavItem) => void;
   onHome: () => void;
+  onLogout: () => void;
 }) {
   const activeGroup = NAV.find((g) => g.items.some((i) => i.label === current))?.id;
   const toggle = (m: Menu) => setOpen(open === m ? null : m);
@@ -160,7 +162,14 @@ export function TopBar({
                   size="sm"
                 />
               </div>
-              <a href="#" className="dd__item dd__item--row">
+              <a
+                href="#login"
+                className="dd__item dd__item--row"
+                onClick={(e) => {
+                  e.preventDefault();
+                  onLogout();
+                }}
+              >
                 <Icon name="arrowRight" size={16} />
                 Cerrar sesión
               </a>

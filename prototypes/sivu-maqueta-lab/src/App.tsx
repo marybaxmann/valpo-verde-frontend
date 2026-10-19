@@ -11,6 +11,7 @@ import { Infra } from "./components/Infra";
 import { Maintenance } from "./components/Maintenance";
 import { Conecta } from "./components/Conecta";
 import { CitizenView } from "./components/Citizen";
+import { Login } from "./components/Login";
 import { FEATURED, TREES, type Tree } from "./data/mock";
 import type { Module } from "./data/lab";
 import type { NavItem, Role } from "./data/nav";
@@ -35,6 +36,7 @@ function fromHash() {
     role: (h.includes("municipal") ? "municipal" : "admin") as Role,
     module: MODULES.find((m) => h.includes(m)) ?? "dashboard",
     citizen: h.includes("ciudadano"),
+    login: h.includes("login"),
   };
 }
 
@@ -56,6 +58,7 @@ export default function App() {
   const init = fromHash();
   const [module, setModule] = useState<Module>(init.module);
   const [citizen, setCitizen] = useState(init.citizen);
+  const [login, setLogin] = useState(init.login);
   const [role, setRole] = useState<Role>(init.role);
   const [menu, setMenu] = useState<Menu>(null);
   const [selected, setSelected] = useState<Tree | null>(init.module === "riesgo" ? FEATURED : null);
@@ -102,8 +105,8 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    history.replaceState(null, "", citizen ? "#ciudadano" : `#${module}${role === "municipal" ? "-municipal" : ""}`);
-  }, [module, role, citizen]);
+    history.replaceState(null, "", login ? "#login" : citizen ? "#ciudadano" : `#${module}${role === "municipal" ? "-municipal" : ""}`);
+  }, [module, role, citizen, login]);
 
   const go = (m: Module) => {
     setModule(m);
@@ -119,6 +122,22 @@ export default function App() {
   const pick = (i: NavItem) => (i.module ? go(i.module) : unavailable(i.label));
 
   const isMap = MAP_MODULES.includes(module);
+
+  if (login)
+    return (
+      <Login
+        theme={theme}
+        onTheme={toggleTheme}
+        onEnter={() => {
+          setLogin(false);
+          setModule("dashboard");
+        }}
+        onCitizen={() => {
+          setLogin(false);
+          setCitizen(true);
+        }}
+      />
+    );
 
   if (citizen)
     return (
@@ -178,7 +197,7 @@ export default function App() {
         {module === "conecta" && <Conecta role={role} onCitizen={() => setCitizen(true)} />}
 
         {menu && menu !== "buscar" && <div className="menu-scrim" onClick={() => setMenu(null)} />}
-        <TopBar role={role} open={menu} setOpen={setMenu} current={MODULE_NAME[module]} onRole={setRole} theme={theme} onTheme={toggleTheme} onPick={pick} onHome={() => go("dashboard")} />
+        <TopBar role={role} open={menu} setOpen={setMenu} current={MODULE_NAME[module]} onRole={setRole} theme={theme} onTheme={toggleTheme} onPick={pick} onHome={() => go("dashboard")} onLogout={() => (setMenu(null), setLogin(true))} />
         {menu === "buscar" && <CommandPalette role={role} onClose={() => setMenu(null)} />}
         {toast && (
           <div className="toast" role="status">

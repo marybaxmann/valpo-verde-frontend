@@ -17,6 +17,10 @@ propio, después de sincronizar la base de datos maestra.
 ## Qué contiene
 
 - **Nuevo logotipo SIVU** y modo claro/oscuro.
+- **Login** (`#login`) con una ilustración propia en SVG de copas vistas desde
+  abajo. Los campos son los del login real (correo y contraseña). Propone además
+  "¿Olvidaste tu contraseña?" y un acceso a Conecta, que no existen en el sistema
+  actual.
 - **Dashboard** solo con información, sin mapa.
 - **Inventario**: la tabla es la protagonista. Al lado tiene un filtro por especie y
   un minimapa.

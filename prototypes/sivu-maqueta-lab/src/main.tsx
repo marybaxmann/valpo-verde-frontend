@@ -5,6 +5,7 @@ import "./styles.css";
 import "./lab.css";
 import "./theme-light.css";
 import "./conecta.css";
+import "./login.css";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
