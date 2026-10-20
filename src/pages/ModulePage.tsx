@@ -22,6 +22,7 @@ import {
 } from "../components/InfrastructureAssessmentModal";
 import { SivuTable } from "../components/SivuTable";
 import { useCanWrite } from "../hooks/useCanWrite";
+import { riskLevelsByTree } from "../lib/risk";
 
 const InventoryMapView = lazy(() => import("../components/InventoryMapView"));
 
@@ -158,13 +159,7 @@ export default function ModulePage({ module }: { module: ModuleKey }) {
     (f) => f.properties.id === selectedTreeId
   );
 
-  const riskByTreeId = useMemo(() => {
-    const map: Record<string, string | null> = {};
-    for (const [treeId, dto] of Object.entries(riskSummary)) {
-      map[treeId] = dto.resultado.clasificacion_riesgo;
-    }
-    return map;
-  }, [riskSummary]);
+  const riskByTreeId = useMemo(() => riskLevelsByTree(riskSummary), [riskSummary]);
 
   // Indicadores reales de Inspección: solo cuentan lo que ya existe
   // persistido — nunca cifras inventadas para rellenar la pantalla.

@@ -4,6 +4,7 @@ import type { CreateTreePayload, SpeciesItem, TreeDetailDTO } from "../types/tre
 import { CLASE_EDAD_OPTIONS, type ClaseEdad } from "../types/tree";
 import { Icon } from "./Icons";
 import { SpeciesCombobox } from "./SpeciesCombobox";
+import { hoyChile } from "../lib/dates";
 
 export function CreateTreeModal({
   projectId,
@@ -37,7 +38,7 @@ export function CreateTreeModal({
   const [lugarReferencia, setLugarReferencia] = useState<string>("");
 
   // Form State - Medición Dendrométrica Inicial
-  const todayStr = new Date().toISOString().slice(0, 10);
+  const todayStr = hoyChile();
   const [fechaMedicion, setFechaMedicion] = useState<string>(todayStr);
   const [tipoFuste, setTipoFuste] = useState<"monofuste" | "polifuste">("monofuste");
   const [configuracionFustes, setConfiguracionFustes] = useState<string>("monofuste");

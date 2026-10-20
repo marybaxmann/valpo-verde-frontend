@@ -16,6 +16,7 @@ const MODULE_LINKS: { to: string; label: string; icon: IconName }[] = [
 import { Badge } from "../components/Badge";
 import { useAuth } from "../hooks/useAuth";
 import ProjectMembersSection from "./ProjectMembersSection";
+import { fechaHoraChile } from "../lib/dates";
 
 /**
  * Detalle real de GET /api/projects/:id (F6). Compartido entre /admin
@@ -113,11 +114,11 @@ export default function ProjectDetail() {
           </div>
           <div className="info-list__item">
             <span>Creado</span>
-            {project.created_at}
+            {fechaHoraChile(project.created_at)}
           </div>
           <div className="info-list__item">
             <span>Última actualización</span>
-            {project.updated_at}
+            {fechaHoraChile(project.updated_at)}
           </div>
         </div>
       </div>

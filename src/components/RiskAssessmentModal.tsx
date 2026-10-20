@@ -12,6 +12,7 @@ import {
 } from "../types/treeRisk";
 import { Icon } from "./Icons";
 import { ClassificationBadge } from "./ClassificationBadge";
+import { hoyChile } from "../lib/dates";
 
 const STEP_LABELS = [
   "Árbol y antecedentes",
@@ -63,12 +64,6 @@ function defaultVariables(): TreeRiskVariables {
   };
 }
 
-/** Fecha de hoy en la zona horaria del navegador (AAAA-MM-DD), no en UTC. */
-function hoyLocal(): string {
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-}
-
 const fueraDe = (x: number | null, min: number, max: number) => x !== null && (Number.isNaN(x) || x < min || x > max);
 
 /**
@@ -81,7 +76,7 @@ function datosFaltantes(step: number, v: TreeRiskVariables, fecha: string): stri
   const f: string[] = [];
   if (step === 1) {
     if (!fecha) f.push("Fecha de evaluación");
-    else if (fecha > hoyLocal()) f.push("La fecha de evaluación no puede ser futura");
+    else if (fecha > hoyChile()) f.push("La fecha de evaluación no puede ser futura");
   }
   if (step === 2) {
     if (fueraDe(v.angulo_inclinacion, 0, 90)) f.push("Ángulo de inclinación entre 0 y 90°");
@@ -212,7 +207,7 @@ export function RiskAssessmentModal({
   onSuccess: (dto: TreeRiskAssessmentDTO) => void;
 }) {
   const [step, setStep] = useState(1);
-  const [fechaEvaluacion, setFechaEvaluacion] = useState(hoyLocal);
+  const [fechaEvaluacion, setFechaEvaluacion] = useState(hoyChile);
   const [v, setV] = useState<TreeRiskVariables>(defaultVariables());
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -282,7 +277,7 @@ export function RiskAssessmentModal({
                 <label>Fecha de evaluación</label>
                 <input
                   type="date"
-                  max={hoyLocal()}
+                  max={hoyChile()}
                   value={fechaEvaluacion}
                   onChange={(e) => setFechaEvaluacion(e.target.value)}
                 />

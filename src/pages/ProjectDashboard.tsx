@@ -13,6 +13,7 @@ import { MapPlaceholder } from "../components/MapPlaceholder";
 import { StatCard, StatGrid } from "../components/StatCard";
 import { BarRow } from "../components/BarRow";
 import { RiskDistribution, countRisks } from "../components/RiskDistribution";
+import { riskLevelsByTree } from "../lib/risk";
 
 const InventoryMapView = lazy(() => import("../components/InventoryMapView"));
 
@@ -124,13 +125,7 @@ export default function ProjectDashboard() {
     return Math.round((inventory.meta.con_ubicacion / inventory.meta.total) * 100);
   }, [inventory]);
 
-  const riskByTreeId = useMemo(() => {
-    const map: Record<string, string | null> = {};
-    for (const [treeId, dto] of Object.entries(riskSummary)) {
-      map[treeId] = dto.resultado.clasificacion_riesgo;
-    }
-    return map;
-  }, [riskSummary]);
+  const riskByTreeId = useMemo(() => riskLevelsByTree(riskSummary), [riskSummary]);
 
   // Indicadores de riesgo: solo lo que ya persistió el backend, nunca
   // cifras inventadas para completar la fila de tarjetas.

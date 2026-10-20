@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, NavLink, useLocation } from "react-router-dom";
 import { Icon, type IconName } from "./Icons";
 import { useCurrentProject } from "../hooks/useCurrentProject";
@@ -30,6 +30,12 @@ export function Sidebar({
 }) {
   const location = useLocation();
   const [compact, setCompact] = useState(initialCompact);
+  // El menú sigue montado entre módulos: al pasar de una pantalla con mapa
+  // (compacto) a una sin mapa (expandido), o al revés, se ajusta al nuevo
+  // tipo de pantalla. Dentro del mismo tipo se respeta lo que elija el usuario.
+  useEffect(() => {
+    setCompact(initialCompact);
+  }, [initialCompact]);
   const { projectId, project } = useCurrentProject();
 
   const { theme, toggleTheme } = useTheme();

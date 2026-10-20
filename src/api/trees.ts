@@ -1,6 +1,5 @@
 import { api } from "./client";
 import { cachedGet } from "./cache";
-import { supabase } from "../lib/supabase";
 import type {
   CreateTreePayload,
   SpeciesItem,
@@ -34,7 +33,8 @@ export function createProjectTree(
  * GET /api/trees/:treeId
  */
 export function getTreeDetail(treeId: string): Promise<{ data: TreeDetailDTO }> {
-  return api.get<{ data: TreeDetailDTO }>(`/api/trees/${treeId}`);
+  // En caché: el panel y la ficha completa del mismo árbol comparten la lectura.
+  return cachedGet(`tree:${treeId}`, () => api.get<{ data: TreeDetailDTO }>(`/api/trees/${treeId}`));
 }
 
 /**
@@ -65,20 +65,12 @@ export function getTreeMeasurements(
 }
 
 /**
- * Catálogo de especies disponibles en la plataforma.
- * Consulta la tabla global de species en Supabase (anon key) porque el
- * backend todavía no expone un endpoint de catálogo (ver HANDOFF).
+ * Catálogo de especies disponibles en la plataforma (GET /api/species).
+ * Se guarda en la caché de lecturas como el resto de la API.
  * No hay respaldo ficticio: si la consulta falla, se propaga el error y
  * la UI debe mostrar el estado real (vacío/error), nunca una especie fija.
  */
 export async function listSpeciesCatalog(): Promise<SpeciesItem[]> {
-  const { data, error } = await supabase
-    .from("species")
-    .select("id, nombre_cientifico, nombre_comun")
-    .order("nombre_cientifico");
-
-  if (error) {
-    throw new Error("No se pudo cargar el catálogo de especies.");
-  }
-  return (data as SpeciesItem[]) ?? [];
+  const res = await cachedGet("species", () => api.get<{ data: SpeciesItem[] }>("/api/species"));
+  return res.data;
 }

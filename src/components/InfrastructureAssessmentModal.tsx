@@ -8,6 +8,7 @@ import {
 } from "../api/moduleRecords";
 import { Icon } from "./Icons";
 import { INFRA_COMPONENTS, cleanInfraVariables, emptyInfraVariables, isVisible, type InfraField } from "./infrastructureFields";
+import { hoyChile } from "../lib/dates";
 
 /**
  * Registro de evaluación de infraestructura (datos crudos por componente).
@@ -27,7 +28,7 @@ export function InfrastructureAssessmentModal({
 }) {
   const [catalogs, setCatalogs] = useState<ModuleCatalogs | null>(null);
   const [catalogError, setCatalogError] = useState<string | null>(null);
-  const [fecha, setFecha] = useState(new Date().toISOString().slice(0, 10));
+  const [fecha, setFecha] = useState(hoyChile);
   const [vars, setVars] = useState<InfraVariables>(emptyInfraVariables);
   const [observaciones, setObservaciones] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -116,7 +117,7 @@ export function InfrastructureAssessmentModal({
 
           <div className="field" style={{ maxWidth: 220, marginBottom: 14 }}>
             <label>Fecha de evaluación</label>
-            <input type="date" value={fecha} max={new Date().toISOString().slice(0, 10)} onChange={(e) => setFecha(e.target.value)} />
+            <input type="date" value={fecha} max={hoyChile()} onChange={(e) => setFecha(e.target.value)} />
           </div>
 
           {INFRA_COMPONENTS.map((c) => {

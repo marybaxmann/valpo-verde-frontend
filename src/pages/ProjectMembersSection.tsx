@@ -3,6 +3,7 @@ import { SivuTable } from "../components/SivuTable";
 import { addProjectMember, listProjectMembers, removeProjectMember } from "../api/projectMembers";
 import type { ProjectMember } from "../types/projectMember";
 import { Icon } from "../components/Icons";
+import { fechaChile } from "../lib/dates";
 
 /**
  * Sección de miembros del proyecto (F7). Solo se monta para admin (ver
@@ -93,7 +94,7 @@ export default function ProjectMembersSection({ projectId }: { projectId: string
             {members.map((m) => (
               <tr key={m.id}>
                 <td className="sivu-table__strong">{m.user?.nombre ?? m.user_id}</td>
-                <td className="sivu-table__num">{m.created_at.slice(0, 10)}</td>
+                <td className="sivu-table__num">{fechaChile(m.created_at)}</td>
                 <td className="sivu-table__actions">
                   <button
                     className="btn btn-ghost btn-sm"
