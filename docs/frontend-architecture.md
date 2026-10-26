@@ -161,6 +161,14 @@ email, nunca hardcodeado.
 - Con puntos, el mapa se ajusta a su extensión. Sin ningún árbol con ubicación usa el encuadre visual por defecto de Valparaíso (centro `[-71.620, -33.045]`, zoom 13): no es una coordenada técnica, de levantamiento ni del proyecto.
 - El SDK (`InventoryMapView`) y la página se cargan de forma diferida. Sin `VITE_ARCGIS_API_KEY` no se carga el SDK y se muestra un error controlado; el resto de la aplicación funciona. Los recursos del SDK (estilos, workers) se cargan por defecto desde el CDN de ArcGIS.
 
+> Nota (2026-10-26): entre SIG-1 y la Fase 7 se fusionó la demo funcional (PR #9, `bf43e5e`): Dashboard, Inspección y Riesgo, Infraestructura, Mantención, Incidencias e Índices, sobre la API de la demo (`/api/projects/...`, `/api/trees/...`). Esta bitácora no la registró; las secciones §5 a §7 siguen describiendo el estado de SIG-1.
+
+### Fase 7 · Paso 0 — Diagnóstico frente a la maqueta Lab
+**Fecha:** 2026-10-26. Rama `feature/fase7-maqueta-lab` (desde `main` = `bf43e5e`). Sin cambios de código.
+**Objetivo:** matriz de brecha entre la maqueta Lab (`prototype/sivu-maqueta-lab`, `6817fb2`) y el frontend productivo, exclusiones y borradores de las decisiones D1–D4.
+**Archivos:** `docs/propuestas-cc/paso0-diagnostico.md`, `D1-…` a `D4-…`, `pendientes-backend.md`.
+**Hallazgos principales:** el `.env` local apunta a la base real (no se inició sesión); el frontend lee la API de la demo y la Fase 6 (`/api/sivu`) todavía no tiene lecturas; el frontend y la maqueta dan al Usuario municipal acciones que PR-003 v8.0 ya no le permite.
+
 ---
 
 ## 5. Limitaciones conocidas
