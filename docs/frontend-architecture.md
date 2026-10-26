@@ -191,7 +191,7 @@ email, nunca hardcodeado.
 **Archivos:** `src/pages/Login.tsx` reescrito, `src/styles/login.css` (nuevo), `src/assets/login-calle.jpg` (nuevo), ícono `pin` en `Icons.tsx`.
 **Decisiones de la autora (2026-10-26):** textos de la maqueta; marcas ilustrativas con la zona en palabras simples («Tronco», «Acera», «Alcorque») en vez del formato de catálogo; fotografía recomprimida. Fuera: recuperación de contraseña, acceso a Conecta, insignia «MAQUETA».
 **Fotografía:** la de la autora (CC-058), reducida de 2400 × 1800 px y 1,26 MB a 1600 × 1200 px y 524 KB (JPEG progresivo, calidad 72), guardada desde una imagen nueva: sin EXIF, GPS ni XMP (solo la cabecera JFIF).
-**Validación:** `tsc -b`, `npm run build` y `npm run lint` sin errores ni advertencias nuevas. Navegador: vista ancha (1440 px) en claro; pantalla angosta (~800 px) en claro y oscuro; «Ingresar» con campos vacíos muestra el aviso sin llamar a Supabase. **Pendiente:** ver el mensaje de contraseña equivocada (requiere que la autora escriba una contraseña inválida).
+**Validación:** `tsc -b`, `npm run build` y `npm run lint` sin errores ni advertencias nuevas. Navegador: vista ancha (1440 px) en claro; pantalla angosta (~800 px) en claro y oscuro; «Ingresar» con campos vacíos muestra el aviso sin llamar a Supabase. Contraseña equivocada (probada por la autora): muestra «No se pudo iniciar sesión. Revisa tu email y contraseña.».
 
 ---
 
