@@ -209,6 +209,12 @@ email, nunca hardcodeado.
 **Decisiones de la autora (2026-10-26):** incluir el alta ahora; marcar el punto en el mapa con la conversión EPSG:4326 → EPSG:32719 en el frontend (ADR-010 v3.0; las UTM siguen editables y se guardan las del formulario); tabla, especies y minimapa en «pendiente» hasta B1.
 **Validación:** `tsc -b`, `npm run build` y `npm run lint` sin errores ni advertencias nuevas. Navegador contra pruebas con `municipal.f7`: alta del árbol real `AV_000007` de la autora (*Acer pseudoplatanus*, Falso plátano, Plaza Victoria; UTM 255466.61 / 6340499.86) → 201, `A-000346`, sector vinculado y `registrado_por` = el usuario; buscador de especies → 200 con catálogo vacío (se registra lo escrito, CC-053); marcador ubicado desde las UTM escritas; punto fuera del sector → 422 con el mensaje del backend y sin alta. Etiquetas de los campos asociadas para lectores de pantalla.
 
+### Fase 7 · Capas base en los mapas
+**Fecha:** 2026-10-26. Pedido de la autora.
+**Qué:** selector de capa base sobre el mapa (hoy, el del formulario «Nuevo árbol»): **Mapa** (`arcgis/streets`, por defecto), **Satélite** (`arcgis/imagery/standard`), **Híbrido** (`arcgis/imagery`) y **Limpio** (`arcgis/light-gray`). Definidas una sola vez en `src/lib/arcgis.ts` (`BASEMAPS`) para reutilizarlas en los mapas que vengan; componente `src/components/BasemapSwitcher.tsx`. La elección se recuerda en este navegador (`localStorage`, con respaldo si no hay almacenamiento).
+**Cartografía:** todas vienen del servicio Basemap Styles de ArcGIS con la API key existente y su atribución; no son imágenes descargadas ni se versionan (PR-016 v7.0). CC-057 excluye la imagen aérea fija de la maqueta, no la de ArcGIS.
+**Validación:** `tsc -b`, `npm run build` y `npm run lint` sin errores ni advertencias nuevas. Navegador: las cuatro capas cargan con su atribución; el marcador se conserva al cambiar de capa; la elección se recuerda.
+
 ---
 
 ## 5. Limitaciones conocidas

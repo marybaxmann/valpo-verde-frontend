@@ -1,13 +1,26 @@
 import { useEffect, useRef, useState } from "react";
 import esriConfig from "@arcgis/core/config";
 import ArcGISMap from "@arcgis/core/Map";
+import Basemap from "@arcgis/core/Basemap";
+import BasemapStyle from "@arcgis/core/support/BasemapStyle";
 import MapView from "@arcgis/core/views/MapView";
 import Graphic from "@arcgis/core/Graphic";
 import Point from "@arcgis/core/geometry/Point";
 import SpatialReference from "@arcgis/core/geometry/SpatialReference";
 import * as projectOperator from "@arcgis/core/geometry/operators/projectOperator";
 import "@arcgis/core/assets/esri/themes/light/main.css";
-import { DEFAULT_MAP_VIEW, INVENTORY_BASEMAP } from "../lib/arcgis";
+import {
+  DEFAULT_MAP_VIEW,
+  basemapStyle,
+  getPreferredBasemap,
+  savePreferredBasemap,
+  type BasemapId,
+} from "../lib/arcgis";
+import { BasemapSwitcher } from "./BasemapSwitcher";
+
+function makeBasemap(id: BasemapId): Basemap {
+  return new Basemap({ style: new BasemapStyle({ id: basemapStyle(id) }) });
+}
 
 /** UTM zona 19 sur, datum WGS84 (D-9 a D-12; ADR-010 v3.0). */
 const UTM_19S = new SpatialReference({ wkid: 32719 });
@@ -37,8 +50,12 @@ export default function LocationPickerMap({
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const viewRef = useRef<MapView | null>(null);
+  const mapRef = useRef<ArcGISMap | null>(null);
   const onPickRef = useRef(onPick);
   const [status, setStatus] = useState<"loading" | "ready" | "error">("loading");
+  const [basemap, setBasemap] = useState<BasemapId>(getPreferredBasemap);
+  // Capa con la que se crea el mapa; los cambios posteriores los aplica el efecto de abajo.
+  const initialBasemap = useRef(basemap);
 
   useEffect(() => {
     onPickRef.current = onPick;
@@ -48,9 +65,11 @@ export default function LocationPickerMap({
     if (!containerRef.current) return;
     let cancelled = false;
     esriConfig.apiKey = apiKey;
+    const map = new ArcGISMap({ basemap: makeBasemap(initialBasemap.current) });
+    mapRef.current = map;
     const view = new MapView({
       container: containerRef.current,
-      map: new ArcGISMap({ basemap: INVENTORY_BASEMAP }),
+      map,
       center: DEFAULT_MAP_VIEW.center,
       zoom: 15,
       // La atribución del proveedor la muestra el SDK siempre (PR-016: cartografía).
@@ -78,8 +97,15 @@ export default function LocationPickerMap({
       handle.remove();
       view.destroy();
       viewRef.current = null;
+      mapRef.current = null;
     };
   }, [apiKey]);
+
+  // Cambio de capa base: solo el fondo, sin recrear el mapa ni el marcador.
+  useEffect(() => {
+    if (!mapRef.current || status !== "ready") return;
+    mapRef.current.basemap = makeBasemap(basemap);
+  }, [basemap, status]);
 
   // Marcador en las coordenadas del formulario.
   useEffect(() => {
@@ -109,6 +135,15 @@ export default function LocationPickerMap({
   return (
     <div className="sivu-picker">
       <div ref={containerRef} className="sivu-picker__map" />
+      {status === "ready" && (
+        <BasemapSwitcher
+          value={basemap}
+          onChange={(id) => {
+            setBasemap(id);
+            savePreferredBasemap(id);
+          }}
+        />
+      )}
       {status === "loading" && <p className="sivu-picker__state">Cargando mapa…</p>}
       {status === "error" && (
         <p className="sivu-picker__state sivu-picker__state--error">

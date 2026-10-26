@@ -165,6 +165,46 @@
   cursor: crosshair;
 }
 
+/* Selector de capa base (maqueta: control segmentado sobre el mapa) */
+.sivu-basemaps {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 2;
+  display: flex;
+  gap: 2px;
+  padding: 3px;
+  border-radius: var(--radius-pill);
+  background: var(--shell-glass-strong);
+  border: 1px solid var(--shell-line);
+  box-shadow: var(--shell-float);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+.sivu-basemaps__opt {
+  height: 28px;
+  padding: 0 11px;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.sivu-basemaps__opt:hover {
+  color: var(--text);
+  background: var(--shell-hover);
+}
+
+.sivu-basemaps__opt.is-on {
+  background: var(--shell-active-bg);
+  color: var(--shell-active-fg);
+  font-weight: 600;
+}
+
 .sivu-picker__state {
   position: absolute;
   inset: auto 12px 12px 12px;
