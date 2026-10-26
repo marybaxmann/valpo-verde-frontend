@@ -111,11 +111,11 @@ export default function IndicesPage() {
       <div className="page-header">
         <div>
           <h1 style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <Icon name="sort" size={20} /> Índices
+            <Icon name="sort" size={20} /> Indicadores biométricos
           </h1>
           <p className="page-header__sub">
             Indicadores para el análisis del arbolado urbano y apoyo a la gestión territorial
-            {project ? ` — ${project.name}` : ""}
+            {project ? ` — ${project.nombre_proyecto}` : ""}
           </p>
         </div>
       </div>

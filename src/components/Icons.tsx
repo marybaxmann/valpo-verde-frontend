@@ -23,9 +23,11 @@ export type IconName =
   | "edit"
   | "play"
   | "sun"
-  | "moon";
+  | "moon"
+  | "chevron-down";
 
 const paths: Record<IconName, React.ReactNode> = {
+  "chevron-down": <path d="m6 9 6 6 6-6" />,
   leaf: (
     <path d="M5 21c9-1 14-6 15-15C11 6 6 11 5 21ZM5 21c1-4 3-7 6-9" />
   ),

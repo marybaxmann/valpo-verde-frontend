@@ -2,6 +2,7 @@ import { lazy, Suspense } from "react";
 import { Navigate, Outlet, Route, Routes } from "react-router-dom";
 import { useAuth } from "./hooks/useAuth";
 import Login from "./pages/Login";
+import { SivuLogo } from "./components/SivuLogo";
 import AdminLayout from "./layouts/AdminLayout";
 import UserLayout from "./layouts/UserLayout";
 import type { KnownRole } from "./types/authProfile";
@@ -83,6 +84,12 @@ export default function App() {
   );
 }
 
+/** Etiquetas de interfaz de PR-019 v1.2 y PR-020 v1.1, por identificador (CC-032). */
+const ROLES_SIN_INTERFAZ: Record<string, string> = {
+  inspector: "Inspector",
+  encargado_mantencion: "Encargado de mantención",
+};
+
 function LoadingScreen({ message = "Cargando sesión…" }: { message?: string }) {
   return (
     <div className="login-screen">
@@ -103,6 +110,9 @@ function ControlledMessage({
   return (
     <div className="login-screen">
       <div className="login-card">
+        <div style={{ display: "flex", justifyContent: "center", marginBottom: 14 }}>
+          <SivuLogo height={34} />
+        </div>
         <h1>{title}</h1>
         <p>{description}</p>
         <button className="btn btn-secondary" style={{ marginTop: 16 }} onClick={signOut}>
@@ -136,6 +146,18 @@ function RootRoute() {
 
   if (profile?.role === "admin") return <Navigate to="/admin" replace />;
   if (profile?.role === "usuario_municipal") return <Navigate to="/usuario" replace />;
+
+  // CC-059, punto 5: roles vigentes (CC-026, CC-032) que todavía no tienen
+  // interfaz. Un mensaje que nombra el rol; nunca un shell de otro rol.
+  const pendingRoleLabel = profile?.role ? ROLES_SIN_INTERFAZ[profile.role] : undefined;
+  if (pendingRoleLabel) {
+    return (
+      <ControlledMessage
+        title={`Tu rol (${pendingRoleLabel}) todavía no tiene interfaz en SIVU`}
+        description="Tu cuenta está activa y tu rol es válido. La interfaz para este rol está pendiente: se habilitará cuando el sistema entregue sus datos."
+      />
+    );
+  }
 
   // Rol null o desconocido: nunca se asume admin ni se muestra un shell operativo.
   return (

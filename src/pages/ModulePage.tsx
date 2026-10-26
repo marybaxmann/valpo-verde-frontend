@@ -44,7 +44,7 @@ interface ModuleConfig {
 
 const MODULE_CONFIG: Record<ModuleKey, ModuleConfig> = {
   inspeccion: {
-    title: "Inspección y Riesgo",
+    title: "Riesgo Arbóreo", // CC-060 (antes «Inspección y Riesgo»)
     icon: "check-square",
     description:
       "Evaluación técnica y seguimiento del riesgo del arbolado urbano.",
@@ -281,13 +281,8 @@ export default function ModulePage({ module }: { module: ModuleKey }) {
           </span>
           <span className="sivu-territorial-topbar__project">
             <Icon name="leaf" size={13} />
-            {project ? project.name : "Cargando proyecto..."}
+            {project ? project.nombre_proyecto : "Cargando proyecto..."}
           </span>
-          {project && (
-            <span className="status-pill" style={{ fontSize: 11 }}>
-              {project.institution_name}
-            </span>
-          )}
         </div>
         <div className="sivu-territorial-topbar__right">
           {assessmentFeedback && (

@@ -69,7 +69,7 @@ export function ManagementModule({
           </h1>
           <p className="page-header__sub">
             {config.subtitle}
-            {project ? ` — ${project.name}` : ""}
+            {project ? ` — ${project.nombre_proyecto}` : ""}
           </p>
         </div>
       </div>

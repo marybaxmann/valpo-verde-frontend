@@ -1,63 +1,58 @@
-import { Suspense } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { Outlet, useLocation } from "react-router-dom";
-import { Sidebar, type NavItem } from "../components/Sidebar";
-import { Topbar } from "../components/Topbar";
-import { useAuth } from "../hooks/useAuth";
+import { AppTopBar } from "../components/AppTopBar";
+import { ModuleSearch } from "../components/ModuleSearch";
 import { CurrentProjectProvider } from "../hooks/useCurrentProject";
 
-// Solo los módulos territoriales (con mapa) usan el shell de workspace a
-// pantalla completa. Mantención e Incidencias son gestión/listado, no
-// territorio: se quedan en el layout normal con rail expandido + Topbar.
+// Los módulos territoriales (con mapa) ocupan todo el espacio bajo la
+// barra; el resto usa el contenido centrado con márgenes.
 const WORKSPACE_SUFFIXES = ["/mapa", "/inspeccion", "/infraestructura"];
 
 /**
- * Shell común de /admin y /usuario. Jerarquía: Mis proyectos → proyecto
- * (workspace) → Dashboard → módulos. Fuera de un proyecto el sidebar solo
- * ofrece "Mis proyectos"; dentro, solo los módulos del proyecto, y el
- * cambio de proyecto vive en el bloque "Proyecto actual" del pie.
+ * Shell común de /admin y /usuario (Fase 7, Paso 2; CC-059): barra
+ * superior con el proyecto actual y los grupos Análisis / Operación /
+ * Territorio. Jerarquía: Mis proyectos → proyecto → Dashboard → módulos.
+ * Fuera de un proyecto la barra solo ofrece el logotipo, el tema y la
+ * cuenta. Mismas rutas y mismos guards que antes (App.tsx).
  */
-export function RoleLayout({ basePath, roleLabel, roleTone }: { basePath: "/admin" | "/usuario"; roleLabel: string; roleTone: "admin" | "user" }) {
-  const { profile, signOut } = useAuth();
+export function RoleLayout({ basePath, roleLabel }: { basePath: "/admin" | "/usuario"; roleLabel: string }) {
   const location = useLocation();
+  const [searchOpen, setSearchOpen] = useState(false);
 
   const match = location.pathname.match(new RegExp(`^${basePath}/projects/([a-f0-9-]+)`));
   const currentProjectId = match ? match[1] : null;
   const isWorkspace = WORKSPACE_SUFFIXES.some((suffix) => location.pathname.endsWith(suffix));
-
   const projectsPath = `${basePath}/projects`;
-  const base = currentProjectId ? `${projectsPath}/${currentProjectId}` : null;
 
-  const navItems: NavItem[] = base
-    ? [
-        { to: `${base}/dashboard`, label: "Dashboard", icon: "chart" },
-        { to: `${base}/mapa`, label: "Inventario", icon: "leaf" },
-        { to: `${base}/inspeccion`, label: "Inspección y Riesgo", icon: "check-square" },
-        { to: `${base}/infraestructura`, label: "Infraestructura", icon: "building" },
-        { to: `${base}/mantencion`, label: "Mantención", icon: "wrench" },
-        { to: `${base}/incidencias`, label: "Incidencias", icon: "alert" },
-        { to: `${base}/indices`, label: "Índices", icon: "sort" },
-      ]
-    : [{ to: projectsPath, label: "Mis proyectos", icon: "list", end: true }];
+  // Ctrl K / ⌘ K abre el buscador, solo dentro de un proyecto.
+  useEffect(() => {
+    if (!currentProjectId) return;
+    function onKey(e: KeyboardEvent) {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        setSearchOpen((v) => !v);
+      }
+    }
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [currentProjectId]);
 
   return (
     <CurrentProjectProvider projectId={currentProjectId}>
-      <div className={`app-shell ${isWorkspace ? "app-shell--workspace" : ""}`}>
-        <Sidebar
-          items={navItems}
-          userName={profile?.nombre ?? profile?.email ?? roleLabel}
-          roleLabel={roleLabel}
-          projectsPath={projectsPath}
-          onLogout={signOut}
-          compact={isWorkspace}
-        />
-        <div className="main">
-          {!isWorkspace && <Topbar title="SIVU — Gestión Territorial" roleLabel={roleLabel} roleTone={roleTone} />}
-          <div className={isWorkspace ? "content--workspace" : "content"}>
-            <Suspense fallback={<p style={{ color: "var(--text-muted)", padding: 24 }}>Cargando…</p>}>
-              <Outlet />
-            </Suspense>
-          </div>
-        </div>
+      <div className={`sivu-shell ${isWorkspace ? "sivu-shell--workspace" : ""}`}>
+        <AppTopBar basePath={basePath} roleLabel={roleLabel} onOpenSearch={() => setSearchOpen(true)} />
+        <main className={isWorkspace ? "content--workspace" : "content"}>
+          <Suspense fallback={<p style={{ color: "var(--text-muted)", padding: 24 }}>Cargando…</p>}>
+            <Outlet />
+          </Suspense>
+        </main>
+        {searchOpen && currentProjectId && (
+          <ModuleSearch
+            projectBase={`${projectsPath}/${currentProjectId}`}
+            projectsPath={projectsPath}
+            onClose={() => setSearchOpen(false)}
+          />
+        )}
       </div>
     </CurrentProjectProvider>
   );

@@ -1,25 +1,28 @@
 import { useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
-import { getProject } from "../api/projects";
-import type { Project } from "../types/project";
+import { Link, useLocation, useParams } from "react-router-dom";
+import { getProjectWithSector } from "../api/projects";
+import type { ProjectWithSector } from "../types/project";
 import { Icon, type IconName } from "../components/Icons";
 
 const MODULE_LINKS: { to: string; label: string; icon: IconName }[] = [
+  // Orden y nombres de CC-059 / CC-060.
   { to: "dashboard", label: "Dashboard", icon: "chart" },
-  { to: "mapa", label: "Inventario", icon: "leaf" },
-  { to: "inspeccion", label: "Inspección y Riesgo", icon: "check-square" },
-  { to: "infraestructura", label: "Infraestructura", icon: "building" },
+  { to: "indices", label: "Indicadores biométricos", icon: "sort" },
   { to: "mantencion", label: "Mantención", icon: "wrench" },
   { to: "incidencias", label: "Incidencias", icon: "alert" },
-  { to: "indices", label: "Índices", icon: "sort" },
+  { to: "mapa", label: "Inventario", icon: "leaf" },
+  { to: "inspeccion", label: "Riesgo Arbóreo", icon: "check-square" },
+  { to: "infraestructura", label: "Infraestructura", icon: "building" },
 ];
 import { Badge } from "../components/Badge";
 import { useAuth } from "../hooks/useAuth";
 import ProjectMembersSection from "./ProjectMembersSection";
 import { fechaHoraChile } from "../lib/dates";
+import { ESTADO_PROYECTO_LABEL } from "../lib/projects";
 
 /**
- * Detalle real de GET /api/projects/:id (F6). Compartido entre /admin
+ * Detalle real de GET /api/sivu/projects/:id (Fase 7, Paso 2; antes F6
+ * con la demo): proyecto y su sector. Compartido entre /admin
  * y /usuario: el backend decide acceso (admin siempre; usuario_municipal
  * solo con membership) — un 403/404 real se muestra tal cual, sin
  * inventar un proyecto de repuesto ni redirigir a otro lado.
@@ -32,7 +35,8 @@ import { fechaHoraChile } from "../lib/dates";
 export default function ProjectDetail() {
   const { projectId = "" } = useParams();
   const { profile } = useAuth();
-  const [project, setProject] = useState<Project | null>(null);
+  const { hash } = useLocation();
+  const [detail, setDetail] = useState<ProjectWithSector | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -40,12 +44,12 @@ export default function ProjectDetail() {
     let cancelled = false;
     setLoading(true);
     setError(null);
-    setProject(null);
+    setDetail(null);
 
-    getProject(projectId)
+    getProjectWithSector(projectId)
       .then((data) => {
         if (cancelled) return;
-        setProject(data);
+        setDetail(data);
         setLoading(false);
       })
       .catch((err: unknown) => {
@@ -58,6 +62,13 @@ export default function ProjectDetail() {
       cancelled = true;
     };
   }, [projectId]);
+
+  // «Miembros del proyecto» (menú del proyecto, barra superior) llega con #miembros.
+  useEffect(() => {
+    if (hash === "#miembros" && detail) {
+      document.getElementById("miembros")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }, [hash, detail]);
 
   if (loading) {
     return <p style={{ color: "var(--text-muted)" }}>Cargando proyecto…</p>;
@@ -73,16 +84,19 @@ export default function ProjectDetail() {
     );
   }
 
-  if (!project) return null;
+  if (!detail) return null;
+  const { proyecto: project, sector } = detail;
 
   return (
     <div>
       <div className="page-header">
         <div>
-          <h1>{project.name}</h1>
-          <p className="page-header__sub">{project.institution_name}</p>
+          <h1>{project.nombre_proyecto}</h1>
+          <p className="page-header__sub">Ficha del proyecto</p>
         </div>
-        <Badge tone={project.status === "activo" ? "green" : "slate"}>{project.status}</Badge>
+        <Badge tone={project.estado_proyecto === "activo" ? "green" : "slate"}>
+          {ESTADO_PROYECTO_LABEL[project.estado_proyecto]}
+        </Badge>
       </div>
 
       <div
@@ -109,9 +123,15 @@ export default function ProjectDetail() {
       <div className="card card--pad">
         <div className="info-list">
           <div className="info-list__item">
-            <span>Profesional responsable</span>
-            {project.responsible_professional ?? "—"}
+            <span>Sector</span>
+            {sector ? sector.nombre_sector : "Sin sector registrado"}
           </div>
+          {sector && (
+            <div className="info-list__item">
+              <span>Superficie del sector</span>
+              {sector.superficie_sector_m2.toLocaleString("es-CL")} m²
+            </div>
+          )}
           <div className="info-list__item">
             <span>Creado</span>
             {fechaHoraChile(project.created_at)}
@@ -123,7 +143,11 @@ export default function ProjectDetail() {
         </div>
       </div>
 
-      {profile?.role === "admin" && <ProjectMembersSection projectId={project.id} />}
+      {profile?.role === "admin" && (
+        <div id="miembros">
+          <ProjectMembersSection projectId={project.id} />
+        </div>
+      )}
     </div>
   );
 }

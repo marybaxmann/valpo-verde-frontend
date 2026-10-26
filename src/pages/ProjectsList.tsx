@@ -6,9 +6,11 @@ import type { Project } from "../types/project";
 import { Icon } from "../components/Icons";
 import { Badge } from "../components/Badge";
 import { Modal } from "../components/Modal";
+import { ESTADO_PROYECTO_LABEL } from "../lib/projects";
+import { fechaHoraChile } from "../lib/dates";
 
 /**
- * Listado real de GET /api/projects (F6). Compartido entre /admin y
+ * Listado real de GET /api/sivu/projects (Fase 7, Paso 2; antes F6 con la demo). Compartido entre /admin y
  * /usuario: el backend ya devuelve solo lo que corresponde a cada rol
  * (admin → todos; usuario_municipal → solo sus membresías) — este
  * componente no filtra nada por su cuenta, solo muestra lo que llega.
@@ -102,14 +104,15 @@ export default function ProjectsList() {
             <div key={p.id} className="card card--pad sivu-project-card">
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 10 }}>
                 <div style={{ minWidth: 0 }}>
-                  <h3 className="sivu-project-card__title">{p.name}</h3>
-                  <p className="sivu-project-card__inst">{p.institution_name}</p>
+                  <h3 className="sivu-project-card__title">{p.nombre_proyecto}</h3>
                 </div>
-                <Badge tone={p.status === "activo" ? "green" : "slate"}>{p.status}</Badge>
+                <Badge tone={p.estado_proyecto === "activo" ? "green" : "slate"}>
+                  {ESTADO_PROYECTO_LABEL[p.estado_proyecto]}
+                </Badge>
               </div>
               <div className="sivu-project-card__meta">
-                <span>Profesional responsable</span>
-                <strong>{p.responsible_professional ?? "—"}</strong>
+                <span>Creado</span>
+                <strong>{fechaHoraChile(p.created_at)}</strong>
               </div>
               <div style={{ display: "flex", gap: 8, marginTop: "auto" }}>
                 <Link

@@ -280,13 +280,8 @@ export default function ProjectInventoryMap() {
           <span className="sivu-territorial-topbar__title">Inventario territorial</span>
           <span className="sivu-territorial-topbar__project">
             <Icon name="leaf" size={13} />
-            {project ? project.name : "Cargando proyecto..."}
+            {project ? project.nombre_proyecto : "Cargando proyecto..."}
           </span>
-          {project && (
-            <span className="status-pill" style={{ fontSize: 11 }}>
-              {project.institution_name}
-            </span>
-          )}
         </div>
 
         <div className="sivu-territorial-topbar__right">

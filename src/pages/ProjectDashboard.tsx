@@ -160,7 +160,7 @@ export default function ProjectDashboard() {
         <div>
           <h1>Dashboard territorial</h1>
           <p className="page-header__sub">
-            {project ? `${project.name} · ${project.institution_name}` : "Cargando proyecto…"}
+            {project ? project.nombre_proyecto : "Cargando proyecto…"}
           </p>
         </div>
         <Link to="../mapa" relative="path" className="btn btn-primary">
@@ -290,7 +290,7 @@ export default function ProjectDashboard() {
             className="btn btn-secondary"
             style={{ width: "100%", justifyContent: "center", marginTop: 14, fontSize: 12 }}
           >
-            Ir a Inspección y Riesgo
+            Ir a Riesgo Arbóreo
           </Link>
         </div>
       </div>
@@ -315,7 +315,7 @@ export default function ProjectDashboard() {
         />
         <ModuleSummaryCard
           icon="check-square"
-          title="Inspección y Riesgo"
+          title="Riesgo Arbóreo"
           note={`${riskStats.evaluados} árbol(es) evaluados · ${riskStats.sinEvaluar} sin evaluación.`}
           to="../inspeccion"
         />
@@ -351,7 +351,7 @@ export default function ProjectDashboard() {
         />
         <ModuleSummaryCard
           icon="sort"
-          title="Índices"
+          title="Indicadores biométricos"
           note="Análisis del arbolado e indicadores territoriales."
           to="../indices"
         />
