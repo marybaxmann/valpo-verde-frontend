@@ -27,7 +27,7 @@ export function AppTopBar({
   onOpenSearch: () => void;
 }) {
   const { profile, signOut } = useAuth();
-  const { projectId, project } = useCurrentProject();
+  const { projectId, project, projectError } = useCurrentProject();
   const { theme, toggleTheme } = useTheme();
   const location = useLocation();
   // El menú abierto se recuerda junto con la ruta: al navegar queda cerrado.
@@ -85,7 +85,7 @@ export function AppTopBar({
               onClick={() => toggle("proyecto")}
               title={project?.nombre_proyecto}
             >
-              <span className="sivu-topbar__project-name">{project?.nombre_proyecto ?? "Cargando proyecto…"}</span>
+              <span className="sivu-topbar__project-name">{project?.nombre_proyecto ?? (projectError ? "Proyecto no disponible" : "Cargando proyecto…")}</span>
               <Icon name="chevron-down" size={14} />
             </button>
             {open === "proyecto" && (

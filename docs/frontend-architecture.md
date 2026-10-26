@@ -193,6 +193,14 @@ email, nunca hardcodeado.
 **Fotografía:** la de la autora (CC-058), reducida de 2400 × 1800 px y 1,26 MB a 1600 × 1200 px y 524 KB (JPEG progresivo, calidad 72), guardada desde una imagen nueva: sin EXIF, GPS ni XMP (solo la cabecera JFIF).
 **Validación:** `tsc -b`, `npm run build` y `npm run lint` sin errores ni advertencias nuevas. Navegador: vista ancha (1440 px) en claro; pantalla angosta (~800 px) en claro y oscuro; «Ingresar» con campos vacíos muestra el aviso sin llamar a Supabase. Contraseña equivocada (probada por la autora): muestra «No se pudo iniciar sesión. Revisa tu email y contraseña.».
 
+### Fase 7 · Paso 4 (Dashboard) — composición de la maqueta con datos pendientes
+**Fecha:** 2026-10-26. Rama `feature/fase7-maqueta-lab`.
+**Objetivo:** Dashboard de la maqueta (CC-057), sin mapa, solo con datos reales de la API de la Fase 6.
+**Archivos:** `src/pages/ProjectDashboard.tsx` reescrito, `src/components/PendingNotice.tsx` (nuevo: estado «pendiente», sin botones inactivos), `src/styles/dashboard.css` (nuevo), `src/hooks/useCurrentProject.tsx` (expone el error real del proyecto) y `AppTopBar.tsx` («Proyecto no disponible» en vez de «Cargando…» si falla).
+**Decisiones de la autora (2026-10-26):** hacerlo ahora aunque casi todo quede «pendiente»; el frontend **no cuenta ni clasifica** (los indicadores esperan el resumen B7); pedir al backend que planifique B1, B5 y B7 (`docs/propuestas-cc/mensaje-backend-paso4.md`).
+**Datos reales:** estado, sector y nombre del proyecto (`GET /api/sivu/projects/:id`) y la grilla de módulos. Indicadores y paneles (riesgo, composición, operación, Agenda —antes «Próximas intervenciones», CC-037—, infraestructura) muestran qué falta. Se quitan el visor SIG y las llamadas a la API de la demo de esta pantalla.
+**Validación:** `tsc -b`, `npm run build` y `npm run lint` sin errores ni advertencias nuevas. Navegador contra pruebas con `municipal.f7`: pantalla angosta en claro, vista ancha (1440 px) en oscuro con la misma composición que la maqueta, y proyecto sin acceso (403: solo el error real, sin paneles).
+
 ---
 
 ## 5. Limitaciones conocidas

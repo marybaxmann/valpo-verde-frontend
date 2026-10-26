@@ -18,3 +18,18 @@ inventa ningún contrato: cada punto describe la necesidad, no el formato.
 | B10 | Índices en el modelo nuevo | Índices | Solo demo. |
 | B11 | Listar usuarios disponibles para agregar como miembros | Miembros | No existe (se pide `user_id` a mano). |
 | B12 | Documentar `/api/sivu/...` en el README § «Contrato para frontend» | Todas | El README solo documenta la demo. |
+
+## Prioridad pedida por la responsable (2026-10-26, Paso 4)
+
+El roadmap del backend (`docs/roadmap.md`, `dd6949b`) planifica B3 y B4
+(CC-061), pero **no B1, B5 ni B7**. Sin ellos, el Dashboard y el Inventario
+del frontend nuevo no tienen datos: hoy muestran sus paneles como
+«pendiente». Decisión de la responsable: **el frontend no cuenta ni
+clasifica** (no deriva indicadores a partir de listados); todo lo que se
+muestre como indicador viene del backend.
+
+| # | Para qué pantalla | Qué necesita el frontend (necesidad, no formato) |
+|---|---|---|
+| B7 | Dashboard (indicadores, distribución por riesgo, composición, operación) | Por proyecto: total de árboles y por estado de ciclo de vida; georreferenciados y sin georreferenciar; evaluados y sin evaluación; conteo por clasificación de riesgo vigente (incluidas «Sin clasificación» / «No determinado», con sus etiquetas de catálogo); especies distintas y las más registradas; OT por estado (CC-050) e incidencias por estado (con sus etiquetas). |
+| B1 | Inventario, mapas, buscador, Dashboard | Listado de árboles del proyecto con sus datos vigentes (código, especie, ciclo de vida, ubicación, DAP, altura, clasificación de riesgo vigente con su etiqueta, fecha de vigencia). |
+| B5 | Dashboard (Agenda), Mantención | Recordatorios de próxima inspección y monitoreo por proyecto (CC-037: inicio y término del rango, árbol, tipo). Las vistas `v_upcoming_inspections` / `v_tree_fechas_vigentes` ya existen en la base. |

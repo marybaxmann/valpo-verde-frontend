@@ -5,9 +5,11 @@ import type { Project } from "../types/project";
 interface CurrentProjectState {
   projectId: string | null;
   project: Project | null;
+  /** Mensaje real del backend si GET /api/sivu/projects/:id falló. */
+  projectError: string | null;
 }
 
-const CurrentProjectContext = createContext<CurrentProjectState>({ projectId: null, project: null });
+const CurrentProjectContext = createContext<CurrentProjectState>({ projectId: null, project: null, projectError: null });
 
 /**
  * Proyecto en el que trabaja el usuario (workspace), resuelto una sola vez
@@ -18,6 +20,7 @@ const CurrentProjectContext = createContext<CurrentProjectState>({ projectId: nu
  */
 export function CurrentProjectProvider({ projectId, children }: { projectId: string | null; children: ReactNode }) {
   const [project, setProject] = useState<Project | null>(null);
+  const [failed, setFailed] = useState<{ id: string; message: string } | null>(null);
 
   useEffect(() => {
     setProject(null);
@@ -27,8 +30,10 @@ export function CurrentProjectProvider({ projectId, children }: { projectId: str
       .then((data) => {
         if (!cancelled) setProject(data);
       })
-      .catch(() => {
-        if (!cancelled) setProject(null);
+      .catch((err: unknown) => {
+        if (cancelled) return;
+        setProject(null);
+        setFailed({ id: projectId, message: err instanceof Error ? err.message : "No se pudo cargar el proyecto." });
       });
     return () => {
       cancelled = true;
@@ -36,7 +41,13 @@ export function CurrentProjectProvider({ projectId, children }: { projectId: str
   }, [projectId]);
 
   return (
-    <CurrentProjectContext.Provider value={{ projectId, project: project && project.id === projectId ? project : null }}>
+    <CurrentProjectContext.Provider
+      value={{
+        projectId,
+        project: project && project.id === projectId ? project : null,
+        projectError: failed && failed.id === projectId ? failed.message : null,
+      }}
+    >
       {children}
     </CurrentProjectContext.Provider>
   );
