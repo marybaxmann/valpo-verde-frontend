@@ -201,6 +201,14 @@ email, nunca hardcodeado.
 **Datos reales:** estado, sector y nombre del proyecto (`GET /api/sivu/projects/:id`) y la grilla de módulos. Indicadores y paneles (riesgo, composición, operación, Agenda —antes «Próximas intervenciones», CC-037—, infraestructura) muestran qué falta. Se quitan el visor SIG y las llamadas a la API de la demo de esta pantalla.
 **Validación:** `tsc -b`, `npm run build` y `npm run lint` sin errores ni advertencias nuevas. Navegador contra pruebas con `municipal.f7`: pantalla angosta en claro, vista ancha (1440 px) en oscuro con la misma composición que la maqueta, y proyecto sin acceso (403: solo el error real, sin paneles).
 
+### Fase 7 · Paso 4 (Inventario) — tabla protagonista y alta municipal en la Fase 6
+**Fecha:** 2026-10-26. Rama `feature/fase7-maqueta-lab`.
+**Objetivo:** Inventario de la maqueta (CC-057) y primera escritura real contra `/api/sivu`: el alta municipal mínima.
+**Archivos:** `src/pages/InventoryPage.tsx` (nuevo, ruta `/mapa` sin cambios), `src/components/NewTreeModal.tsx`, `src/components/LocationPickerMap.tsx`, `src/api/treeAlta.ts`, `src/types/treeAlta.ts`, `src/styles/inventory.css` (nuevos). Se eliminan `ProjectInventoryMap.tsx`, `CreateTreeModal.tsx` (alta de la demo) y `TreeContextualPanel.tsx` (edición técnica, CC-059 punto 6). `/mapa` deja de ser pantalla de mapa a pantalla completa.
+**Contrato consumido (leído de `feature/fase6-backend-api`):** `POST /api/sivu/projects/:id/trees` (solo `usuario_municipal`; `sector`, `ubicacion_descriptiva`, `utm_este`, `utm_norte` y especie o nombre común; 201 con `tree_code`; 422 fuera del sector, CC-046) y `GET /api/sivu/projects/:id/species?nombre=` (CC-053).
+**Decisiones de la autora (2026-10-26):** incluir el alta ahora; marcar el punto en el mapa con la conversión EPSG:4326 → EPSG:32719 en el frontend (ADR-010 v3.0; las UTM siguen editables y se guardan las del formulario); tabla, especies y minimapa en «pendiente» hasta B1.
+**Validación:** `tsc -b`, `npm run build` y `npm run lint` sin errores ni advertencias nuevas. Navegador contra pruebas con `municipal.f7`: alta del árbol real `AV_000007` de la autora (*Acer pseudoplatanus*, Falso plátano, Plaza Victoria; UTM 255466.61 / 6340499.86) → 201, `A-000346`, sector vinculado y `registrado_por` = el usuario; buscador de especies → 200 con catálogo vacío (se registra lo escrito, CC-053); marcador ubicado desde las UTM escritas; punto fuera del sector → 422 con el mensaje del backend y sin alta. Etiquetas de los campos asociadas para lectores de pantalla.
+
 ---
 
 ## 5. Limitaciones conocidas

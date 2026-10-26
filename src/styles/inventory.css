@@ -1,0 +1,202 @@
+/* ==================================================
+   SIVU — INVENTARIO Y ALTA DE ÁRBOL (Fase 7, Paso 4)
+   Composición de la pantalla Inventario de la maqueta «SIVU Lab»
+   (CC-057): tabla protagonista con especies y minimapa al lado.
+   Valores adaptados de lab.css (CC-058).
+   ================================================== */
+
+.sivu-inv {
+  display: flex;
+  flex-direction: column;
+}
+
+.sivu-inv__layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  gap: 12px;
+  align-items: start;
+}
+
+.sivu-inv__table {
+  padding: 6px 6px 10px;
+}
+
+.sivu-inv__table .sivu-table thead th {
+  background: transparent;
+}
+
+.sivu-inv__pending-cell {
+  padding: 14px !important;
+}
+
+.sivu-inv__pending-cell .sivu-pending {
+  min-height: 220px;
+  align-items: center;
+  justify-content: center;
+}
+
+.sivu-inv__side {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.sivu-inv__created {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 12px;
+  padding: 11px 14px;
+  border-radius: 16px;
+  font-size: 13px;
+  line-height: 1.45;
+  background: var(--shell-current);
+  color: var(--text);
+  border: 1px solid var(--shell-current-line);
+}
+
+.sivu-inv__created svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+  color: var(--sivu-accent);
+}
+
+/* ---------- Formulario «Nuevo árbol» ---------- */
+
+.modal:has(.sivu-newtree) {
+  width: min(980px, calc(100vw - 32px));
+  max-width: none;
+}
+
+.sivu-newtree__intro {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-bottom: 14px;
+}
+
+.sivu-newtree__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 20px;
+}
+
+.sivu-newtree__title {
+  margin: 4px 0 10px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.sivu-newtree__species {
+  position: relative;
+}
+
+.sivu-newtree__suggest {
+  list-style: none;
+  margin: 4px 0 0;
+  padding: 6px;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  box-shadow: var(--shadow-md);
+  max-height: 220px;
+  overflow: auto;
+}
+
+.sivu-newtree__suggest button {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 10px;
+  width: 100%;
+  padding: 7px 10px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--text);
+  text-align: left;
+  font-size: 13px;
+}
+
+.sivu-newtree__suggest button:hover {
+  background: var(--shell-hover);
+}
+
+.sivu-newtree__suggest small {
+  color: var(--text-muted);
+  font-size: 11.5px;
+}
+
+.sivu-newtree__maphint {
+  display: block;
+  margin-top: 8px;
+  font-size: 11.5px;
+  color: var(--text-faint);
+}
+
+.sivu-newtree__error {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  margin-top: 14px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  font-size: 13px;
+  color: var(--red-500);
+  background: var(--red-50);
+}
+
+/* ---------- Mapa para marcar el punto ---------- */
+
+.sivu-picker {
+  position: relative;
+  height: 360px;
+  border-radius: 16px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  background: var(--surface-sunken);
+}
+
+.sivu-picker__map {
+  position: absolute;
+  inset: 0;
+  cursor: crosshair;
+}
+
+.sivu-picker__state {
+  position: absolute;
+  inset: auto 12px 12px 12px;
+  margin: 0;
+  padding: 8px 12px;
+  border-radius: 12px;
+  font-size: 12.5px;
+  background: var(--surface);
+  color: var(--text-muted);
+  box-shadow: var(--shadow-sm);
+}
+
+.sivu-newtree .sivu-picker__state:only-child,
+section > .sivu-picker__state {
+  position: static;
+}
+
+.sivu-picker__state--error {
+  color: var(--red-500);
+}
+
+@media (max-width: 1100px) {
+  .sivu-inv__layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 860px) {
+  .sivu-newtree__grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .sivu-picker {
+    height: 280px;
+  }
+}

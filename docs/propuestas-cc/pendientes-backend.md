@@ -33,3 +33,16 @@ muestre como indicador viene del backend.
 | B7 | Dashboard (indicadores, distribución por riesgo, composición, operación) | Por proyecto: total de árboles y por estado de ciclo de vida; georreferenciados y sin georreferenciar; evaluados y sin evaluación; conteo por clasificación de riesgo vigente (incluidas «Sin clasificación» / «No determinado», con sus etiquetas de catálogo); especies distintas y las más registradas; OT por estado (CC-050) e incidencias por estado (con sus etiquetas). |
 | B1 | Inventario, mapas, buscador, Dashboard | Listado de árboles del proyecto con sus datos vigentes (código, especie, ciclo de vida, ubicación, DAP, altura, clasificación de riesgo vigente con su etiqueta, fecha de vigencia). |
 | B5 | Dashboard (Agenda), Mantención | Recordatorios de próxima inspección y monitoreo por proyecto (CC-037: inicio y término del rango, árbol, tipo). Las vistas `v_upcoming_inspections` / `v_tree_fechas_vigentes` ya existen en la base. |
+
+## Observaciones de las pruebas del frontend
+
+- **2026-10-26 — Código de árbol consumido en un alta rechazada.** Al probar
+  `POST /api/sivu/projects/:id/trees` con un punto fuera del sector, el 422
+  (CC-046) dice «El árbol A-000347 queda fuera de la delimitación del sector
+  de su proyecto»: nombra un `tree_code` que nunca se creó (la secuencia se
+  consume igual). Un usuario puede creer que ese árbol existe. Sugerencia: que
+  el mensaje no incluya el código cuando el alta no se guardó. El alta válida
+  anterior quedó como `A-000346`.
+- **Catálogo de especies vacío en pruebas:** `GET /api/sivu/projects/:id/species?nombre=Acer`
+  responde `{"data":[]}`. No es un error; solo hace que el buscador no pueda
+  probarse con coincidencias hasta que el Inspector incorpore especies (CC-053).

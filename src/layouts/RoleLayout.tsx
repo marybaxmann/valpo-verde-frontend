@@ -6,7 +6,7 @@ import { CurrentProjectProvider } from "../hooks/useCurrentProject";
 
 // Los módulos territoriales (con mapa) ocupan todo el espacio bajo la
 // barra; el resto usa el contenido centrado con márgenes.
-const WORKSPACE_SUFFIXES = ["/mapa", "/inspeccion", "/infraestructura"];
+const WORKSPACE_SUFFIXES = ["/inspeccion", "/infraestructura"];
 
 /**
  * Shell común de /admin y /usuario (Fase 7, Paso 2; CC-059): barra

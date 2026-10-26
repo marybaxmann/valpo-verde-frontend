@@ -21,12 +21,13 @@ const ModulePage = lazy(() => import("./pages/ModulePage"));
 const MaintenancePage = lazy(() => import("./pages/MaintenancePage"));
 const IncidentsPage = lazy(() => import("./pages/IncidentsPage"));
 const IndicesPage = lazy(() => import("./pages/IndicesPage"));
-const ProjectInventoryMap = lazy(() => import("./pages/ProjectInventoryMap"));
+const InventoryPage = lazy(() => import("./pages/InventoryPage"));
 
-function InventoryMapRoute() {
+// Inventario (Fase 7): tabla protagonista; ruta /mapa sin cambios (CC-059).
+function InventoryRoute() {
   return (
-    <Suspense fallback={<p style={{ color: "var(--text-muted)" }}>Cargando mapa…</p>}>
-      <ProjectInventoryMap />
+    <Suspense fallback={<p style={{ color: "var(--text-muted)" }}>Cargando inventario…</p>}>
+      <InventoryPage />
     </Suspense>
   );
 }
@@ -53,7 +54,7 @@ export default function App() {
           <Route path="projects" element={<ProjectsList />} />
           <Route path="projects/:projectId" element={<ProjectDetail />} />
           <Route path="projects/:projectId/dashboard" element={<ProjectDashboard />} />
-          <Route path="projects/:projectId/mapa" element={<InventoryMapRoute />} />
+          <Route path="projects/:projectId/mapa" element={<InventoryRoute />} />
           <Route path="projects/:projectId/inventario" element={<Navigate to="../mapa" replace />} />
           <Route path="projects/:projectId/inspeccion" element={<ModulePage module="inspeccion" />} />
           <Route path="projects/:projectId/infraestructura" element={<ModulePage module="infraestructura" />} />
@@ -69,7 +70,7 @@ export default function App() {
           <Route path="projects" element={<ProjectsList />} />
           <Route path="projects/:projectId" element={<ProjectDetail />} />
           <Route path="projects/:projectId/dashboard" element={<ProjectDashboard />} />
-          <Route path="projects/:projectId/mapa" element={<InventoryMapRoute />} />
+          <Route path="projects/:projectId/mapa" element={<InventoryRoute />} />
           <Route path="projects/:projectId/inventario" element={<Navigate to="../mapa" replace />} />
           <Route path="projects/:projectId/inspeccion" element={<ModulePage module="inspeccion" />} />
           <Route path="projects/:projectId/infraestructura" element={<ModulePage module="infraestructura" />} />
