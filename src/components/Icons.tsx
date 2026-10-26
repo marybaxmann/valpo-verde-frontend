@@ -24,10 +24,17 @@ export type IconName =
   | "play"
   | "sun"
   | "moon"
-  | "chevron-down";
+  | "chevron-down"
+  | "pin";
 
 const paths: Record<IconName, React.ReactNode> = {
   "chevron-down": <path d="m6 9 6 6 6-6" />,
+  pin: (
+    <>
+      <path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21Z" />
+      <circle cx="12" cy="9.5" r="2.5" />
+    </>
+  ),
   leaf: (
     <path d="M5 21c9-1 14-6 15-15C11 6 6 11 5 21ZM5 21c1-4 3-7 6-9" />
   ),

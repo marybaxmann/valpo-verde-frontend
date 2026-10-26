@@ -185,6 +185,14 @@ email, nunca hardcodeado.
 **Validación:** `tsc -b`, `npm run build` y `npm run lint` sin errores ni advertencias nuevas. Navegador contra pruebas (backend local con `.env.pruebas`), proyecto «QA Fase 7 — proyecto de prueba del frontend» creado con `fn_create_project_with_sector`: `municipal.f7` (lista, barra en el proyecto, menús, Ctrl K, pantalla con mapa bajo la barra, ficha con sector, claro y oscuro, pantalla angosta), `inspector.f7` (mensaje de rol; las rutas `/usuario` y `/admin` lo devuelven a él) y `admin.f7` (todos los proyectos, menú con «Miembros del proyecto»).
 **Pendiente (Pasos 4 y 5):** Dashboard, módulos y miembros siguen leyendo la API de la demo, que no conoce los proyectos del modelo nuevo: muestran «Proyecto no encontrado» o ceros. Riesgo Arbóreo todavía ofrece «+ Nueva evaluación» al Usuario municipal (se quita en el Paso 4, CC-059 punto 6).
 
+### Fase 7 · Paso 3 — Pantalla de acceso con fotografía
+**Fecha:** 2026-10-26. Rama `feature/fase7-maqueta-lab`.
+**Objetivo:** diseño oficial de acceso de la maqueta (CC-057), solo correo y contraseña contra Supabase Auth.
+**Archivos:** `src/pages/Login.tsx` reescrito, `src/styles/login.css` (nuevo), `src/assets/login-calle.jpg` (nuevo), ícono `pin` en `Icons.tsx`.
+**Decisiones de la autora (2026-10-26):** textos de la maqueta; marcas ilustrativas con la zona en palabras simples («Tronco», «Acera», «Alcorque») en vez del formato de catálogo; fotografía recomprimida. Fuera: recuperación de contraseña, acceso a Conecta, insignia «MAQUETA».
+**Fotografía:** la de la autora (CC-058), reducida de 2400 × 1800 px y 1,26 MB a 1600 × 1200 px y 524 KB (JPEG progresivo, calidad 72), guardada desde una imagen nueva: sin EXIF, GPS ni XMP (solo la cabecera JFIF).
+**Validación:** `tsc -b`, `npm run build` y `npm run lint` sin errores ni advertencias nuevas. Navegador: vista ancha (1440 px) en claro; pantalla angosta (~800 px) en claro y oscuro; «Ingresar» con campos vacíos muestra el aviso sin llamar a Supabase. **Pendiente:** ver el mensaje de contraseña equivocada (requiere que la autora escriba una contraseña inválida).
+
 ---
 
 ## 5. Limitaciones conocidas
