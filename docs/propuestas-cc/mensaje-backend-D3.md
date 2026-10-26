@@ -11,6 +11,16 @@ registres tú. **Antes de registrar nada, muéstrale a ella cada CC y espera su
 aprobación**, como siempre. No hace falta tocar código todavía: primero los
 CC.
 
+Dónde leer los borradores: repositorio `marybaxmann/valpo-verde-frontend`,
+rama `feature/fase7-maqueta-lab`, carpeta `docs/propuestas-cc/` (léelos con
+`git fetch` + `git show origin/feature/fase7-maqueta-lab:docs/propuestas-cc/<archivo>`).
+
+Rama sugerida por la revisora: crea `wip/cc057-frontend` desde la punta de
+`wip/cc056-completitud` (no desde `feature/fase6-backend-api`), para que los
+CC nuevos queden a continuación de CC-056 en el mismo `registro-cambios.md`.
+Esa rama es solo para registrar estos CC: no avances ni fusiones otras ramas
+por esto.
+
 **1. Referencia visual principal (borrador D1).** La maqueta Lab
 (`valpo-verde-frontend`, rama `prototype/sivu-maqueta-lab`, commit `6817fb2`,
 carpeta `prototypes/sivu-maqueta-lab/`) reemplaza a SIVU Territorio (CC-025)
