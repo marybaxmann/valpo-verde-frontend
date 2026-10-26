@@ -168,7 +168,14 @@ email, nunca hardcodeado.
 **Objetivo:** matriz de brecha entre la maqueta Lab (`prototype/sivu-maqueta-lab`, `6817fb2`) y el frontend productivo, exclusiones y borradores de las decisiones D1–D4.
 **Archivos:** `docs/propuestas-cc/paso0-diagnostico.md`, `D1-…` a `D4-…`, `pendientes-backend.md`.
 **CC asignados (backend `wip/cc057-frontend`, `57c4a7e`, aprobados el 2026-10-26):** D1 → CC-057, D2 → CC-058, D3 → CC-059 y CC-060 (más CC-061, módulo Inspección, y CC-062, Conecta dentro de CC-036), D4 → CC-059 puntos 5 y 6.
-**Hallazgos principales:** el `.env` local apunta a la base real (no se inició sesión); el frontend lee la API de la demo y la Fase 6 (`/api/sivu`) todavía no tiene lecturas; el frontend y la maqueta dan al Usuario municipal acciones que PR-003 v8.0 ya no le permite.
+**Hallazgos principales (Paso 0):** el `.env` local apunta a la base real (no se inició sesión); el frontend lee la API de la demo y la Fase 6 (`/api/sivu`) todavía no tiene lecturas; el frontend y la maqueta dan al Usuario municipal acciones que PR-003 v8.0 ya no le permite.
+
+### Fase 7 · Paso 1 — Material visual de SIVU Lab
+**Fecha:** 2026-10-26. Commit `1249ebd` (rama `feature/fase7-maqueta-lab`, sin push).
+**Objetivo:** fundaciones visuales de la maqueta (CC-057), sin tocar datos, rutas ni permisos.
+**Archivos:** `index.html` (Geist / Geist Mono; título «SIVU — Gestión del arbolado urbano»), `src/styles/global.css` (valores de los tokens claro/oscuro y fondo de página; mismos nombres de variables), `src/styles/material.css` (nuevo: botones, insignias, indicadores, tarjetas, tablas, pestañas, campos, modales), `src/components/SivuLogo.tsx` (nuevo) y `src/assets/sivu-logo-*.png`, logo en `Login.tsx` y `Sidebar.tsx`.
+**Decisiones:** material copiado según CC-058 (logo de la autora y valores de diseño), indicado en el commit. El tema sigue con `data-theme` en `<html>` (no el sistema de clases de la maqueta). La paleta de riesgo no cambia: los colores de riesgo usan `--classification-*`, que no se modificaron.
+**Validación:** `tsc -b` y `npm run build` sin errores; `npm run lint` solo con advertencias ya existentes en `main`. Navegador (backend local contra pruebas): login en claro y oscuro; `municipal.f7` en `/usuario/projects`, en claro y oscuro, con el estado de error real (500 de la API de la demo, ver Paso 0). No probado: el error del login (requiere enviar una contraseña inválida a Supabase) y las pantallas de módulos (no hay proyectos legibles hasta el Paso 2).
 
 ---
 
