@@ -5,7 +5,7 @@
 | Fecha | 2026-10-26 (borrador) |
 | Origen | Diferencia entre la maqueta (CC-022: dos roles) y el modelo vigente (CC-026, CC-032). |
 | Tipo | UX / navegación por rol (no cambia permisos) |
-| Estado | BORRADOR — opción A elegida por la autora (2026-10-26): se avanza con lo visual; la interfaz del Inspector y del Encargado espera los endpoints del backend. Pendiente de número y registro. |
+| Estado | APROBADO METODOLÓGICAMENTE dentro de **CC-059**, puntos 5 y 6 (2026-10-26, backend `wip/cc057-frontend`, `57c4a7e`) |
 | Reglas relacionadas | PR-003 v8.0, PR-004 v7.0, PR-019 v1.2, PR-020 v1.1, PR-016 v6.0 «Roles» |
 | Versión anterior | El frontend reconoce `admin` → `/admin` y `usuario_municipal` → `/usuario`. Cualquier otro rol, incluidos `inspector` y `encargado_mantencion`, ve «Rol no reconocido». |
 

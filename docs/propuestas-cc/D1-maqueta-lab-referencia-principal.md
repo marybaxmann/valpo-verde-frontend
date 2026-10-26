@@ -5,7 +5,7 @@
 | Fecha | 2026-10-26 (borrador) |
 | Origen | Elección de la autora del 2026-10-18 (README de `prototypes/sivu-maqueta-lab`); Fase 7 del frontend. |
 | Tipo | Documental / referencia de producto (PR-016) |
-| Estado | BORRADOR — opción A elegida por la autora (2026-10-26); pendiente de número y registro |
+| Estado | APROBADO METODOLÓGICAMENTE como **CC-057** (2026-10-26, backend `wip/cc057-frontend`, `57c4a7e`) |
 | Regla afectada | PR-016 v6.0 (CC-025) |
 | Versión anterior | PR-016 v6.0: la referencia visual principal es «SIVU Territorio» (`prototype/sivu-territorio-v1`, `c852104`, `prototypes/sivu-territorio-lab/`). |
 

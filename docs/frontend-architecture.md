@@ -167,6 +167,7 @@ email, nunca hardcodeado.
 **Fecha:** 2026-10-26. Rama `feature/fase7-maqueta-lab` (desde `main` = `bf43e5e`). Sin cambios de código.
 **Objetivo:** matriz de brecha entre la maqueta Lab (`prototype/sivu-maqueta-lab`, `6817fb2`) y el frontend productivo, exclusiones y borradores de las decisiones D1–D4.
 **Archivos:** `docs/propuestas-cc/paso0-diagnostico.md`, `D1-…` a `D4-…`, `pendientes-backend.md`.
+**CC asignados (backend `wip/cc057-frontend`, `57c4a7e`, aprobados el 2026-10-26):** D1 → CC-057, D2 → CC-058, D3 → CC-059 y CC-060 (más CC-061, módulo Inspección, y CC-062, Conecta dentro de CC-036), D4 → CC-059 puntos 5 y 6.
 **Hallazgos principales:** el `.env` local apunta a la base real (no se inició sesión); el frontend lee la API de la demo y la Fase 6 (`/api/sivu`) todavía no tiene lecturas; el frontend y la maqueta dan al Usuario municipal acciones que PR-003 v8.0 ya no le permite.
 
 ---

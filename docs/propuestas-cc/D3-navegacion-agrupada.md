@@ -5,7 +5,7 @@
 | Fecha | 2026-10-26 (borrador) |
 | Origen | Maqueta Lab (`src/data/nav.ts`); decisión de la autora del 2026-10-26 en la Fase 7 del frontend. |
 | Tipo | UX / navegación (PR-016, regla de integración 2) y producto (módulos nuevos) |
-| Estado | BORRADOR — decidido por la autora (2026-10-26); pendiente de número y registro. Los puntos 4 a 6 requieren además cambios en el backend (ver `mensaje-backend-D3.md`). |
+| Estado | APROBADO METODOLÓGICAMENTE como **CC-059** (navegación), **CC-060** (nombres visibles), **CC-061** (módulo Inspección) y **CC-062** (Conecta dentro de CC-036, sin cuentas) — 2026-10-26, backend `wip/cc057-frontend`, `57c4a7e` |
 | Regla afectada | PR-016 v6.0, regla de integración 2: los módulos «pueden reorganizarse visualmente o cambiar su nombre visible solo con aprobación previa de la autora». CC-036 / PR-022 (punto 5). |
 | Versión anterior | Menú lateral plano dentro de un proyecto: Dashboard, Inventario, Inspección y Riesgo, Infraestructura, Mantención, Incidencias, Índices. Fuera de un proyecto: «Mis proyectos». |
 

@@ -5,7 +5,7 @@
 | Fecha | 2026-10-26 (borrador) |
 | Origen | Fase 7 del frontend; depende de D1. |
 | Tipo | Documental / referencia de producto (PR-016) |
-| Estado | BORRADOR — opción B elegida por la autora (2026-10-26); pendiente de número y registro |
+| Estado | APROBADO METODOLÓGICAMENTE como **CC-058** (2026-10-26, backend `wip/cc057-frontend`, `57c4a7e`) |
 | Regla afectada | PR-016 v6.0, «Reglas de integración del prototipo», regla 5 |
 | Versión anterior | «El código del prototipo no se importa desde la aplicación productiva: se reescribe dentro de su arquitectura.» CC-025 lo resume como «sin copiar su código». |
 

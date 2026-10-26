@@ -38,7 +38,7 @@ Según la tarea (fuentes canónicas, en el repositorio backend):
 
 Repositorio remoto del backend: `marybaxmann/valpo-verde-backend`.
 
-## Jerarquía de fuentes (PR-016 v6.0; CC-021, CC-023, CC-025)
+## Jerarquía de fuentes (PR-016 v7.0; CC-021, CC-023, CC-025, CC-057)
 
 Ante contradicción, manda la de mayor nivel:
 
@@ -55,7 +55,9 @@ Ante contradicción, manda la de mayor nivel:
 |---|---|---|
 | Figma original (8 pantallas) | `docs/referencias/figma-original/` | Intención funcional histórica de cada pantalla. Puede contener módulos, campos, categorías y cálculos superados; no restablece decisiones posteriormente modificadas. |
 | Prototipo navegable | `marybaxmann/Valpo-Verde-Conecta` | Intención funcional histórica (mismo nivel que el Figma, PR-001 v3.0). |
-| Referencia visual principal (PR-016 v6.0, CC-025) | Rama `prototype/sivu-territorio-v1` (`c852104`), `prototypes/sivu-territorio-lab/` | Dirección visual del rediseño: composición, navegación, ficha y mapa. Aprueba la dirección, no cada componente. No es una implementación funcional: usa datos de ejemplo y representa los roles de CC-022 mientras CC-015 sigue en conciliación. Se integra módulo por módulo, conservando todos los módulos, campos, rutas, funcionalidades, permisos y reglas, sin datos ficticios ni copiar su código. |
+| Referencia visual principal (PR-016 v7.0, CC-057) | Rama `prototype/sivu-maqueta-lab` (`6817fb2`), `prototypes/sivu-maqueta-lab/` | Maqueta «SIVU Lab»: composición, navegación, tipografía, color, densidad, estados visuales y pantalla de acceso. Aprueba la dirección, no cada componente. No es una implementación funcional: usa datos ficticios, catálogos del 2026-10-17 y las acciones por rol de CC-022, que nunca prevalecen sobre la API ni sobre la base vigente. Navegación y nombres visibles: CC-059 y CC-060. Lo que propone sin CC propio queda fuera. |
+| Reutilización de código (PR-016 v7.0, regla 5; CC-058) | — | La aplicación no importa nada desde `prototypes/`. Se pueden copiar, adaptados, solo elementos de presentación sin datos: valores de diseño, logo y fotografía de la autora, hojas de estilo de presentación e íconos SVG. Los componentes con lógica o datos se reescriben. Nunca se copian `mock.ts`, `lab.ts`, `conecta.ts`, `conecta.css`, `Conecta.tsx`, `Citizen.tsx`, `nav.ts` ni la imagen aérea. Cada commit con material copiado lo indica en su mensaje. |
+| Antecedente visual (CC-057) | Rama `prototype/sivu-territorio-v1` (`c852104`), `prototypes/sivu-territorio-lab/` | Antigua referencia principal (CC-025), reemplazada por SIVU Lab. |
 | Antecedente visual | `docs/referencias/visuales/03_CityDashboardsButton.jpg` | Inspiración complementaria: relación mapa–paneles y densidad informativa. |
 | Referencias complementarias (PR-016 v5.0, CC-023) | Fuera del repositorio (material de terceros) | Inspiración UX/UI: ficha lateral con pestañas y pines legibles (vista de árbol de Groundzy), resumen flotante sobre el mapa, donas y tarjetas tintadas, barras ordenadas. Se adaptan a la arquitectura de SIVU sin copiar identidad ni composición; la paleta de riesgo no cambia; sin funciones que SIVU no calcula; gráficos solo con datos reales; rediseño solo tras validar una maqueta con la autora. |
 
