@@ -1,19 +1,27 @@
 :root {
   /* ==================================================
-     SIVU PALETA INSTITUCIONAL BASE (INV-1C)
+     SIVU — MATERIAL VISUAL (Fase 7, Paso 1; CC-057 / CC-058)
+     Valores tomados de la maqueta «SIVU Lab» (prototype/sivu-maqueta-lab,
+     6817fb2): verde oliva del logotipo, fondos y superficies, tipografía.
+     Se conservan los nombres de variables de INV-1C para no tocar los
+     componentes. La paleta de clasificación de riesgo NO cambia.
      ================================================== */
-  --sivu-primary: #176B4D;
-  --sivu-primary-dark: #23523F;
-  --sivu-primary-medium: #3F936F;
-  --sivu-primary-light: #9BCB76;
-  --sivu-primary-surface: #E3EFE5;
+  --sivu-olive: #485635;
+  --sivu-olive-2: #5f7146;
+  --sivu-accent: #2f7a52;
 
-  --surface-background: #F4F5F1;
-  --surface-primary: #FFFFFF;
+  --sivu-primary: var(--sivu-olive);
+  --sivu-primary-dark: #34432a;
+  --sivu-primary-medium: var(--sivu-olive-2);
+  --sivu-primary-light: #9bb07a;
+  --sivu-primary-surface: #e5eadc;
 
-  --text-primary: #26332D;
-  --text-secondary: #68756E;
-  --border-default: #D9DFDA;
+  --surface-background: #eef1e8;
+  --surface-primary: #fbfcf8;
+
+  --text-primary: #16200f;
+  --text-secondary: #5f6b58;
+  --border-default: rgba(30, 45, 25, 0.1);
 
   /* ==================================================
      SIVU PALETA SEMÁNTICA DE CLASIFICACIÓN
@@ -31,45 +39,54 @@
   --border: var(--border-default);
   --text: var(--text-primary);
   --text-muted: var(--text-secondary);
-  --text-faint: #8a968f;
+  --text-faint: #8a9483;
 
   --green-50: var(--sivu-primary-surface);
-  --green-100: #cde2d3;
+  --green-100: #d3dcc6;
   --green-500: var(--sivu-primary);
   --green-600: var(--sivu-primary-dark);
-  --green-700: #1b4232;
+  --green-700: var(--sivu-accent);
 
-  --amber-50: #fff9e6;
-  --amber-500: var(--classification-medium);
+  --amber-50: #fbf3df;
+  --amber-500: #8a5a00;
 
-  --red-50: #fde8e8;
+  --red-50: #fbe9e6;
   --red-500: var(--classification-critical);
 
-  --blue-50: #ebf3f9;
+  --blue-50: #e8f0f6;
   --blue-500: #35608f;
 
-  --slate-50: #f0f2f0;
-  --slate-500: #5c6a61;
+  --slate-50: #eceee8;
+  --slate-500: #5f6b58;
 
-  --radius-sm: 6px;
-  --radius-md: 8px;
-  --radius-lg: 10px;
+  --radius-sm: 10px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --radius-pill: 999px;
 
-  --shadow-sm: 0 1px 2px rgba(24, 35, 28, 0.05);
-  --shadow-md: 0 4px 12px -2px rgba(24, 35, 28, 0.1);
+  --shadow-sm: 0 14px 34px -22px rgba(40, 55, 30, 0.4);
+  --shadow-md: 0 16px 40px -14px rgba(40, 55, 30, 0.3), 0 3px 10px rgba(40, 55, 30, 0.1);
 
-  --font-display: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  --font-body: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-display: "Geist", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-body: "Geist", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "Geist Mono", ui-monospace, monospace;
+
+  /* Fondo de las pantallas sin mapa (maqueta: .backdrop) */
+  --page-backdrop:
+    radial-gradient(60% 50% at 10% 0%, rgba(95, 113, 70, 0.16), transparent 70%),
+    radial-gradient(50% 45% at 92% 8%, rgba(120, 190, 150, 0.14), transparent 70%),
+    radial-gradient(70% 60% at 70% 110%, rgba(72, 86, 53, 0.14), transparent 70%),
+    linear-gradient(180deg, #f5f7f0, #e9ede2);
 
   --sidebar-w: 240px;
   --topbar-h: 56px;
   /* Tokens de superficie y estado (modo claro / oscuro) */
   --primary-hover: var(--sivu-primary-dark);
-  --surface-subtle: #fbfdfb;
-  --surface-sunken: #eceff0;
-  --surface-overlay: rgba(255, 255, 255, 0.94);
-  --border-soft: #edf0ed;
-  --border-green: #d4e2d8;
+  --surface-subtle: rgba(30, 45, 25, 0.04);
+  --surface-sunken: rgba(30, 45, 25, 0.045);
+  --surface-overlay: rgba(252, 253, 250, 0.95);
+  --border-soft: rgba(30, 45, 25, 0.06);
+  --border-green: rgba(72, 86, 53, 0.25);
   --badge-critical-fg: #7a0c10;
   --badge-critical-bg: #fce8e8;
   --badge-critical-border: #f7c5c7;
@@ -86,7 +103,7 @@
   --risk-text-low: #4d6a2e;
   --risk-text-medium: #946200;
   --diagram-neutral: #D3DDD6;
-  --diagram-outline: rgba(38, 51, 45, 0.45);
+  --diagram-outline: rgba(22, 32, 15, 0.45);
   color-scheme: light;
 }
 
@@ -94,37 +111,45 @@
 /* ==================================================
    MODO OSCURO — se activa con <html data-theme="dark">
    (index.html resuelve la preferencia antes de pintar).
-   La paleta de clasificación de riesgo NO cambia.
+   Valores de la maqueta SIVU Lab en oscuro. La paleta de
+   clasificación de riesgo NO cambia.
    ================================================== */
 :root[data-theme="dark"] {
-  --sivu-primary: #2A8F66;
-  --sivu-primary-medium: #4FB386;
-  --sivu-primary-surface: #1C3328;
+  --sivu-accent: #a8e6c3;
+  --sivu-primary: var(--sivu-olive-2);
+  --sivu-primary-medium: #7a8d5c;
+  --sivu-primary-surface: rgba(168, 230, 195, 0.1);
   /* En oscuro, los verdes "oscuros" se usan como texto: se aclaran. */
-  --sivu-primary-dark: #8FD3AE;
-  --green-100: #234434;
-  --green-700: #CDE8D8;
-  --primary-hover: #237A57;
+  --sivu-primary-dark: #c9dcb5;
+  --green-100: rgba(168, 230, 195, 0.16);
+  --primary-hover: var(--sivu-olive);
 
-  --surface-background: #0F1613;
-  --surface-primary: #172019;
-  --text-primary: #E3ECE6;
-  --text-secondary: #A0B1A7;
-  --text-faint: #74857B;
-  --border-default: #2C3A32;
+  --surface-background: #0b1009;
+  --surface-primary: #161e11;
+  --text-primary: #f1f6f1;
+  --text-secondary: rgba(231, 240, 233, 0.62);
+  --text-faint: rgba(231, 240, 233, 0.42);
+  --border-default: rgba(255, 255, 255, 0.08);
 
-  --amber-50: #33290F;
-  --red-50: #3A1A1A;
-  --blue-50: #172A3A;
-  --blue-500: #7FB0DE;
-  --slate-50: #1E2723;
-  --slate-500: #9AA9A0;
+  --amber-50: rgba(249, 199, 90, 0.12);
+  --amber-500: #f9c75a;
+  --red-50: rgba(240, 74, 50, 0.14);
+  --blue-50: rgba(79, 163, 224, 0.14);
+  --blue-500: #7fb0de;
+  --slate-50: rgba(255, 255, 255, 0.06);
+  --slate-500: rgba(231, 240, 233, 0.62);
 
-  --surface-subtle: #1A241E;
-  --surface-sunken: #212C26;
-  --surface-overlay: rgba(23, 32, 25, 0.94);
-  --border-soft: #26332C;
-  --border-green: #2F4A3B;
+  --page-backdrop:
+    radial-gradient(60% 50% at 12% 0%, rgba(95, 113, 70, 0.32), transparent 70%),
+    radial-gradient(50% 45% at 92% 8%, rgba(168, 230, 195, 0.1), transparent 70%),
+    radial-gradient(70% 60% at 70% 110%, rgba(72, 86, 53, 0.35), transparent 70%),
+    linear-gradient(180deg, #11180d, #0b1009);
+
+  --surface-subtle: rgba(255, 255, 255, 0.045);
+  --surface-sunken: rgba(255, 255, 255, 0.05);
+  --surface-overlay: rgba(16, 22, 12, 0.92);
+  --border-soft: rgba(255, 255, 255, 0.06);
+  --border-green: rgba(168, 230, 195, 0.22);
 
   --badge-critical-fg: #FFB3B5;
   --badge-critical-bg: #3A1416;
@@ -142,10 +167,10 @@
   --risk-text-low: #C5DA7E;
   --risk-text-medium: #F9B52B;
   --diagram-neutral: #3A4A41;
-  --diagram-outline: rgba(227, 236, 230, 0.4);
+  --diagram-outline: rgba(241, 246, 241, 0.4);
 
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
-  --shadow-md: 0 4px 12px -2px rgba(0, 0, 0, 0.5);
+  --shadow-sm: 0 18px 40px -20px rgba(0, 0, 0, 0.6);
+  --shadow-md: 0 18px 48px -12px rgba(3, 14, 9, 0.55), 0 4px 14px rgba(3, 14, 9, 0.25);
   color-scheme: dark;
 }
 
@@ -162,6 +187,8 @@ body,
 body {
   margin: 0;
   background: var(--bg);
+  background-image: var(--page-backdrop);
+  background-attachment: fixed;
   color: var(--text);
   font-family: var(--font-body);
   -webkit-font-smoothing: antialiased;

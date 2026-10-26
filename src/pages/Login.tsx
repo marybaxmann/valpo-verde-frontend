@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from "react";
 import { Icon } from "../components/Icons";
+import { SivuLogo } from "../components/SivuLogo";
 import { useAuth } from "../hooks/useAuth";
 
 /**
@@ -27,19 +28,8 @@ export default function Login() {
     <div className="login-screen">
       <div className="login-card">
         {/* Identidad de marca SIVU */}
-        <div className="login-card__mark">
-          <Icon name="leaf" size={26} />
-        </div>
-        <h1
-          style={{
-            fontSize: 22,
-            fontWeight: 800,
-            letterSpacing: "0.04em",
-            color: "var(--sivu-primary-dark)",
-            marginBottom: 2,
-          }}
-        >
-          SIVU
+        <h1 style={{ display: "flex", justifyContent: "center", marginBottom: 10 }}>
+          <SivuLogo height={40} />
         </h1>
         <p
           style={{

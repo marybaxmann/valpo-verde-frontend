@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, NavLink, useLocation } from "react-router-dom";
 import { Icon, type IconName } from "./Icons";
+import { SivuLogo } from "./SivuLogo";
 import { useCurrentProject } from "../hooks/useCurrentProject";
 import { useTheme } from "../hooks/useTheme";
 
@@ -59,7 +60,7 @@ export function Sidebar({
           <Icon name="leaf" size={16} />
         </div>
         <div className="sivu-rail__brand-text">
-          <span className="sivu-rail__brand-title">SIVU</span>
+          <SivuLogo height={22} className="sivu-rail__brand-title" />
           <span className="sivu-rail__brand-sub">SIG Municipal</span>
         </div>
       </div>
