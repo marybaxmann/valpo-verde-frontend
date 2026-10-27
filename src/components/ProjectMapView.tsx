@@ -141,18 +141,37 @@ export default function ProjectMapView({
     for (const p of list) {
       const selected = p.id === selectedId;
       const geometry = new Point({ longitude: p.lng, latitude: p.lat });
+      const attributes = { id: p.id };
+      // «Sin evaluación»: punto blanco pequeño, discreto; los árboles con
+      // clasificación destacan con su color, borde blanco y halo (pedido de la
+      // autora, 2026-10-27).
+      if (p.tone === "neutral") {
+        layer.add(
+          new Graphic({
+            geometry,
+            attributes,
+            symbol: {
+              type: "simple-marker",
+              style: "circle",
+              size: selected ? 14 : 9,
+              color: [255, 255, 255, 0.95],
+              outline: { color: selected ? [31, 122, 85, 1] : [40, 52, 32, 0.85], width: selected ? 3 : 1.5 },
+            },
+          })
+        );
+        continue;
+      }
       const color = p.tone ? colorDeTono(p.tone) : "#3fb07e";
-      // Pin de la maqueta SIVU Lab (CC-057): halo translúcido del mismo color,
-      // borde blanco y sombra; el seleccionado crece con borde oliva.
+      const base = p.tone ? 16 : 11;
       layer.add(
         new Graphic({
           geometry,
-          attributes: { id: p.id },
+          attributes,
           symbol: {
             type: "simple-marker",
             style: "circle",
-            size: selected ? 30 : 22,
-            color: conAlfa(color, selected ? 0.4 : 0.28),
+            size: base + (selected ? 18 : 12),
+            color: conAlfa(color, selected ? 0.45 : 0.32),
             outline: { color: [0, 0, 0, 0], width: 0 },
           },
         })
@@ -160,13 +179,13 @@ export default function ProjectMapView({
       layer.add(
         new Graphic({
           geometry,
-          attributes: { id: p.id },
+          attributes,
           symbol: {
             type: "simple-marker",
             style: "circle",
-            size: selected ? 18 : 14,
+            size: base + (selected ? 4 : 0),
             color,
-            outline: { color: selected ? [31, 122, 85, 1] : [255, 255, 255, 0.95], width: selected ? 3 : 2 },
+            outline: { color: selected ? [31, 122, 85, 1] : [255, 255, 255, 1], width: selected ? 3 : 2.5 },
           },
         })
       );
