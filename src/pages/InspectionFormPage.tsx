@@ -333,7 +333,7 @@ export default function InspectionFormPage() {
         )}
       </section>
 
-      {calculo && <ResultadoCalculo calculo={calculo} />}
+      {calculo && <ResultadoCalculo calculo={calculo} finalizada={!!final} />}
 
       {final && (
         <section className={`card card--pad sivu-insp__section ${final.finalizada ? "sivu-insp__done" : ""}`} role="status">
@@ -400,7 +400,7 @@ export default function InspectionFormPage() {
 }
 
 /** Resultado de `/calcular`, tal como lo entrega el backend (códigos; etiquetas pendientes, B18). */
-function ResultadoCalculo({ calculo }: { calculo: CalculoRespuesta }) {
+function ResultadoCalculo({ calculo, finalizada }: { calculo: CalculoRespuesta; finalizada: boolean }) {
   const r = calculo.resultado;
   const filas: [string, unknown][] = [
     ["nivel_riesgo", calculo.nivel_riesgo],
@@ -417,7 +417,9 @@ function ResultadoCalculo({ calculo }: { calculo: CalculoRespuesta }) {
     <section className="card card--pad sivu-insp__section" aria-live="polite">
       <h2>Resultado del cálculo</h2>
       <p className={calculo.puede_finalizar ? "sivu-state sivu-state--ok" : "sivu-state"}>
-        {calculo.puede_finalizar
+        {finalizada
+          ? "Inspección finalizada con este resultado."
+          : calculo.puede_finalizar
           ? "La inspección está completa y se puede finalizar."
           : `Faltan ${calculo.campos_faltantes.length} dato(s) para finalizar.`}
       </p>
