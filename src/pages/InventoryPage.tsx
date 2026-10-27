@@ -7,6 +7,7 @@ import type { ArbolAlta } from "../types/treeAlta";
 import { ESTADOS_CICLO_VIDA_B1, type ArbolInventario } from "../types/inventory";
 import { Icon } from "../components/Icons";
 import { PendingNotice } from "../components/PendingNotice";
+import { TreePhotos } from "../components/TreePhotos";
 import { NewTreeModal } from "../components/NewTreeModal";
 import { useAuth } from "../hooks/useAuth";
 import { ESTADO_PROYECTO_LABEL } from "../lib/projects";
@@ -354,6 +355,7 @@ export default function InventoryPage() {
                   <dt>Registro</dt>
                   <dd>{fechaChile(selected.fecha_registro)}</dd>
                 </dl>
+                <TreePhotos projectId={projectId} treeId={selected.id} />
               </article>
             )}
             <article className="sivu-panel">

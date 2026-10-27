@@ -19,6 +19,7 @@ export interface Diagnostico {
   tree_code: string;
   especie_cientifica: string | null;
   nombre_comun: string | null;
+  inspection_id: string;
   codigo_inspeccion: string | null;
   tipo_inspeccion: CodigoEtiqueta | null;
   fecha_inspeccion: string | null;
