@@ -44,14 +44,16 @@ async function request<T>(method: Method, path: string, body?: unknown): Promise
     throw new Error("Falta VITE_API_BASE_URL. Revisa tu .env (ver .env.example).");
   }
 
+  // FormData (fotos): el navegador pone el Content-Type multipart con su boundary.
+  const isForm = body instanceof FormData;
   const send = (token: string) =>
     fetch(`${API_BASE_URL}${path}`, {
       method,
       headers: {
         Authorization: `Bearer ${token}`,
-        ...(body !== undefined ? { "Content-Type": "application/json" } : {}),
+        ...(body !== undefined && !isForm ? { "Content-Type": "application/json" } : {}),
       },
-      body: body !== undefined ? JSON.stringify(body) : undefined,
+      body: body === undefined ? undefined : isForm ? body : JSON.stringify(body),
     });
 
   let res = await send(await getAccessToken());

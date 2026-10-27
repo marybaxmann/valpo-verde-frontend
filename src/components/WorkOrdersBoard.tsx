@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import { lazy, Suspense, useEffect, useMemo, useState, type ReactNode } from "react";
 import { transicionarOt } from "../api/workOrders";
 import { ESTADOS_OT_ABIERTOS, ESTADOS_OT_CERRADOS, type ListadoOt, type OtListada } from "../types/workOrder";
@@ -359,11 +360,19 @@ export function WorkOrdersBoard({
                 )}
                 {selected.acciones.includes("trabajar") && (
                   <div className="sivu-mant__action">
-                    <PendingNotice
-                      what="el formulario de inspección en esta interfaz (llega en su propio paso)"
-                      refs="#58 · #59 · CC-054"
-                      compact
-                    />
+                    {/* Solo el Inspector responsable recibe «trabajar» (CC-065); hoy solo Evaluación inicial (B16). */}
+                    {selected.accion.codigo === "evaluacion_inicial" ? (
+                      <Link className="btn btn-primary" to={`/inspector/ot/${selected.id}/inspeccion`}>
+                        <Icon name="check-square" size={14} />
+                        Trabajar la inspección
+                      </Link>
+                    ) : (
+                      <PendingNotice
+                        what={`el formulario para ${selected.accion.etiqueta} (por ahora solo Evaluación inicial)`}
+                        refs="B16"
+                        compact
+                      />
+                    )}
                   </div>
                 )}
                 {accionError && (
