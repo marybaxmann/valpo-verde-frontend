@@ -54,6 +54,10 @@ async function request<T>(method: Method, path: string, body?: unknown): Promise
         ...(body !== undefined && !isForm ? { "Content-Type": "application/json" } : {}),
       },
       body: body === undefined ? undefined : isForm ? body : JSON.stringify(body),
+      // Datos con sesión: nunca desde la caché HTTP del navegador. Una respuesta
+      // guardada desde otro origen (p. ej. localhost) trae otro permiso CORS y
+      // el 304 de revalidación la reutilizaría tal cual.
+      cache: "no-store",
     });
 
   let res = await send(await getAccessToken());
