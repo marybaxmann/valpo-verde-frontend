@@ -8,8 +8,8 @@ inventa ningún contrato: cada punto describe la necesidad, no el formato.
 |---|---|---|---|
 | B1 | Listar los árboles del proyecto con sus datos vigentes (código, especie, ciclo de vida, ubicación, DAP, altura, clasificación de riesgo vigente, fecha de vigencia) en una llamada | Inventario (tabla), mapas, paleta de búsqueda | Solo la demo `GET /api/projects/:id/trees` (sin DAP, altura ni riesgo). F6 solo tiene el alta. |
 | B2 | Ficha de un árbol: medición vigente e historial, evaluación vigente con componentes, infraestructura, OT e incidencias del árbol | Ficha del árbol | Solo demo (`/api/trees/:id/...`). |
-| B3 | Listar las OT del proyecto (con estado CC-050, tipo, responsable, `fecha_accion_programada`, árbol) | Mantención (calendario y lista), Dashboard | F6 crea y transiciona, pero no lista. |
-| B4 | Listar las OT asignadas al usuario (Inspector / Encargado) | Interfaz del Inspector y del Encargado (D4) | No existe. |
+| B3 | Listar las OT del proyecto (con estado CC-050, tipo, responsable, `fecha_accion_programada`, árbol) | Mantención (calendario y lista), Dashboard | **Hecho** (CC-065, `GET /api/sivu/projects/:id/work-orders`); consumido por Mantención desde el 2026-10-27. |
+| B4 | Listar las OT asignadas al usuario (Inspector / Encargado) | Interfaz del Inspector y del Encargado (D4) | **Hecho** (CC-065, `GET /api/sivu/work-orders/mine`); se usará en el módulo Inspección y en la interfaz de esos roles. |
 | B5 | Lista de próximas inspecciones y monitoreos por proyecto (CC-037) | Dashboard, Mantención | Vistas `v_upcoming_inspections` / `v_tree_fechas_vigentes` en la base, sin endpoint. |
 | B6 | ¿Una OT «vencida» la determina el backend? Hoy el frontend la calcula (fecha programada pasada y estado no final). No es un estado de CC-050. | Mantención, Dashboard | Sin definición. |
 | B7 | Resumen del proyecto (conteos por ciclo de vida, por clase de riesgo, OT por estado, incidencias por estado, infraestructura por componente) | Dashboard | El frontend cuenta en el cliente sobre la demo. |

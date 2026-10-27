@@ -231,6 +231,14 @@ email, nunca hardcodeado.
 **Decisiones de la autora (2026-10-27):** misma estructura con tarjeta «pendiente» (B8, B1); retirar la pantalla vieja y lo que queda sin uso. Leyenda y barras por componente llegarán con B8, con las categorías y etiquetas del backend.
 **Validación:** `tsc -b`, `npm run build` y `npm run lint` sin errores ni advertencias nuevas; ninguna referencia a lo eliminado. Navegador contra pruebas con `municipal.f7`: mapa en Satélite bajo la barra sin desplazamiento, Territorio marcado, encabezado real, tarjeta pendiente, sin botón de registro.
 
+### Fase 7 · Paso 4 (Mantención) — primer módulo con datos reales de lectura (B3)
+**Fecha:** 2026-10-27. Rama `feature/fase7-maqueta-lab`.
+**Objetivo:** pantalla Mantención de la maqueta (CC-057) con las OT de Mantenimiento del proyecto.
+**Contrato consumido (leído de `feature/fase6-backend-api`, `05ccd8d`; CC-065):** `GET /api/sivu/projects/:id/work-orders?tipo_ot=mantenimiento&estado=&limit=&offset=` → `{ data, total, limit, offset }`; cada OT con tipo, acción, subtipo, prioridad y estado como `{ codigo, etiqueta }`, fechas, árbol con ubicación (lng/lat), responsable con nombre y `acciones` calculadas por el backend.
+**Archivos:** `src/pages/MaintenancePage.tsx` reescrito (calendario mensual por `fecha_accion_programada`, lista de OT sin fecha, detalle, minimapa con los árboles de las OT, filtro «Abiertas» / «Incluir completadas y canceladas» con los códigos del contrato, «Cargar más» con el total de la API), `src/api/workOrders.ts`, `src/types/workOrder.ts`, `src/styles/maintenance.css` (nuevos); `ProjectMapView` acepta puntos y selección. Se quitan el alta, el cambio de estado y el cálculo de «Vencida» de la demo.
+**Decisiones de la autora (2026-10-27):** solo OT de Mantenimiento (las de Inspección van en su módulo, CC-061, que B3/B4 dejan habilitado); calendario, lista y minimapa aunque hoy estén vacíos; filtro sin conteos por estado (solo el `total` de la API).
+**Validación:** `tsc -b`, `npm run build` y `npm run lint` sin errores ni advertencias nuevas. Backend: se levantó `origin/feature/fase6-backend-api` (`05ccd8d`) en un *worktree* temporal fuera del repositorio, con `.env.pruebas` y `MOTOR_COMMIT` = hash de ese commit (variable nueva obligatoria), sin tocar la copia local de la autora. Navegador con `municipal.f7`: B3 → 200 con 0 OT de Mantenimiento (aún no se pueden crear, #61): estado vacío real, Operación marcado; el filtro pide `estado=pendiente,programada,en_ejecucion,completada,cancelada` → 200. **No verificado con datos:** el calendario, la lista, el detalle y los puntos del minimapa con OT reales, porque no existe ninguna OT de Mantenimiento. Ajuste de la barra: en pantallas angostas el nombre del proyecto se acorta con «…».
+
 ---
 
 ## 5. Limitaciones conocidas

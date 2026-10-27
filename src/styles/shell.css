@@ -529,7 +529,16 @@
     flex-wrap: wrap;
   }
   .sivu-topbar__left {
-    flex: 1 1 auto;
+    flex: 1 1 0;
+  }
+  /* El nombre largo del proyecto se acorta para no empujar la derecha a otra fila. */
+  .sivu-topbar__left .sivu-topbar__menu-wrap {
+    min-width: 0;
+    flex: 0 1 auto;
+  }
+  .sivu-topbar__project {
+    min-width: 0;
+    max-width: 100%;
   }
   .sivu-topbar__right {
     flex: 0 0 auto;

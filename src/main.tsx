@@ -10,6 +10,7 @@ import "./styles/login.css";
 import "./styles/dashboard.css";
 import "./styles/inventory.css";
 import "./styles/territory.css";
+import "./styles/maintenance.css";
 
 /**
  * react-router-dom se inicializa aquí (desde F0). Desde F5, App.tsx
