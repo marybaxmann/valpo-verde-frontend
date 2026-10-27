@@ -21,6 +21,7 @@ const ProjectDashboard = lazy(() => import("./pages/ProjectDashboard"));
 const MaintenancePage = lazy(() => import("./pages/MaintenancePage"));
 const IncidentsPage = lazy(() => import("./pages/IncidentsPage"));
 const IndicesPage = lazy(() => import("./pages/IndicesPage"));
+const ConectaPage = lazy(() => import("./pages/ConectaPage"));
 const InventoryPage = lazy(() => import("./pages/InventoryPage"));
 const RiskPage = lazy(() => import("./pages/RiskPage"));
 const InfrastructurePage = lazy(() => import("./pages/InfrastructurePage"));
@@ -67,6 +68,7 @@ function projectRoutes() {
       <Route path="projects/:projectId/ot-inspeccion" element={<InspectionOrdersPage />} />
       <Route path="projects/:projectId/incidencias" element={<IncidentsPage />} />
       <Route path="projects/:projectId/indices" element={<IndicesPage />} />
+      <Route path="projects/:projectId/conecta" element={<ConectaPage />} />
     </>
   );
 }

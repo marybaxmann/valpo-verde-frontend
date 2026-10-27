@@ -44,6 +44,8 @@ export const NAV_GROUPS: NavGroup[] = [
       { path: "incidencias", label: "Incidencias", hint: "Reportes y su estado", icon: "alert" },
       // Ruta propia: /inspeccion es Riesgo Arbóreo (CC-059 mantuvo esa ruta).
       { path: "ot-inspeccion", label: "Inspección", hint: "Órdenes de trabajo de inspección", icon: "check" },
+      // Prototipo para la demo, pedido por la autora (2026-10-27): CC-062 sin aprobar y sin endpoints.
+      { path: "conecta", label: "Valpo Verde Conecta", hint: "Reportes ciudadanos, QR y ficha pública (prototipo)", icon: "leaf" },
     ],
   },
   {
