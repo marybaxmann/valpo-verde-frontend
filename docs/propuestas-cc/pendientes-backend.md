@@ -49,6 +49,7 @@ Detalle en `formulario-inspeccion-bloqueos.md` y `mensaje-backend-b16.md`.
 | B17 | Formulario de inspección (Inspector) | Leer la inspección en curso de una OT (`inspection_id`, `variables`, `campos_arbol`, estado) para retomar el borrador. Hoy el frontend lo recuerda solo en el navegador donde se escribió. | Sin endpoint. |
 | B18 | Diagnóstico para el Usuario municipal | Lectura del resultado de una inspección finalizada y de la evaluación vigente del árbol, con etiquetas de los resultados (`nivel_riesgo`, clasificaciones, prioridad). Definir qué ve el municipal antes de completar la OT (CC-050). Completar la OT tampoco está disponible. | Sin endpoint. `/calcular` responde solo al Inspector y con códigos. |
 | B19 | Indicadores biométricos | Cálculo e indicadores por proyecto y por sector, una vez que la autora cierre CC-016 (qué indicadores se adoptan; contradicción con CC-039). | Propuesto; depende de CC-016. Sustituye a B10 para este módulo. |
+| B20 | Catálogo de especies (Inspector) | Catálogos de `origen_biogeografico`, `persistencia_follaje` y `tipo_hoja` (D-259 a D-262) con `codigo` y `etiqueta`. Hoy los códigos solo viven en el esquema Zod del backend; sin ellos el frontend muestra el código y no ofrece editarlos (PR-021). | Sin endpoint. Completar género y familia y corregir el nombre ya funcionan. |
 
 ## Observaciones de las pruebas del frontend
 
@@ -76,3 +77,10 @@ Detalle en `formulario-inspeccion-bloqueos.md` y `mensaje-backend-b16.md`.
   inspección (riesgo `alto`, prioridad `media`, próxima inspección
   2026-11-27, próximo monitoreo 2026-11-10). La OT sigue «En ejecución»:
   completar no está disponible (B18).
+- **2026-10-27 — Catálogo de especies (CC-053).** «Acer pseudoplatanus»
+  quedó en el catálogo al finalizar la inspección de AV_000007 (la
+  incorporación automática del punto 3 funciona). Al corregir el nombre a
+  «Acer sp.», el 400 devuelve el texto de la base («new row for relation
+  "species" violates check constraint…»); el frontend lo traduce, pero
+  convendría un mensaje en palabras simples desde el backend. La búsqueda
+  tarda 2 a 4 s en pruebas.

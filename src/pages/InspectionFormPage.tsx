@@ -261,6 +261,7 @@ export default function InspectionFormPage() {
               disabled={bloqueado}
               referencia={referenciaArbol(ot, c.identificador)}
               faltante={faltantes.get(c.identificador)}
+              projectId={ot.proyecto.id}
             />
           ))}
       </div>

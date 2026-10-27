@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { listarMisOts } from "../api/workOrders";
 import { listProjects } from "../api/projects";
 import type { Project } from "../types/project";
@@ -51,6 +52,9 @@ export default function MyOrdersPage() {
                 </option>
               ))}
             </select>
+            <Link to="/inspector/especies" className="btn btn-ghost btn-sm">
+              Catálogo de especies
+            </Link>
           </div>
         ) : undefined
       }

@@ -27,6 +27,7 @@ const InfrastructurePage = lazy(() => import("./pages/InfrastructurePage"));
 const InspectionOrdersPage = lazy(() => import("./pages/InspectionOrdersPage"));
 const MyOrdersPage = lazy(() => import("./pages/MyOrdersPage"));
 const InspectionFormPage = lazy(() => import("./pages/InspectionFormPage"));
+const SpeciesCatalogPage = lazy(() => import("./pages/SpeciesCatalogPage"));
 
 // Inventario (Fase 7): tabla protagonista; ruta /mapa sin cambios (CC-059).
 function InventoryRoute() {
@@ -95,6 +96,7 @@ export default function App() {
           <Route index element={<Navigate to="mis-ot" replace />} />
           <Route path="mis-ot" element={<MyOrdersPage />} />
           <Route path="ot/:workOrderId/inspeccion" element={<InspectionFormPage />} />
+          <Route path="especies" element={<SpeciesCatalogPage />} />
           {projectRoutes()}
         </Route>
       </Route>

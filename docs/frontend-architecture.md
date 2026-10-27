@@ -270,6 +270,14 @@ email, nunca hardcodeado.
 **Reglas aplicadas:** qué falta, el riesgo, las clasificaciones, la prioridad y las fechas los decide el backend en `/calcular`; el frontend solo muestra los faltantes en rojo y los códigos del resultado. Un campo oculto o vacío no se envía. Finalizar pide confirmación; un 409 (borrador cambiado) pide volver a calcular. Los nombres visibles de campos y resultados se muestran técnicos hasta B16/B18 (avisos «pendiente»). Sin B17, el borrador se recuerda solo en el navegador (`localStorage`).
 **Validación:** `tsc -b`, `npm run build` y `npm run lint` sin errores ni advertencias nuevas. Con `inspector.f7` en la base de pruebas: OT-I-000260 sobre A-000346 (= AV_000007 del registro de terreno): 71 valores reales cargados, condiciones (multifustal oculta el DAP simple), borrador guardado, cuatro fotos reales subidas, `diametro_copa_eo_m` = 4,3 m entregado por la autora, cálculo sin faltantes y **inspección finalizada** (riesgo alto, prioridad media, próxima inspección 2026-11-27, próximo monitoreo 2026-11-10). Claro y oscuro, 375 px. Pendientes: B16 (etiquetas, `campos_arbol`, base sin B1), B17, B18 y completar la OT (CC-050); ver `docs/propuestas-cc/pendientes-backend.md`.
 
+### Fase 7 · Paso 4 (catálogo de especies) — CC-053 en el espacio del Inspector
+**Fecha:** 2026-10-27. Rama `feature/fase7-maqueta-lab`.
+**Objetivo:** usar el catálogo de especies que ya entrega el backend (CC-053): sugerencias en el formulario de inspección (punto 2) y completar o corregir una especie (puntos 4 y 5).
+**Contratos consumidos (`feature/b16-inspection-form-schema`, `54fd44d`):** `GET /api/sivu/projects/:id/species?nombre=` (cualquier rol del proyecto), `PATCH /api/sivu/projects/:id/species/:speciesId` (completar) y `PATCH /api/sivu/projects/:id/species/:speciesId/nombre` (corregir; 409 si el nombre ya existe). El catálogo es global; el proyecto de la ruta solo sirve para verificar acceso y rol.
+**Archivos:** `src/types/species.ts`, `src/api/species.ts`, `src/pages/SpeciesCatalogPage.tsx` (ruta `/inspector/especies`, enlazada desde «Mis OT»; no se agrega a la navegación del proyecto, CC-059), `src/components/SpeciesInput.tsx` (campo `especie_cientifica` del formulario con sugerencias y texto libre), `src/styles/species.css` (nueva).
+**Reglas aplicadas:** se completan solo género y familia; origen, persistencia del follaje y tipo de hoja se muestran como código, sin editarse, hasta B20 (PR-021). Un campo vaciado se envía como `null`. Corregir el nombre pide confirmación y avisa que cambia en todos los proyectos. Errores 400, 403 y 409 en palabras simples.
+**Validación:** `tsc -b`, `npm run build` y `npm run lint` sin errores ni advertencias nuevas. Con `inspector.f7` en la base de pruebas: búsqueda vacía («zzz»), búsqueda con resultado (`Acer pseudoplatanus`, incorporada al finalizar AV_000007), ficha, y dos correcciones rechazadas por el backend («Acer sp.» y «No determinado») sin cambiar datos. Claro y oscuro, 375 px. **Sin probar:** guardar género y familia y una corrección aceptada (no escribí datos del catálogo sin la autora), y las sugerencias del formulario (la única OT de Evaluación inicial ya está finalizada).
+
 ---
 
 ## 5. Limitaciones conocidas
@@ -309,6 +317,9 @@ lectura existe desde SIG-1.
 | `GET/POST /api/sivu/inspections/:id/photos` | `src/api/inspections.ts` (Fase 7, formulario) |
 | `POST /api/sivu/inspections/:id/calcular` | `src/api/inspections.ts` (Fase 7, formulario) |
 | `POST /api/sivu/inspections/:id/finalizar` | `src/api/inspections.ts` (Fase 7, formulario) |
+| `GET /api/sivu/projects/:id/species` | `src/api/species.ts`, `src/api/treeAlta.ts` (Fase 7) |
+| `PATCH /api/sivu/projects/:id/species/:speciesId` | `src/api/species.ts` (Fase 7, catálogo de especies) |
+| `PATCH /api/sivu/projects/:id/species/:speciesId/nombre` | `src/api/species.ts` (Fase 7, catálogo de especies) |
 
 ## 8. Roadmap (F8 en adelante)
 

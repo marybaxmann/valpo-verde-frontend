@@ -13,6 +13,7 @@ import "./styles/territory.css";
 import "./styles/maintenance.css";
 import "./styles/project.css";
 import "./styles/inspection.css";
+import "./styles/species.css";
 
 /**
  * react-router-dom se inicializa aquí (desde F0). Desde F5, App.tsx

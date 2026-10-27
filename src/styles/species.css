@@ -1,0 +1,162 @@
+/* Catálogo de especies del Inspector (Fase 7; CC-053; estilo SIVU Lab, CC-057). */
+
+.sivu-species {
+  max-width: 880px;
+  margin: 0 auto;
+  padding: 0 16px 48px;
+  display: grid;
+  gap: 14px;
+}
+
+.sivu-species > .page-header {
+  margin-bottom: 0;
+}
+
+.sivu-species__search,
+.sivu-species__sheet {
+  display: grid;
+  gap: 12px;
+}
+
+.sivu-species__field {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.sivu-species__field label {
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
+.sivu-species__field input,
+.sivu-species__field select {
+  width: 100%;
+  min-width: 0;
+}
+
+.sivu-species__field small {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.sivu-species__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 6px;
+}
+
+.sivu-species__list button {
+  width: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 4px 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  color: var(--text);
+  text-align: left;
+  cursor: pointer;
+}
+
+.sivu-species__list button:hover {
+  background: var(--surface-subtle);
+}
+
+.sivu-species__list button.is-on {
+  border-color: var(--interactive);
+  background: var(--surface-muted);
+}
+
+.sivu-species__list small {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.sivu-species__sheet h2 {
+  margin: 0;
+  font-size: 17px;
+}
+
+.sivu-species__dl {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 10px;
+  margin: 0;
+}
+
+.sivu-species__dl dt {
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  color: var(--text-muted);
+}
+
+.sivu-species__dl dd {
+  margin: 2px 0 0;
+  font-size: 14px;
+}
+
+.sivu-species__form {
+  display: grid;
+  gap: 10px;
+  justify-items: start;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+}
+
+.sivu-species__form > .sivu-species__field,
+.sivu-species__form > .sivu-species__row {
+  width: 100%;
+}
+
+.sivu-species__form h3 {
+  margin: 0;
+  font-size: 14px;
+}
+
+.sivu-species__row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 10px;
+}
+
+.sivu-species__confirm {
+  display: grid;
+  gap: 8px;
+  font-size: 13px;
+}
+
+.sivu-species__confirm p {
+  margin: 0;
+}
+
+.sivu-species__confirm > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+/* Enlace al catálogo junto al filtro de «Mis OT». */
+.sivu-mant__filter {
+  flex-wrap: wrap;
+}
+
+.sivu-mant__filter > .btn {
+  margin-left: auto;
+}
+
+/* Mensajes largos: el ícono queda junto al texto, no en una línea aparte. */
+.sivu-species .sivu-state {
+  flex-wrap: nowrap;
+  align-items: flex-start;
+}
+
+.sivu-species .sivu-state > svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+}

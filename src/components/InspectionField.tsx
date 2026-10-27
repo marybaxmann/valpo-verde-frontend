@@ -1,5 +1,6 @@
 import type { CampoFormulario } from "../types/inspection";
 import { valorInvalido, type ValorCrudo } from "../lib/inspectionForm";
+import { SpeciesInput } from "./SpeciesInput";
 
 /**
  * Un campo del formulario de inspección según su `tipo_entrada` (B16). Las
@@ -14,6 +15,7 @@ export function InspectionField({
   disabled,
   referencia,
   faltante,
+  projectId,
 }: {
   campo: CampoFormulario;
   valor: ValorCrudo | undefined;
@@ -23,6 +25,8 @@ export function InspectionField({
   referencia?: string | null;
   /** Motivo que devolvió `/calcular` si el campo falta. */
   faltante?: string;
+  /** Proyecto de la OT, para sugerir especies del catálogo (CC-053). */
+  projectId?: string;
 }) {
   const id = `campo-${campo.identificador}`;
   const invalido = valorInvalido(campo, valor);
@@ -107,7 +111,15 @@ export function InspectionField({
       );
       break;
     default:
-      control = campo.identificador.startsWith("observaciones") ? (
+      control = campo.identificador === "especie_cientifica" && projectId ? (
+        <SpeciesInput
+          id={id}
+          projectId={projectId}
+          value={typeof valor === "string" ? valor : ""}
+          onChange={onChange}
+          disabled={disabled}
+        />
+      ) : campo.identificador.startsWith("observaciones") ? (
         <textarea id={id} rows={2} value={typeof valor === "string" ? valor : ""} onChange={(e) => onChange(e.target.value)} disabled={disabled} />
       ) : (
         <input id={id} type="text" value={typeof valor === "string" ? valor : ""} onChange={(e) => onChange(e.target.value)} disabled={disabled} />
