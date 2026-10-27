@@ -37,6 +37,19 @@ muestre como indicador viene del backend.
 | B14 | Módulo Inspección: crear OT de Inspección | **Inspectores del proyecto** que el Usuario municipal puede asignar como responsables (`id`, `nombre`): hoy `GET /api/sivu/projects/:id/members` es solo del Administrador. La función de la 024 (`fn_miembros_proyecto`, CC-065) ya devuelve `id`, `nombre` y `rol` de los miembros a un miembro activo; falta exponerla. |
 | B15 | Módulo Inspección: crear OT de Inspección | **Catálogos de acción y subtipo de las OT de Inspección** con `codigo` y `etiqueta` (D-196/D-197; los códigos ya los valida `crearOrdenTrabajoInspeccionSchema`). Hoy no hay endpoint de catálogos en `/api/sivu` y el frontend no los escribe (PR-021). Lo mismo servirá para prioridad (`clasificacion_prioridad`). |
 
+## Formulario de inspección e indicadores (2026-10-27)
+
+Pedido de la responsable: el formulario de Evaluación inicial del Inspector
+(PR-010 v4.0) y el diagnóstico desde la interfaz del Usuario municipal.
+Detalle en `formulario-inspeccion-bloqueos.md` y `mensaje-backend-b16.md`.
+
+| # | Para qué pantalla | Qué necesita el frontend | Estado |
+|---|---|---|---|
+| B16 | Formulario de inspección (Inspector) | Esquema del formulario por tipo de inspección: campos, tipo de entrada, unidad, opciones `{codigo, etiqueta}`, obligatoriedad y condición de activación. | **Entregado** en `feature/b16-inspection-form-schema` (`54fd44d`, `GET /api/sivu/projects/:id/inspection-form-schema?tipo=evaluacion_inicial`); consumido desde `d984e28`. Pendiente: (a) la rama no incluye B1 (`0d0a837`), así que con ella el Inventario no carga; (b) nombres visibles de los campos (`etiqueta_pendiente: true`) y secciones (`seccion: null`); (c) los `campos_arbol` (sector, ubicación, UTM, especie): ¿los vuelve a ingresar el Inspector o se toman del árbol? ¿especie usa el endpoint de especies?; (d) etiquetas de las vistas de foto (`arbol_completo`, `base`, `tronco`, `copa`). |
+| B17 | Formulario de inspección (Inspector) | Leer la inspección en curso de una OT (`inspection_id`, `variables`, `campos_arbol`, estado) para retomar el borrador. Hoy el frontend lo recuerda solo en el navegador donde se escribió. | Sin endpoint. |
+| B18 | Diagnóstico para el Usuario municipal | Lectura del resultado de una inspección finalizada y de la evaluación vigente del árbol, con etiquetas de los resultados (`nivel_riesgo`, clasificaciones, prioridad). Definir qué ve el municipal antes de completar la OT (CC-050). Completar la OT tampoco está disponible. | Sin endpoint. `/calcular` responde solo al Inspector y con códigos. |
+| B19 | Indicadores biométricos | Cálculo e indicadores por proyecto y por sector, una vez que la autora cierre CC-016 (qué indicadores se adoptan; contradicción con CC-039). | Propuesto; depende de CC-016. Sustituye a B10 para este módulo. |
+
 ## Observaciones de las pruebas del frontend
 
 - **2026-10-26 — Código de árbol consumido en un alta rechazada.** Al probar
@@ -54,3 +67,12 @@ muestre como indicador viene del backend.
   no (sugerencia: comparar sin tildes, por ejemplo con `unaccent`);
   (b) `estado_ciclo_vida` llega solo como código (`activo`): el frontend lo
   muestra tal cual hasta que llegue su etiqueta (punto 5 de la responsable).
+- **2026-10-27 — B16 con datos reales (AV_000007 = A-000346, OT-I-000260).**
+  Los 71 valores del registro de terreno calzaron con los campos y las
+  opciones del esquema sin conflictos. `/calcular` no pidió `sector` (dato
+  para el punto (c) de B16). Faltaban `diametro_copa_eo_m` (vacío en la
+  planilla; la autora lo entregó: 4,3 m) y las cuatro fotos. Con ambos,
+  `/calcular` devolvió `puede_finalizar: true` y `/finalizar` aceptó la
+  inspección (riesgo `alto`, prioridad `media`, próxima inspección
+  2026-11-27, próximo monitoreo 2026-11-10). La OT sigue «En ejecución»:
+  completar no está disponible (B18).

@@ -262,6 +262,14 @@ email, nunca hardcodeado.
 **Reglas aplicadas:** con el proyecto Cerrado no se ofrece editar nombres (el backend respondería 409) y los miembros se siguen gestionando; cerrar y reabrir siempre piden confirmación, con el resumen de CC-042. El `user_id` se escribe a mano (B11); la API no entrega el rol del miembro, así que no se muestra.
 **Validación:** `tsc -b`, `npm run build` y `npm run lint` sin errores ni advertencias nuevas. Con `admin.f7` en la base de pruebas: lista (2 miembros), duplicado (409), identificador inválido (400, mensaje en palabras simples), agregar y quitar un miembro de prueba, editar y restaurar ambos nombres, cerrar y reabrir el proyecto QA (unos 30 s cerrado). Con `municipal.f7` la sección de miembros y los controles no aparecen. Proyecto inexistente: «Proyecto no encontrado». Claro, oscuro, 375 px y 1280 px. No se forzó un error del listado de miembros (el código de error es el mismo patrón de las demás pantallas).
 
+### Fase 7 · Paso 4 (formulario de inspección) — Evaluación inicial del Inspector
+**Fecha:** 2026-10-27. Rama `feature/fase7-maqueta-lab` (`d984e28`, `a647673`; publicada en `origin`).
+**Objetivo:** que el Inspector complete una inspección técnica real desde la interfaz (pedido de la responsable; PR-010 v4.0), sin escribir reglas metodológicas en el frontend.
+**Contratos consumidos (`feature/b16-inspection-form-schema`, `54fd44d`):** esquema `GET /api/sivu/projects/:id/inspection-form-schema?tipo=evaluacion_inicial` (B16); borrador `POST /api/sivu/work-orders/:id/inspections` y `PATCH /api/sivu/inspections/:id` (siempre el estado completo, nunca un delta); fotos `GET/POST /api/sivu/inspections/:id/photos` (multipart `foto` + `vista`); `POST /api/sivu/inspections/:id/calcular` y `POST /api/sivu/inspections/:id/finalizar {huella}` (CC-054).
+**Archivos:** `src/types/inspection.ts`, `src/api/inspections.ts`, `src/lib/inspectionForm.ts` (orden por fila del Excel, condiciones de activación tal como las entrega el backend, conversión al body), `src/components/InspectionField.tsx` (control por `tipo_entrada`), `src/pages/InspectionFormPage.tsx` (ruta `/inspector/ot/:workOrderId/inspeccion`), `src/styles/inspection.css` (nueva); `client.ts` acepta `FormData`; en «Mis OT» la acción `trabajar` de una Evaluación inicial abre el formulario.
+**Reglas aplicadas:** qué falta, el riesgo, las clasificaciones, la prioridad y las fechas los decide el backend en `/calcular`; el frontend solo muestra los faltantes en rojo y los códigos del resultado. Un campo oculto o vacío no se envía. Finalizar pide confirmación; un 409 (borrador cambiado) pide volver a calcular. Los nombres visibles de campos y resultados se muestran técnicos hasta B16/B18 (avisos «pendiente»). Sin B17, el borrador se recuerda solo en el navegador (`localStorage`).
+**Validación:** `tsc -b`, `npm run build` y `npm run lint` sin errores ni advertencias nuevas. Con `inspector.f7` en la base de pruebas: OT-I-000260 sobre A-000346 (= AV_000007 del registro de terreno): 71 valores reales cargados, condiciones (multifustal oculta el DAP simple), borrador guardado, cuatro fotos reales subidas, `diametro_copa_eo_m` = 4,3 m entregado por la autora, cálculo sin faltantes y **inspección finalizada** (riesgo alto, prioridad media, próxima inspección 2026-11-27, próximo monitoreo 2026-11-10). Claro y oscuro, 375 px. Pendientes: B16 (etiquetas, `campos_arbol`, base sin B1), B17, B18 y completar la OT (CC-050); ver `docs/propuestas-cc/pendientes-backend.md`.
+
 ---
 
 ## 5. Limitaciones conocidas
@@ -295,6 +303,12 @@ lectura existe desde SIG-1.
 | `PATCH /api/sivu/projects/:id` | `src/api/projects.ts` (Fase 7, Paso 4) |
 | `PATCH /api/sivu/projects/:id/estado` | `src/api/projects.ts` (Fase 7, Paso 4) |
 | `GET /api/projects/:id/trees` | `src/api/trees.ts` (SIG-1) |
+| `GET /api/sivu/projects/:id/inspection-form-schema` | `src/api/inspections.ts` (Fase 7, formulario) |
+| `POST /api/sivu/work-orders/:id/inspections` | `src/api/inspections.ts` (Fase 7, formulario) |
+| `PATCH /api/sivu/inspections/:id` | `src/api/inspections.ts` (Fase 7, formulario) |
+| `GET/POST /api/sivu/inspections/:id/photos` | `src/api/inspections.ts` (Fase 7, formulario) |
+| `POST /api/sivu/inspections/:id/calcular` | `src/api/inspections.ts` (Fase 7, formulario) |
+| `POST /api/sivu/inspections/:id/finalizar` | `src/api/inspections.ts` (Fase 7, formulario) |
 
 ## 8. Roadmap (F8 en adelante)
 
