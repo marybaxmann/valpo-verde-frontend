@@ -342,3 +342,37 @@
   background: var(--surface-subtle);
   font-size: 13px;
 }
+
+.sivu-dash__agenda {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.sivu-dash__agenda li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: var(--radius-md);
+  background: var(--surface-subtle);
+  font-size: 13px;
+}
+
+.sivu-dash__agenda li > span:last-child {
+  display: grid;
+}
+
+.sivu-dash__agenda small {
+  color: var(--text-muted);
+}
+
+.sivu-dash__agenda-date {
+  min-width: 84px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--sivu-accent, #2f7a52);
+}

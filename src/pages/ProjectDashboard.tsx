@@ -7,6 +7,9 @@ import { PendingNotice } from "../components/PendingNotice";
 import { NAV_GROUPS } from "../lib/navigation";
 import { ESTADO_PROYECTO_LABEL } from "../lib/projects";
 import { obtenerResumen } from "../api/resumen";
+import { listarDiagnosticos } from "../api/diagnosticos";
+import type { Diagnostico } from "../types/diagnostico";
+import { fechaChile } from "../lib/dates";
 import type { ResumenProyecto } from "../types/resumen";
 import { BarRow } from "../components/BarRow";
 import { getClassificationTone } from "../components/ClassificationBadge";
@@ -46,6 +49,29 @@ export default function ProjectDashboard() {
     };
   }, [projectId]);
 
+  // Agenda: fechas sugeridas de los diagnósticos finalizados (no son
+  // recordatorios vigentes; esos llegan con B5 al completar la OT).
+  const [agenda, setAgenda] = useState<{ id: string; items: { fecha: string; tipo: string; d: Diagnostico }[] } | null>(null);
+  useEffect(() => {
+    let cancelled = false;
+    listarDiagnosticos(projectId)
+      .then((diags) => {
+        if (cancelled) return;
+        const items = diags.flatMap((d) => [
+          ...(d.fecha_proximo_monitoreo ? [{ fecha: d.fecha_proximo_monitoreo, tipo: "Próximo monitoreo", d }] : []),
+          ...(d.fecha_proxima_inspeccion ? [{ fecha: d.fecha_proxima_inspeccion, tipo: "Próxima inspección", d }] : []),
+        ]);
+        items.sort((x, y) => x.fecha.localeCompare(y.fecha));
+        setAgenda({ id: projectId, items });
+      })
+      .catch(() => {
+        if (!cancelled) setAgenda({ id: projectId, items: [] });
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [projectId]);
+
   useEffect(() => {
     let cancelled = false;
     getProjectWithSector(projectId)
@@ -66,6 +92,7 @@ export default function ProjectDashboard() {
   const loading = !detail && !error;
   const project = detail?.proyecto;
   const sector = detail?.sector;
+  const agendaActual = agenda?.id === projectId ? agenda.items : null;
   const actual = resumen?.id === projectId ? resumen : null;
   const r = actual && "data" in actual ? actual.data : null;
   const errorResumen = actual && "error" in actual ? actual.error : null;
@@ -210,7 +237,24 @@ export default function ProjectDashboard() {
                   Mantención <Icon name="arrow-right" size={12} />
                 </Link>
               </div>
-              <PendingNotice what="las OT programadas ni los recordatorios de próxima inspección y monitoreo" refs="B3 · B5 (CC-037)" />
+              {agendaActual === null && <p className="sivu-state">Cargando…</p>}
+              {agendaActual && agendaActual.length === 0 && <p className="sivu-state">Sin fechas sugeridas todavía.</p>}
+              {agendaActual && agendaActual.length > 0 && (
+                <ul className="sivu-dash__agenda">
+                  {agendaActual.slice(0, 6).map((it) => (
+                    <li key={`${it.d.tree_id}-${it.tipo}`}>
+                      <span className="sivu-dash__agenda-date">{fechaChile(it.fecha)}</span>
+                      <span>
+                        <strong>{it.tipo}</strong>
+                        <small>
+                          {it.d.tree_code} · {it.d.nombre_comun ?? it.d.especie_cientifica ?? ""}
+                        </small>
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+              <p className="sivu-terr__note">Fechas sugeridas del diagnóstico finalizado.</p>
             </article>
 
             <article className="sivu-panel sivu-dash__infra">

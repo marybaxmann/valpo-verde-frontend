@@ -410,3 +410,86 @@ section > .sivu-picker__state {
   font-size: 11.5px;
   color: var(--text-muted);
 }
+
+/* Diagnóstico en la ficha del árbol (composición de la maqueta: TreeSheet, .comps). */
+.sivu-treediag {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+  display: grid;
+  gap: 10px;
+}
+
+.sivu-treediag__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.sivu-treediag__head h3 {
+  margin: 0;
+  font-size: 14px;
+}
+
+.sivu-treediag__comps {
+  display: grid;
+  grid-template-columns: 76px 1fr;
+  gap: 12px;
+  align-items: center;
+}
+
+.sivu-treediag__glyph {
+  width: 76px;
+  height: auto;
+}
+
+.sivu-treediag__comps ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.sivu-treediag__comps li {
+  display: grid;
+  grid-template-columns: 10px 1fr;
+  gap: 8px;
+  align-items: start;
+  font-size: 12.5px;
+}
+
+.sivu-treediag__comps li strong {
+  display: block;
+  font-weight: 600;
+}
+
+.sivu-treediag__comps li span:not(.sivu-treediag__dot) {
+  color: var(--text-muted);
+}
+
+.sivu-treediag__dot {
+  width: 10px;
+  height: 10px;
+  margin-top: 4px;
+  border-radius: 50%;
+  box-shadow: 0 0 0 1px rgba(10, 30, 20, 0.2);
+}
+
+.sivu-treediag__rows {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin: 0;
+  font-size: 12.5px;
+}
+
+.sivu-treediag__rows dt {
+  color: var(--text-muted);
+}
+
+.sivu-treediag__rows dd {
+  margin: 2px 0 0;
+  font-weight: 600;
+}

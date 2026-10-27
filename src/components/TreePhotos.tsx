@@ -7,6 +7,7 @@ import type { FotoInspeccion } from "../types/inspection";
 import { fechaChile } from "../lib/dates";
 import { Icon } from "./Icons";
 import { PendingNotice } from "./PendingNotice";
+import { TreeDiagnosis } from "./TreeDiagnosis";
 
 /**
  * Fotografías del árbol en su ficha: las de la última inspección finalizada
@@ -55,6 +56,8 @@ export function TreePhotos({ projectId, treeId }: { projectId: string; treeId: s
   const actual = estado?.treeId === treeId ? estado : null;
 
   return (
+    <>
+    {actual && "diag" in actual && actual.diag && <TreeDiagnosis d={actual.diag} />}
     <section className="sivu-treephotos" aria-label="Fotografías del árbol">
       <h3>Fotografías</h3>
       {!actual && <p className="sivu-state">Cargando fotografías…</p>}
@@ -64,7 +67,7 @@ export function TreePhotos({ projectId, treeId }: { projectId: string; treeId: s
         </p>
       )}
       {actual && "diag" in actual && !actual.diag && (
-        <p className="sivu-state">Sin inspección finalizada: todavía no hay fotografías.</p>
+        <p className="sivu-state">Sin evaluación: el árbol aún no tiene una inspección finalizada ni fotografías.</p>
       )}
       {actual && "diag" in actual && actual.diag && (
         <>
@@ -90,5 +93,6 @@ export function TreePhotos({ projectId, treeId }: { projectId: string; treeId: s
         </>
       )}
     </section>
+    </>
   );
 }
