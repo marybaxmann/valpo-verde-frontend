@@ -4,6 +4,7 @@ import { getProjectWithSector } from "../api/projects";
 import type { ProjectWithSector } from "../types/project";
 import { getArcgisApiKey } from "../lib/arcgis";
 import { Icon } from "./Icons";
+import type { MapPoint } from "./ProjectMapView";
 
 const ProjectMapView = lazy(() => import("./ProjectMapView"));
 
@@ -15,7 +16,20 @@ const ProjectMapView = lazy(() => import("./ProjectMapView"));
  * (`card`). Solo consulta: las acciones de registro no viven aquí
  * (CC-059, punto 6; CC-061).
  */
-export function TerritorialModule({ moduleLabel, card }: { moduleLabel: string; card: ReactNode }) {
+export function TerritorialModule({
+  moduleLabel,
+  card,
+  points,
+  selectedId,
+  onSelect,
+}: {
+  moduleLabel: string;
+  card: ReactNode;
+  /** Puntos del mapa (árboles de la API), si el módulo los tiene. */
+  points?: MapPoint[];
+  selectedId?: string | null;
+  onSelect?: (id: string) => void;
+}) {
   const { projectId = "" } = useParams();
   const apiKey = getArcgisApiKey();
   const [detail, setDetail] = useState<ProjectWithSector | null>(null);
@@ -42,7 +56,7 @@ export function TerritorialModule({ moduleLabel, card }: { moduleLabel: string; 
     <div className="sivu-terr">
       {apiKey ? (
         <Suspense fallback={<div className="sivu-terr__map sivu-terr__map--loading">Cargando mapa…</div>}>
-          <ProjectMapView apiKey={apiKey} />
+          <ProjectMapView apiKey={apiKey} points={points} selectedId={selectedId} onSelect={onSelect} />
         </Suspense>
       ) : (
         <div className="sivu-terr__map sivu-terr__map--loading">
