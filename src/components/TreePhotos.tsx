@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { listarDiagnosticos } from "../api/diagnosticos";
 import { listarFotos } from "../api/inspections";
+import { obtenerCatalogos } from "../api/catalogs";
 import type { Diagnostico } from "../types/diagnostico";
 import type { FotoInspeccion } from "../types/inspection";
 import { fechaChile } from "../lib/dates";
@@ -18,6 +19,22 @@ export function TreePhotos({ projectId, treeId }: { projectId: string; treeId: s
   const [estado, setEstado] = useState<
     { treeId: string; diag: Diagnostico | null; fotos: FotoInspeccion[] } | { treeId: string; error: string } | null
   >(null);
+
+  const [vistas, setVistas] = useState<Record<string, string>>({});
+  useEffect(() => {
+    let cancelled = false;
+    obtenerCatalogos()
+      .then((c) => {
+        if (!cancelled) setVistas(Object.fromEntries((c.vista_foto ?? []).map((i) => [i.codigo, i.etiqueta])));
+      })
+      .catch(() => {
+        // Sin catálogo se muestra el código.
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+  const vista = (v: string | null) => (v ? vistas[v] ?? v : "sin vista");
 
   useEffect(() => {
     let cancelled = false;
@@ -62,14 +79,14 @@ export function TreePhotos({ projectId, treeId }: { projectId: string; treeId: s
               {actual.fotos.map((f) => (
                 <li key={f.id}>
                   <a href={f.url} target="_blank" rel="noreferrer" title="Abrir en tamaño completo">
-                    <img src={f.url} alt={`Vista ${f.vista ?? "sin vista"} del árbol`} loading="lazy" />
+                    <img src={f.url} alt={`${vista(f.vista)} del árbol`} loading="lazy" />
                   </a>
-                  <span>{f.vista ?? "sin vista"}</span>
+                  <span>{vista(f.vista)}</span>
                 </li>
               ))}
             </ul>
           )}
-          <PendingNotice compact what="los nombres visibles de las vistas ni las fotos de inspecciones anteriores" refs="B16 · B2" />
+          <PendingNotice compact what="las fotos de inspecciones anteriores" refs="B2" />
         </>
       )}
     </section>

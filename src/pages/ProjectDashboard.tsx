@@ -6,6 +6,10 @@ import { Icon, type IconName } from "../components/Icons";
 import { PendingNotice } from "../components/PendingNotice";
 import { NAV_GROUPS } from "../lib/navigation";
 import { ESTADO_PROYECTO_LABEL } from "../lib/projects";
+import { obtenerResumen } from "../api/resumen";
+import type { ResumenProyecto } from "../types/resumen";
+import { BarRow } from "../components/BarRow";
+import { getClassificationTone } from "../components/ClassificationBadge";
 
 /**
  * Dashboard del proyecto (Fase 7, Paso 4): composición de la maqueta
@@ -16,25 +20,31 @@ import { ESTADO_PROYECTO_LABEL } from "../lib/projects";
  * Referencias en docs/propuestas-cc/pendientes-backend.md.
  */
 
-interface KpiSpec {
-  label: string;
-  icon: IconName;
-  refs: string;
+/** Color de la barra según la clasificación del backend (paleta de PR-016). */
+function tonoBarra(etiqueta: string | null): string {
+  const t = etiqueta ? getClassificationTone(etiqueta) : "neutral";
+  return t === "neutral" ? "#A7B0AB" : `var(--classification-${t})`;
 }
-
-const KPIS: KpiSpec[] = [
-  { label: "Árboles registrados", icon: "leaf", refs: "B1 · B7" },
-  { label: "Georreferenciados", icon: "pin", refs: "B1 · B7" },
-  { label: "Árboles evaluados", icon: "check-square", refs: "B7" },
-  { label: "Especies", icon: "list", refs: "B7" },
-  { label: "OT abiertas", icon: "wrench", refs: "B3 · B7" },
-  { label: "Incidencias abiertas", icon: "alert", refs: "B9 · B7" },
-];
 
 export default function ProjectDashboard() {
   const { projectId = "" } = useParams();
   const [detail, setDetail] = useState<ProjectWithSector | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [resumen, setResumen] = useState<{ id: string; data: ResumenProyecto } | { id: string; error: string } | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    obtenerResumen(projectId)
+      .then((data) => {
+        if (!cancelled) setResumen({ id: projectId, data });
+      })
+      .catch((err: unknown) => {
+        if (!cancelled) setResumen({ id: projectId, error: err instanceof Error ? err.message : "No se pudo cargar el resumen." });
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [projectId]);
 
   useEffect(() => {
     let cancelled = false;
@@ -56,6 +66,16 @@ export default function ProjectDashboard() {
   const loading = !detail && !error;
   const project = detail?.proyecto;
   const sector = detail?.sector;
+  const actual = resumen?.id === projectId ? resumen : null;
+  const r = actual && "data" in actual ? actual.data : null;
+  const errorResumen = actual && "error" in actual ? actual.error : null;
+  const kpis: { label: string; icon: IconName; value: number | undefined; sub: string }[] = [
+    { label: "Árboles registrados", icon: "leaf", value: r?.arboles_total, sub: "en el inventario" },
+    { label: "Georreferenciados", icon: "pin", value: r?.georreferenciados, sub: r ? `${r.sin_georreferenciar} sin ubicación` : "" },
+    { label: "Con diagnóstico", icon: "check-square", value: r?.con_diagnostico, sub: "inspección finalizada" },
+    { label: "Sin evaluación", icon: "alert", value: r?.sin_evaluacion, sub: "aún no inspeccionados" },
+    { label: "Especies", icon: "list", value: r?.especies_distintas, sub: "distintas" },
+  ];
   const modules = NAV_GROUPS.flatMap((g) => g.modules).filter((m) => m.path !== "dashboard");
 
   return (
@@ -90,17 +110,30 @@ export default function ProjectDashboard() {
       {/* Sin acceso o sin proyecto: solo el error real, sin paneles «pendiente». */}
       {!error && (
         <>
+          {errorResumen && (
+            <p className="sivu-state sivu-state--error" role="alert">
+              <Icon name="alert" size={13} /> {errorResumen}
+            </p>
+          )}
           <section className="sivu-kpis" aria-label="Indicadores principales">
-            {KPIS.map((k) => (
-              <div key={k.label} className="sivu-kpi sivu-kpi--pending">
+            {kpis.map((k) => (
+              <div key={k.label} className={`sivu-kpi ${r ? "" : "sivu-kpi--pending"}`}>
                 <span className="sivu-kpi__icon" aria-hidden="true">
                   <Icon name={k.icon} size={16} />
                 </span>
                 <span className="sivu-kpi__lbl">{k.label}</span>
-                <span className="sivu-kpi__val">Pendiente</span>
-                <span className="sivu-kpi__sub">{k.refs}</span>
+                <span className="sivu-kpi__val">{r ? k.value : errorResumen ? "—" : "…"}</span>
+                <span className="sivu-kpi__sub">{k.sub}</span>
               </div>
             ))}
+            <div className="sivu-kpi sivu-kpi--pending">
+              <span className="sivu-kpi__icon" aria-hidden="true">
+                <Icon name="alert" size={16} />
+              </span>
+              <span className="sivu-kpi__lbl">Incidencias abiertas</span>
+              <span className="sivu-kpi__val">Pendiente</span>
+              <span className="sivu-kpi__sub">B9</span>
+            </div>
           </section>
 
           <section className="sivu-dash__grid">
@@ -111,7 +144,17 @@ export default function ProjectDashboard() {
                   Riesgo Arbóreo <Icon name="arrow-right" size={12} />
                 </Link>
               </div>
-              <PendingNotice what="la clasificación de riesgo vigente por árbol" refs="Resumen del proyecto · B7" />
+              {r ? (
+                <>
+                  {r.por_riesgo.map((c) => (
+                    <BarRow key={c.codigo ?? "sin"} label={c.etiqueta ?? "Sin clasificación"} value={c.total} total={r.arboles_total} tone={tonoBarra(c.etiqueta)} />
+                  ))}
+                  <BarRow label="Sin evaluación" value={r.sin_evaluacion} total={r.arboles_total} tone="#A7B0AB" />
+                  <p className="sivu-terr__note">Según el diagnóstico finalizado; pasa a vigente al completar la OT.</p>
+                </>
+              ) : (
+                <p className="sivu-state">{errorResumen ? "Sin datos." : "Cargando…"}</p>
+              )}
             </article>
 
             <article className="sivu-panel sivu-dash__comp">
@@ -121,14 +164,43 @@ export default function ProjectDashboard() {
                   Inventario <Icon name="arrow-right" size={12} />
                 </Link>
               </div>
-              <PendingNotice what="los árboles por estado de ciclo de vida ni las especies más registradas" refs="Resumen del proyecto · B7" />
+              {r ? (
+                <>
+                  {r.por_ciclo_vida.map((c) => (
+                    <BarRow key={c.codigo ?? "sin"} label={c.etiqueta ?? c.codigo ?? "—"} value={c.total} total={r.arboles_total} />
+                  ))}
+                  <h3 className="sivu-dash__sub">Especies más registradas</h3>
+                  {r.especies_top.map((e) => (
+                    <BarRow
+                      key={e.especie_cientifica ?? e.nombre_comun ?? "sin"}
+                      label={e.nombre_comun ? `${e.nombre_comun} (${e.especie_cientifica ?? "—"})` : e.especie_cientifica ?? "Sin especie"}
+                      value={e.total}
+                      total={r.arboles_total}
+                      tone="#3fb07e"
+                    />
+                  ))}
+                </>
+              ) : (
+                <p className="sivu-state">{errorResumen ? "Sin datos." : "Cargando…"}</p>
+              )}
             </article>
 
             <article className="sivu-panel sivu-dash__ops">
               <div className="sivu-panel__head">
                 <h2>Operación</h2>
               </div>
-              <PendingNotice what="las órdenes de trabajo ni las incidencias por estado" refs="B3 · B9 · B7" compact />
+              {r && r.ot_por_estado.length > 0 && (
+                <ul className="sivu-dash__states">
+                  {r.ot_por_estado.map((c) => (
+                    <li key={c.codigo ?? "sin"}>
+                      <span>{c.etiqueta ?? c.codigo ?? "—"}</span>
+                      <strong>{c.total}</strong>
+                    </li>
+                  ))}
+                </ul>
+              )}
+              {r && r.ot_por_estado.length === 0 && <p className="sivu-state">El proyecto no tiene órdenes de trabajo.</p>}
+              <PendingNotice what="las incidencias por estado" refs="B9" compact />
             </article>
 
             <article className="sivu-panel sivu-dash__next">

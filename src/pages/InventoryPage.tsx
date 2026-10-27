@@ -5,6 +5,7 @@ import { listarInventario, listarInventarioCompleto } from "../api/inventory";
 import type { ProjectWithSector } from "../types/project";
 import type { ArbolAlta } from "../types/treeAlta";
 import { ESTADOS_CICLO_VIDA_B1, type ArbolInventario } from "../types/inventory";
+import { obtenerCatalogos } from "../api/catalogs";
 import { Icon } from "../components/Icons";
 import { PendingNotice } from "../components/PendingNotice";
 import { TreePhotos } from "../components/TreePhotos";
@@ -53,6 +54,22 @@ export default function InventoryPage() {
   const [todos, setTodos] = useState<ArbolInventario[] | null>(null);
   const [mapError, setMapError] = useState<string | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  // Etiquetas del ciclo de vida desde el catálogo de la API (provisionales, D-28).
+  const [cicloLabel, setCicloLabel] = useState<Record<string, string>>({});
+  useEffect(() => {
+    let cancelled = false;
+    obtenerCatalogos()
+      .then((c) => {
+        if (!cancelled) setCicloLabel(Object.fromEntries((c.estado_ciclo_vida ?? []).map((i) => [i.codigo, i.etiqueta])));
+      })
+      .catch(() => {
+        // Sin catálogo se muestra el código, como antes.
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+  const ciclo = (codigo: string) => cicloLabel[codigo] ?? codigo;
 
   useEffect(() => {
     let cancelled = false;
@@ -216,22 +233,20 @@ export default function InventoryPage() {
                     type="button"
                     role="radio"
                     aria-checked={estado === c}
-                    title="Código del ciclo de vida (la etiqueta llegará con B1)"
-                    className={`sivu-seg__opt sivu-inv__code-opt ${estado === c ? "is-on" : ""}`}
+                    className={`sivu-seg__opt ${cicloLabel[c] ? "" : "sivu-inv__code-opt"} ${estado === c ? "is-on" : ""}`}
                     onClick={() => {
                       setEstado(c);
                       setOffset(0);
                     }}
                   >
-                    {c}
+                    {ciclo(c)}
                   </button>
                 ))}
               </div>
             </div>
 
             <p className="sivu-inv__pending-cols">
-              Pendientes de integración en el listado: DAP, altura, riesgo efectivo, fecha de vigencia y etiqueta del
-              ciclo de vida.
+              Pendientes de integración en el listado: DAP, altura, riesgo efectivo y fecha de vigencia.
             </p>
 
             <div className="sivu-table-scroll">
@@ -285,7 +300,7 @@ export default function InventoryPage() {
                           </span>
                         </td>
                         <td>
-                          <span className="sivu-inv__lifecycle">{a.estado_ciclo_vida}</span>
+                          <span className="sivu-inv__lifecycle">{ciclo(a.estado_ciclo_vida)}</span>
                         </td>
                         <td>{a.sector ?? "—"}</td>
                         <td className="sivu-inv__place">{a.ubicacion_descriptiva ?? "—"}</td>
@@ -341,7 +356,7 @@ export default function InventoryPage() {
                   <dt>Nombre común</dt>
                   <dd>{selected.nombre_comun ?? "—"}</dd>
                   <dt>Ciclo de vida</dt>
-                  <dd>{selected.estado_ciclo_vida}</dd>
+                  <dd>{ciclo(selected.estado_ciclo_vida)}</dd>
                   <dt>Sector</dt>
                   <dd>{selected.sector ?? "—"}</dd>
                   <dt>Ubicación</dt>

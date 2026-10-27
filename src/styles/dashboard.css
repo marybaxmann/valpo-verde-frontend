@@ -318,3 +318,27 @@
   .sivu-dash__grid > * { grid-column: span 12; }
   .sivu-modgrid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
+
+/* Resumen del proyecto (B7). */
+.sivu-dash__sub {
+  margin: 14px 0 8px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.sivu-dash__states {
+  list-style: none;
+  margin: 0 0 10px;
+  padding: 0;
+  display: grid;
+  gap: 6px;
+}
+
+.sivu-dash__states li {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 10px;
+  border-radius: var(--radius-md);
+  background: var(--surface-subtle);
+  font-size: 13px;
+}

@@ -68,7 +68,7 @@ export interface CrearOtInspeccionInput {
   accion_solicitada: string;
   subtipo_accion?: string | null;
   motivo?: string | null;
-  prioridad: string;
+  prioridad?: string;
   observaciones?: string | null;
   responsable_accion_id: string;
 }

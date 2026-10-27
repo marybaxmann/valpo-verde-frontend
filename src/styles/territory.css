@@ -369,7 +369,7 @@
   height: 10px;
   border-radius: 50%;
   border: 1px solid rgba(20, 30, 15, 0.6);
-  background: #9aa39a;
+  background: #A7B0AB;
 }
 
 .sivu-diag__dot--critical { background: var(--classification-critical); }
