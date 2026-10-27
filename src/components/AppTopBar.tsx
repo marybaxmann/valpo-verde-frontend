@@ -21,10 +21,13 @@ export function AppTopBar({
   basePath,
   roleLabel,
   onOpenSearch,
+  workspace,
 }: {
-  basePath: "/admin" | "/usuario";
+  basePath: "/admin" | "/usuario" | "/inspector";
   roleLabel: string;
   onOpenSearch: () => void;
+  /** Espacio de trabajo propio del rol (Inspector: «Mis OT», CC-064 k). */
+  workspace?: { to: string; label: string };
 }) {
   const { profile, signOut } = useAuth();
   const { projectId, project, projectError } = useCurrentProject();
@@ -68,12 +71,22 @@ export function AppTopBar({
     <header className="sivu-topbar" ref={barRef}>
       <div className="sivu-topbar__left">
         <Link
-          to={projectBase ? `${projectBase}/dashboard` : projectsPath}
+          to={projectBase ? `${projectBase}/dashboard` : workspace?.to ?? projectsPath}
           className="sivu-topbar__brand"
           aria-label={projectBase ? "SIVU · ir al Dashboard" : "SIVU · mis proyectos"}
         >
           <SivuLogo height={28} />
         </Link>
+
+        {workspace && (
+          <Link
+            to={workspace.to}
+            className={`sivu-topbar__workspace ${location.pathname.startsWith(workspace.to) ? "is-active" : ""}`}
+          >
+            <Icon name="check" size={14} />
+            {workspace.label}
+          </Link>
+        )}
 
         {projectBase && (
           <div className="sivu-topbar__menu-wrap">

@@ -8,6 +8,7 @@ import { Badge } from "../components/Badge";
 import { Modal } from "../components/Modal";
 import { ESTADO_PROYECTO_LABEL } from "../lib/projects";
 import { fechaHoraChile } from "../lib/dates";
+import { basePathForRole } from "../lib/roles";
 
 /**
  * Listado real de GET /api/sivu/projects (Fase 7, Paso 2; antes F6 con la demo). Compartido entre /admin y
@@ -21,7 +22,7 @@ import { fechaHoraChile } from "../lib/dates";
 export default function ProjectsList() {
   const { profile } = useAuth();
   const isAdmin = profile?.role === "admin";
-  const basePath = isAdmin ? "/admin" : "/usuario";
+  const basePath = basePathForRole(profile?.role);
 
   const [projects, setProjects] = useState<Project[] | null>(null);
   const [loading, setLoading] = useState(true);

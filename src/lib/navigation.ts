@@ -4,10 +4,11 @@ import type { IconName } from "../components/Icons";
  * Navegación del proyecto (CC-059) con los nombres visibles de CC-060.
  * Los grupos son solo visuales: no fusionan, renombran ni crean módulos,
  * y no cambian rutas ni permisos (la seguridad la decide el backend).
- * Inspección (CC-061) y Valpo Verde Conecta (CC-062) irán en Operación,
- * pero no aparecen hasta que existan sus endpoints (CC-059, punto 4).
+ * Inspección (CC-061) aparece desde que existen B3 y B4 (CC-065); Valpo
+ * Verde Conecta (CC-062) irá en Operación cuando existan sus endpoints
+ * (CC-059, punto 4).
  *
- * `path` es relativo a `/{admin|usuario}/projects/:projectId`.
+ * `path` es relativo a `/{admin|usuario|inspector}/projects/:projectId`.
  */
 export interface NavModule {
   path: string;
@@ -39,8 +40,10 @@ export const NAV_GROUPS: NavGroup[] = [
     label: "Operación",
     icon: "wrench",
     modules: [
-      { path: "mantencion", label: "Mantención", hint: "Órdenes de trabajo", icon: "wrench" },
+      { path: "mantencion", label: "Mantención", hint: "Órdenes de trabajo de mantenimiento", icon: "wrench" },
       { path: "incidencias", label: "Incidencias", hint: "Reportes y su estado", icon: "alert" },
+      // Ruta propia: /inspeccion es Riesgo Arbóreo (CC-059 mantuvo esa ruta).
+      { path: "ot-inspeccion", label: "Inspección", hint: "Órdenes de trabajo de inspección", icon: "check" },
     ],
   },
   {

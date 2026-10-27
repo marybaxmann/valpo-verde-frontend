@@ -330,3 +330,72 @@
     padding: 2px 4px;
   }
 }
+
+/* ---------- Avisos y acciones de la OT ---------- */
+
+.sivu-mant__notice {
+  margin-bottom: 12px;
+}
+
+.sivu-mant__notice .sivu-pending {
+  background: var(--surface);
+}
+
+.sivu-mant__action {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border-soft);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.sivu-mant__action label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.sivu-mant__action-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.sivu-mant__action-row input {
+  flex: 1;
+  height: 32px;
+  padding: 0 10px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+}
+
+.sivu-mant__action .btn {
+  align-self: flex-start;
+}
+
+/* Filtro por proyecto («Mis OT», CC-064 k) */
+.sivu-mant__filter {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+  font-size: 13px;
+}
+
+.sivu-mant__filter label {
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.sivu-mant__filter select {
+  height: 34px;
+  padding: 0 12px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  max-width: 100%;
+}

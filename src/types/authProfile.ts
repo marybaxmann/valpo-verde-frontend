@@ -20,4 +20,4 @@ export interface AuthProfile {
  * backend) — es solo la lista de valores de `profile.role` para los que
  * F5 ya sabe a qué shell dirigir. Ver PR-003/PR-004.
  */
-export type KnownRole = "admin" | "usuario_municipal";
+export type KnownRole = "admin" | "usuario_municipal" | "inspector";

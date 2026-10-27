@@ -5,6 +5,7 @@ import Login from "./pages/Login";
 import { SivuLogo } from "./components/SivuLogo";
 import AdminLayout from "./layouts/AdminLayout";
 import UserLayout from "./layouts/UserLayout";
+import InspectorLayout from "./layouts/InspectorLayout";
 import type { KnownRole } from "./types/authProfile";
 
 /**
@@ -23,6 +24,8 @@ const IndicesPage = lazy(() => import("./pages/IndicesPage"));
 const InventoryPage = lazy(() => import("./pages/InventoryPage"));
 const RiskPage = lazy(() => import("./pages/RiskPage"));
 const InfrastructurePage = lazy(() => import("./pages/InfrastructurePage"));
+const InspectionOrdersPage = lazy(() => import("./pages/InspectionOrdersPage"));
+const MyOrdersPage = lazy(() => import("./pages/MyOrdersPage"));
 
 // Inventario (Fase 7): tabla protagonista; ruta /mapa sin cambios (CC-059).
 function InventoryRoute() {
@@ -40,10 +43,32 @@ function InventoryRoute() {
  * README, contrato PR-018/ADR-014). Un guard que falla aquí solo
  * redirige; nunca es la razón por la que algo es o no accesible.
  *
- * Rutas: "/" (resuelve destino), "/admin/projects(/:projectId)",
- * "/usuario/projects(/:projectId)" (F6) y ".../projects/:projectId/mapa"
- * (SIG-1, mapa de inventario). Dashboard/etc. son fases posteriores.
+ * Rutas: "/" (resuelve destino) y, por rol, "/admin", "/usuario" e
+ * "/inspector" (CC-064), cada uno con las mismas rutas de proyecto
+ * (`projectRoutes`); el Inspector entra a "/inspector/mis-ot".
  */
+/**
+ * Rutas de proyecto, iguales para todos los roles con interfaz: cada
+ * pantalla adapta sus acciones al rol que confirma el backend.
+ */
+function projectRoutes() {
+  return (
+    <>
+      <Route path="projects" element={<ProjectsList />} />
+      <Route path="projects/:projectId" element={<ProjectDetail />} />
+      <Route path="projects/:projectId/dashboard" element={<ProjectDashboard />} />
+      <Route path="projects/:projectId/mapa" element={<InventoryRoute />} />
+      <Route path="projects/:projectId/inventario" element={<Navigate to="../mapa" replace />} />
+      <Route path="projects/:projectId/inspeccion" element={<RiskPage />} />
+      <Route path="projects/:projectId/infraestructura" element={<InfrastructurePage />} />
+      <Route path="projects/:projectId/mantencion" element={<MaintenancePage />} />
+      <Route path="projects/:projectId/ot-inspeccion" element={<InspectionOrdersPage />} />
+      <Route path="projects/:projectId/incidencias" element={<IncidentsPage />} />
+      <Route path="projects/:projectId/indices" element={<IndicesPage />} />
+    </>
+  );
+}
+
 export default function App() {
   return (
     <Routes>
@@ -52,32 +77,23 @@ export default function App() {
       <Route element={<RequireRole role="admin" />}>
         <Route path="/admin" element={<AdminLayout />}>
           <Route index element={<Navigate to="projects" replace />} />
-          <Route path="projects" element={<ProjectsList />} />
-          <Route path="projects/:projectId" element={<ProjectDetail />} />
-          <Route path="projects/:projectId/dashboard" element={<ProjectDashboard />} />
-          <Route path="projects/:projectId/mapa" element={<InventoryRoute />} />
-          <Route path="projects/:projectId/inventario" element={<Navigate to="../mapa" replace />} />
-          <Route path="projects/:projectId/inspeccion" element={<RiskPage />} />
-          <Route path="projects/:projectId/infraestructura" element={<InfrastructurePage />} />
-          <Route path="projects/:projectId/mantencion" element={<MaintenancePage />} />
-          <Route path="projects/:projectId/incidencias" element={<IncidentsPage />} />
-          <Route path="projects/:projectId/indices" element={<IndicesPage />} />
+          {projectRoutes()}
         </Route>
       </Route>
 
       <Route element={<RequireRole role="usuario_municipal" />}>
         <Route path="/usuario" element={<UserLayout />}>
           <Route index element={<Navigate to="projects" replace />} />
-          <Route path="projects" element={<ProjectsList />} />
-          <Route path="projects/:projectId" element={<ProjectDetail />} />
-          <Route path="projects/:projectId/dashboard" element={<ProjectDashboard />} />
-          <Route path="projects/:projectId/mapa" element={<InventoryRoute />} />
-          <Route path="projects/:projectId/inventario" element={<Navigate to="../mapa" replace />} />
-          <Route path="projects/:projectId/inspeccion" element={<RiskPage />} />
-          <Route path="projects/:projectId/infraestructura" element={<InfrastructurePage />} />
-          <Route path="projects/:projectId/mantencion" element={<MaintenancePage />} />
-          <Route path="projects/:projectId/incidencias" element={<IncidentsPage />} />
-          <Route path="projects/:projectId/indices" element={<IndicesPage />} />
+          {projectRoutes()}
+        </Route>
+      </Route>
+
+      {/* Inspector (CC-064): entra a «Mis OT»; consulta los módulos en solo lectura. */}
+      <Route element={<RequireRole role="inspector" />}>
+        <Route path="/inspector" element={<InspectorLayout />}>
+          <Route index element={<Navigate to="mis-ot" replace />} />
+          <Route path="mis-ot" element={<MyOrdersPage />} />
+          {projectRoutes()}
         </Route>
       </Route>
 
@@ -88,7 +104,8 @@ export default function App() {
 
 /** Etiquetas de interfaz de PR-019 v1.2 y PR-020 v1.1, por identificador (CC-032). */
 const ROLES_SIN_INTERFAZ: Record<string, string> = {
-  inspector: "Inspector",
+  // El Inspector tiene interfaz desde CC-064 (ruta /inspector). El Encargado
+  // de mantención la tendrá con el #61 (CC-064 c).
   encargado_mantencion: "Encargado de mantención",
 };
 
@@ -148,6 +165,7 @@ function RootRoute() {
 
   if (profile?.role === "admin") return <Navigate to="/admin" replace />;
   if (profile?.role === "usuario_municipal") return <Navigate to="/usuario" replace />;
+  if (profile?.role === "inspector") return <Navigate to="/inspector" replace />;
 
   // CC-059, punto 5: roles vigentes (CC-026, CC-032) que todavía no tienen
   // interfaz. Un mensaje que nombra el rol; nunca un shell de otro rol.
