@@ -292,6 +292,15 @@ email, nunca hardcodeado.
 **Temporal:** la prioridad de la OT es obligatoria en el formulario porque sin ella el backend responde 500 (PGRST201; `pendientes-backend.md`). Cuando se corrija, vuelve la opción «La propone el sistema» (D-238).
 **Validación:** `tsc -b`, `npm run build` y `npm run lint` sin errores ni advertencias nuevas. Con `admin.f7`: diagnóstico de A-000346 en Riesgo (Alto; tronco Alto) e Infraestructura (Bajo, 1 punto, 8,3 %). Con `municipal.f7`: OT-I-000261 creada (Reevaluación › Seguimiento, A-000346, Media, Inspector Fase 7, Pendiente). Variables para Vercel: `VITE_API_BASE_URL`, `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, `VITE_ARCGIS_API_KEY`.
 
+### Fase 7 · Demo publicada en Vercel
+**Fecha:** 2026-10-27. Sitio `https://sivu-plataforma.vercel.app` (rama `feature/fase7-maqueta-lab`, producción en Vercel), API `https://sivu-api.vercel.app` (`release/demo`), base de pruebas `gmlbmyreoxgoqrolhyxo`.
+**Variables en Vercel (tipo Config, Production):** `VITE_API_BASE_URL`, `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY` (de `.env.local`, que apunta a pruebas; `.env` apunta a la base real y no se usa para la demo) y `VITE_ARCGIS_API_KEY`. Vercel no deja guardar una `VITE_` como Secret: son valores públicos del navegador por diseño.
+**Hallazgos al publicar:**
+- *CORS:* la API dejó de autorizar todo origen porque se editó `MOTOR_COMMIT` en vez de `CORS_ORIGIN`. Corregido en `sivu-api`: `CORS_ORIGIN=http://localhost:5173,https://sivu-plataforma.vercel.app` y Redeploy.
+- *Caché del navegador:* un navegador que ya había llamado a la API desde `localhost` reutilizaba, tras un 304, la respuesta con el permiso CORS de `localhost` («Failed to fetch» al cargar el perfil). Corregido en el cliente con `cache: "no-store"` en toda petición a la API (`493827b`).
+- *ArcGIS:* la clave de `.env` venció («Token Invalid», 498; la cuenta tenía 0 claves activas). La autora generó una nueva (solo Basemap Styles); aceptada para el sitio y para `localhost`. Falta ponerla también en el `.env` local.
+**Validación en el sitio publicado:** `municipal.f7`: los 8 módulos sin errores, diagnóstico de A-000346 y formulario de nueva OT con datos reales. `inspector.f7`: Mis OT (2 abiertas), formulario de Evaluación inicial, catálogo de especies y Riesgo Arbóreo con el mapa satelital. **Para la demo:** OT-I-000260 sigue «En ejecución» (completar OT no existe) y su formulario aparece vacío (B17); OT-I-000261 está «Pendiente» y sirve para programar e iniciar en vivo; la prioridad de una OT nueva es obligatoria por el 500 del backend.
+
 ---
 
 ## 5. Limitaciones conocidas

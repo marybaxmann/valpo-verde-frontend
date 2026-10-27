@@ -103,3 +103,11 @@ Detalle en `formulario-inspeccion-bloqueos.md` y `mensaje-backend-b16.md`.
   frontend exige la prioridad. Con prioridad, la OT se crea bien
   (OT-I-000261). Además, el catálogo `subtipo_inspeccion` trae la etiqueta
   «Post_intervención» con guion bajo.
+- **2026-10-27 — Demo publicada (`sivu-api.vercel.app`).** Las respuestas de
+  la API se revalidan con ETag y responden 304; un navegador que ya había
+  llamado desde otro origen reutilizaba la respuesta con el
+  `Access-Control-Allow-Origin` de ese origen y fallaba por CORS. El frontend
+  ya pide todo con `cache: "no-store"`, pero conviene que la API responda
+  `Cache-Control: no-store` (son datos con sesión) o desactive el ETag
+  (`app.set("etag", false)`). Sigue pendiente el 500 de crear OT sin
+  prioridad (PGRST201).
