@@ -48,3 +48,32 @@ export function transicionarOt(
 ): Promise<unknown> {
   return api.patch<{ data: unknown }>(`/api/sivu/work-orders/${workOrderId}/estado`, body).then((res) => res.data);
 }
+
+export interface MiembroAsignable {
+  id: string;
+  nombre: string;
+  rol: string;
+}
+
+/** Miembros del proyecto que pueden ser responsables de una OT (B14). */
+export function listarAsignables(projectId: string, rol: string): Promise<MiembroAsignable[]> {
+  return api
+    .get<{ data: MiembroAsignable[] }>(`/api/sivu/projects/${projectId}/assignable-members?rol=${encodeURIComponent(rol)}`)
+    .then((res) => res.data);
+}
+
+/** Body de POST /api/sivu/projects/:id/work-orders (`crearOrdenTrabajoInspeccionSchema`). */
+export interface CrearOtInspeccionInput {
+  tree_id?: string;
+  accion_solicitada: string;
+  subtipo_accion?: string | null;
+  motivo?: string | null;
+  prioridad?: string;
+  observaciones?: string | null;
+  responsable_accion_id: string;
+}
+
+/** Crea una OT de Inspección (#58; D-238, D-244). Solo Usuario municipal. */
+export function crearOtInspeccion(projectId: string, body: CrearOtInspeccionInput): Promise<unknown> {
+  return api.post<{ data: unknown }>(`/api/sivu/projects/${projectId}/work-orders`, body).then((res) => res.data);
+}

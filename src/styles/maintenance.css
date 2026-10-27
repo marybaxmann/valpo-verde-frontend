@@ -399,3 +399,20 @@
   color: var(--text);
   max-width: 100%;
 }
+
+/* Nueva orden de inspección (#58). */
+.sivu-newot {
+  display: grid;
+  gap: 2px;
+}
+
+.sivu-newot__trees {
+  margin-top: 6px;
+  width: 100%;
+}
+
+.sivu-newot__hint {
+  margin: 4px 0 0;
+  font-size: 13px;
+  color: var(--text-muted);
+}
