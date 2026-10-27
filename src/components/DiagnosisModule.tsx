@@ -2,10 +2,12 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { listarDiagnosticos } from "../api/diagnosticos";
 import { listarInventarioCompleto } from "../api/inventory";
+import { obtenerCatalogos } from "../api/catalogs";
+import type { CatalogoItem } from "../types/catalogs";
 import type { Componente, Diagnostico } from "../types/diagnostico";
 import type { ArbolInventario } from "../types/inventory";
 import { TerritorialModule } from "./TerritorialModule";
-import { ClassificationBadge } from "./ClassificationBadge";
+import { ClassificationBadge, getClassificationTone } from "./ClassificationBadge";
 import { Icon } from "./Icons";
 import { fechaChile } from "../lib/dates";
 
@@ -23,6 +25,22 @@ export function DiagnosisModule({ vista }: { vista: Vista }) {
   const [datos, setDatos] = useState<{ arboles: ArbolInventario[]; diag: Map<string, Diagnostico> } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [elegido, setElegido] = useState<string | null>(null);
+  const [leyenda, setLeyenda] = useState<CatalogoItem[] | null>(null);
+
+  // Leyenda del mapa con las etiquetas del catálogo de la API (PR-021).
+  useEffect(() => {
+    let cancelled = false;
+    obtenerCatalogos()
+      .then((c) => {
+        if (!cancelled) setLeyenda(c[vista === "riesgo" ? "clasificacion_riesgo" : "clasificacion_infraestructura"] ?? []);
+      })
+      .catch(() => {
+        if (!cancelled) setLeyenda([]);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [vista]);
 
   useEffect(() => {
     let cancelled = false;
@@ -38,15 +56,24 @@ export function DiagnosisModule({ vista }: { vista: Vista }) {
     };
   }, [projectId]);
 
+  const valor = (d: Diagnostico | undefined) =>
+    vista === "riesgo" ? d?.resultado.clasificacion_riesgo : d?.resultado.infraestructura?.clasificacion;
   const titulo = vista === "riesgo" ? "Riesgo Arbóreo" : "Infraestructura";
   const points = (datos?.arboles ?? [])
     .filter((a) => a.ubicacion)
-    .map((a) => ({ id: a.id, lng: a.ubicacion!.lng, lat: a.ubicacion!.lat, title: a.tree_code }));
+    .map((a) => {
+      const v = valor(datos?.diag.get(a.id));
+      return {
+        id: a.id,
+        lng: a.ubicacion!.lng,
+        lat: a.ubicacion!.lat,
+        title: a.tree_code,
+        tone: v ? getClassificationTone(v.etiqueta) : ("neutral" as const),
+      };
+    });
   const arbol = datos?.arboles.find((a) => a.id === elegido) ?? null;
   const diag = elegido ? datos?.diag.get(elegido) : undefined;
 
-  const valor = (d: Diagnostico | undefined) =>
-    vista === "riesgo" ? d?.resultado.clasificacion_riesgo : d?.resultado.infraestructura?.clasificacion;
 
   return (
     <TerritorialModule
@@ -60,6 +87,22 @@ export function DiagnosisModule({ vista }: { vista: Vista }) {
             <h2>{titulo}</h2>
             <span className="sivu-diag__tag">Diagnóstico finalizado</span>
           </div>
+          {leyenda && leyenda.length > 0 && (
+            <ul className="sivu-diag__legend" aria-label="Leyenda del mapa">
+              {[...leyenda]
+                .sort((a, b) => a.orden - b.orden)
+                .map((c) => (
+                  <li key={c.codigo}>
+                    <span className={`sivu-diag__dot sivu-diag__dot--${getClassificationTone(c.etiqueta)}`} aria-hidden="true" />
+                    {c.etiqueta}
+                  </li>
+                ))}
+              <li>
+                <span className="sivu-diag__dot sivu-diag__dot--neutral" aria-hidden="true" />
+                Sin evaluación
+              </li>
+            </ul>
+          )}
           {error && (
             <p className="sivu-state sivu-state--error" role="alert">
               <Icon name="alert" size={13} /> {error}

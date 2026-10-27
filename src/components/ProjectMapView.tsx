@@ -28,6 +28,18 @@ export interface MapPoint {
   lat: number;
   /** Texto del punto (por ejemplo, el código del árbol o de la OT). */
   title: string;
+  /**
+   * Tono de la clasificación que entregó el backend (paleta oficial de
+   * PR-016, tokens `--classification-*`); `neutral` = sin evaluación.
+   */
+  tone?: "critical" | "high" | "medium" | "low" | "neutral";
+}
+
+/** Color del token de la paleta, leído del CSS para respetar el tema. */
+function colorDeTono(tone: NonNullable<MapPoint["tone"]>): string {
+  if (tone === "neutral") return "#9aa39a";
+  const v = getComputedStyle(document.documentElement).getPropertyValue(`--classification-${tone}`).trim();
+  return v || "#9aa39a";
 }
 
 /**
@@ -112,7 +124,7 @@ export default function ProjectMapView({
   }, [basemap, status]);
 
   // Puntos de la API: se redibujan al cambiar los datos o la selección.
-  const pointsKey = (points ?? []).map((p) => `${p.id}:${p.lng}:${p.lat}`).join("|");
+  const pointsKey = (points ?? []).map((p) => `${p.id}:${p.lng}:${p.lat}:${p.tone ?? ""}`).join("|");
   useEffect(() => {
     const layer = layerRef.current;
     const view = viewRef.current;
@@ -128,8 +140,8 @@ export default function ProjectMapView({
           symbol: {
             type: "simple-marker",
             style: "circle",
-            size: selected ? 16 : 11,
-            color: selected ? [244, 248, 243, 1] : [168, 230, 195, 0.95],
+            size: selected ? 16 : p.tone ? 13 : 11,
+            color: selected ? [244, 248, 243, 1] : p.tone ? colorDeTono(p.tone) : [168, 230, 195, 0.95],
             outline: { color: selected ? [72, 86, 53, 1] : [20, 30, 15, 0.9], width: selected ? 3 : 1.5 },
           },
         })
