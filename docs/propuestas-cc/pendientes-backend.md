@@ -84,3 +84,11 @@ Detalle en `formulario-inspeccion-bloqueos.md` y `mensaje-backend-b16.md`.
   "species" violates check constraint…»); el frontend lo traduce, pero
   convendría un mensaje en palabras simples desde el backend. La búsqueda
   tarda 2 a 4 s en pruebas.
+- **2026-10-27 — 403 «Perfil de usuario no encontrado» con un Administrador
+  válido.** Al crear un proyecto con `admin.f7`, `POST /api/sivu/projects`
+  respondió 403 una vez; segundos después `/api/auth/me` y el reintento
+  funcionaron (no se había creado nada). `findUserProfileById`
+  (`src/repositories/userProfile.repository.ts`) devuelve `null` ante
+  cualquier error de lectura, y `auth.service.ts` lo convierte en 403. Un
+  fallo momentáneo de Supabase se ve como falta de permiso. Sugerencia:
+  distinguir «no existe el perfil» (403) de «no se pudo leer» (500/503).
