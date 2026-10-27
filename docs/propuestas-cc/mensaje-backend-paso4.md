@@ -29,6 +29,10 @@ ustedes):
 3. **B5 — recordatorios de próxima inspección y monitoreo** por proyecto
    (CC-037; las vistas `v_upcoming_inspections` / `v_tree_fechas_vigentes`
    ya existen): inicio y término del rango, árbol y tipo.
+4. **B13 — geometría del sector** en lectura (agregado el 2026-10-26, al
+   rediseñar Riesgo Arbóreo): hoy `GET /api/sivu/projects/:id` entrega solo
+   `nombre_sector` y `superficie_sector_m2`. Con la geometría (WGS84) los
+   mapas se centran en el sector y muestran su contorno.
 
 Pregunta abierta: ¿en qué orden respecto de B3 y B4 (CC-061)?
 

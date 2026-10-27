@@ -33,6 +33,7 @@ muestre como indicador viene del backend.
 | B7 | Dashboard (indicadores, distribución por riesgo, composición, operación) | Por proyecto: total de árboles y por estado de ciclo de vida; georreferenciados y sin georreferenciar; evaluados y sin evaluación; conteo por clasificación de riesgo vigente (incluidas «Sin clasificación» / «No determinado», con sus etiquetas de catálogo); especies distintas y las más registradas; OT por estado (CC-050) e incidencias por estado (con sus etiquetas). |
 | B1 | Inventario, mapas, buscador, Dashboard | Listado de árboles del proyecto con sus datos vigentes (código, especie, ciclo de vida, ubicación, DAP, altura, clasificación de riesgo vigente con su etiqueta, fecha de vigencia). |
 | B5 | Dashboard (Agenda), Mantención | Recordatorios de próxima inspección y monitoreo por proyecto (CC-037: inicio y término del rango, árbol, tipo). Las vistas `v_upcoming_inspections` / `v_tree_fechas_vigentes` ya existen en la base. |
+| B13 | Riesgo Arbóreo, Infraestructura, Inventario, alta de árbol | **Geometría del sector del proyecto** en lectura (WGS84, como el GeoJSON de los árboles): `GET /api/sivu/projects/:id` hoy entrega solo `nombre_sector` y `superficie_sector_m2`. Sirve para centrar los mapas en el sector y dibujar su contorno (pedido de la responsable, 2026-10-26). |
 
 ## Observaciones de las pruebas del frontend
 

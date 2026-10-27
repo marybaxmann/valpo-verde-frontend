@@ -22,6 +22,7 @@ const MaintenancePage = lazy(() => import("./pages/MaintenancePage"));
 const IncidentsPage = lazy(() => import("./pages/IncidentsPage"));
 const IndicesPage = lazy(() => import("./pages/IndicesPage"));
 const InventoryPage = lazy(() => import("./pages/InventoryPage"));
+const RiskPage = lazy(() => import("./pages/RiskPage"));
 
 // Inventario (Fase 7): tabla protagonista; ruta /mapa sin cambios (CC-059).
 function InventoryRoute() {
@@ -56,7 +57,7 @@ export default function App() {
           <Route path="projects/:projectId/dashboard" element={<ProjectDashboard />} />
           <Route path="projects/:projectId/mapa" element={<InventoryRoute />} />
           <Route path="projects/:projectId/inventario" element={<Navigate to="../mapa" replace />} />
-          <Route path="projects/:projectId/inspeccion" element={<ModulePage module="inspeccion" />} />
+          <Route path="projects/:projectId/inspeccion" element={<RiskPage />} />
           <Route path="projects/:projectId/infraestructura" element={<ModulePage module="infraestructura" />} />
           <Route path="projects/:projectId/mantencion" element={<MaintenancePage />} />
           <Route path="projects/:projectId/incidencias" element={<IncidentsPage />} />
@@ -72,7 +73,7 @@ export default function App() {
           <Route path="projects/:projectId/dashboard" element={<ProjectDashboard />} />
           <Route path="projects/:projectId/mapa" element={<InventoryRoute />} />
           <Route path="projects/:projectId/inventario" element={<Navigate to="../mapa" replace />} />
-          <Route path="projects/:projectId/inspeccion" element={<ModulePage module="inspeccion" />} />
+          <Route path="projects/:projectId/inspeccion" element={<RiskPage />} />
           <Route path="projects/:projectId/infraestructura" element={<ModulePage module="infraestructura" />} />
           <Route path="projects/:projectId/mantencion" element={<MaintenancePage />} />
           <Route path="projects/:projectId/incidencias" element={<IncidentsPage />} />

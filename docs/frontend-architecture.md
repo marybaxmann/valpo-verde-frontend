@@ -215,6 +215,13 @@ email, nunca hardcodeado.
 **Cartografía:** todas vienen del servicio Basemap Styles de ArcGIS con la API key existente y su atribución; no son imágenes descargadas ni se versionan (PR-016 v7.0). CC-057 excluye la imagen aérea fija de la maqueta, no la de ArcGIS.
 **Validación:** `tsc -b`, `npm run build` y `npm run lint` sin errores ni advertencias nuevas. Navegador: las cuatro capas cargan con su atribución; el marcador se conserva al cambiar de capa; la elección se recuerda.
 
+### Fase 7 · Paso 4 (Riesgo Arbóreo) — mapa protagonista, solo consulta
+**Fecha:** 2026-10-27. Rama `feature/fase7-maqueta-lab`.
+**Objetivo:** pantalla Riesgo Arbóreo de la maqueta (CC-057, CC-060) con estructura común para los módulos con mapa.
+**Archivos:** `src/pages/RiskPage.tsx` (ruta `/inspeccion` sin cambios), `src/components/TerritorialModule.tsx` (mapa a pantalla completa, encabezado y tarjeta flotantes; la reutilizará Infraestructura), `src/components/ProjectMapView.tsx` (mapa ArcGIS con selector de capas, zoom abajo a la izquierda), `src/styles/territory.css` (nuevos). `ModulePage` queda solo para Infraestructura hasta su paso; su rama de inspección (asistente `RiskAssessmentModal` de la demo) ya no tiene ruta.
+**Decisiones de la autora (2026-10-27):** mapa protagonista con tarjeta «pendiente» (B1/B7) en vez de pantalla vacía; estructura común Riesgo/Infraestructura; pedir al backend la geometría del sector (B13). Sin «Nueva evaluación» para el Usuario municipal (CC-059 punto 6): las inspecciones son del Inspector (CC-061).
+**Validación:** `tsc -b`, `npm run build` y `npm run lint` sin errores ni advertencias nuevas. Navegador contra pruebas con `municipal.f7`: pantalla angosta en claro (mapa bajo la barra sin desplazamiento, Territorio marcado, encabezado real, tarjeta pendiente, capas abajo) y vista ancha (1440 px) en oscuro con Satélite. Corregido: el encabezado flotante tapaba el zoom.
+
 ---
 
 ## 5. Limitaciones conocidas
