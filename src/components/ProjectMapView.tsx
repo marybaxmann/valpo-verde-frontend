@@ -35,11 +35,18 @@ export interface MapPoint {
   tone?: "critical" | "high" | "medium" | "low" | "neutral";
 }
 
+/** `#rrggbb` con transparencia, para el halo del pin. */
+function conAlfa(hex: string, alfa: number): number[] {
+  const m = /^#?([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i.exec(hex.trim());
+  if (!m) return [167, 176, 171, alfa];
+  return [parseInt(m[1], 16), parseInt(m[2], 16), parseInt(m[3], 16), alfa];
+}
+
 /** Color del token de la paleta, leído del CSS para respetar el tema. */
 function colorDeTono(tone: NonNullable<MapPoint["tone"]>): string {
-  if (tone === "neutral") return "#9aa39a";
+  if (tone === "neutral") return "#A7B0AB";
   const v = getComputedStyle(document.documentElement).getPropertyValue(`--classification-${tone}`).trim();
-  return v || "#9aa39a";
+  return v || "#A7B0AB";
 }
 
 /**
@@ -133,16 +140,33 @@ export default function ProjectMapView({
     const list = points ?? [];
     for (const p of list) {
       const selected = p.id === selectedId;
+      const geometry = new Point({ longitude: p.lng, latitude: p.lat });
+      const color = p.tone ? colorDeTono(p.tone) : "#3fb07e";
+      // Pin de la maqueta SIVU Lab (CC-057): halo translúcido del mismo color,
+      // borde blanco y sombra; el seleccionado crece con borde oliva.
       layer.add(
         new Graphic({
-          geometry: new Point({ longitude: p.lng, latitude: p.lat }),
+          geometry,
           attributes: { id: p.id },
           symbol: {
             type: "simple-marker",
             style: "circle",
-            size: selected ? 16 : p.tone ? 13 : 11,
-            color: selected ? [244, 248, 243, 1] : p.tone ? colorDeTono(p.tone) : [168, 230, 195, 0.95],
-            outline: { color: selected ? [72, 86, 53, 1] : [20, 30, 15, 0.9], width: selected ? 3 : 1.5 },
+            size: selected ? 30 : 22,
+            color: conAlfa(color, selected ? 0.4 : 0.28),
+            outline: { color: [0, 0, 0, 0], width: 0 },
+          },
+        })
+      );
+      layer.add(
+        new Graphic({
+          geometry,
+          attributes: { id: p.id },
+          symbol: {
+            type: "simple-marker",
+            style: "circle",
+            size: selected ? 18 : 14,
+            color,
+            outline: { color: selected ? [31, 122, 85, 1] : [255, 255, 255, 0.95], width: selected ? 3 : 2 },
           },
         })
       );

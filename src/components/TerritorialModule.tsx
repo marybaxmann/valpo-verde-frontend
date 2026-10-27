@@ -64,6 +64,8 @@ export function TerritorialModule({
         </div>
       )}
 
+      {/* Tinte y viñeta de la maqueta sobre el mapa (solo presentación). */}
+      <div className="sivu-terr__grade" aria-hidden="true" />
       <div className="sivu-terr__overlay">
         <header className="sivu-terr__place">
           <span className="sivu-terr__chip">Territorio · {moduleLabel}</span>
