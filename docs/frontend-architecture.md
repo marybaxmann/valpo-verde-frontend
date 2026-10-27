@@ -254,6 +254,14 @@ email, nunca hardcodeado.
 **Decisiones de la autora (2026-10-27):** módulo + Inspector con programar/iniciar en este paso; el formulario de inspección como paso propio; crear OT de Inspección espera B1, B14 y B15 (`mensaje-backend-inspeccion.md`).
 **Validación:** `tsc -b`, `npm run build` y `npm run lint` sin errores ni advertencias nuevas. Municipal: el módulo lista las OT de Inspección (primero 0; después OT-I-000260) con el aviso de creación pendiente. Inspector: el equipo del backend probó con `inspector.f7` la OT-I-000260 (Evaluación inicial sobre A-000346): se visualiza, se inició y queda «En ejecución» con el aviso del formulario pendiente; desde la vista municipal se ve en el calendario y en el minimapa. No lo probé yo con la sesión del Inspector.
 
+### Fase 7 · Paso 4 (Proyecto y Miembros) — ficha del proyecto en `/api/sivu`
+**Fecha:** 2026-10-27. Rama `feature/fase7-maqueta-lab` (`e848c8a`, `b7ebfa7`, `06f4730` y el de verificación).
+**Objetivo:** llevar la ficha del proyecto y sus miembros a la API de la Fase 6, con el estilo Lab. Incidencias (B9) e Indicadores biométricos (CC-016 sin cerrar, B10) quedan bloqueados por el backend.
+**Contratos consumidos (`feature/fase6-consultas-frontend`, `0d0a837`), todos solo del Administrador:** `GET/POST /api/sivu/projects/:id/members`, `DELETE /api/sivu/projects/:id/members/:userId`, `PATCH /api/sivu/projects/:id` (solo `nombre_proyecto` y `sector.nombre_sector`; la delimitación no se edita aquí) y `PATCH /api/sivu/projects/:id/estado` (`activo`/`cerrado`, CC-042).
+**Archivos:** `src/pages/ProjectMembersSection.tsx`, `src/components/ProjectEditForm.tsx` y `src/components/ProjectStateControl.tsx` (nuevos), `src/pages/ProjectDetail.tsx`, `src/api/projects.ts`, `src/api/projectMembers.ts`, `src/hooks/useCurrentProject.tsx` (`refresh()` para releer el nombre en la barra), `src/styles/project.css` (nueva), íconos `lock`/`unlock`, y en `shell.css` la barra en teléfono (bajo 560 px el proyecto pasa a una fila propia).
+**Reglas aplicadas:** con el proyecto Cerrado no se ofrece editar nombres (el backend respondería 409) y los miembros se siguen gestionando; cerrar y reabrir siempre piden confirmación, con el resumen de CC-042. El `user_id` se escribe a mano (B11); la API no entrega el rol del miembro, así que no se muestra.
+**Validación:** `tsc -b`, `npm run build` y `npm run lint` sin errores ni advertencias nuevas. Con `admin.f7` en la base de pruebas: lista (2 miembros), duplicado (409), identificador inválido (400, mensaje en palabras simples), agregar y quitar un miembro de prueba, editar y restaurar ambos nombres, cerrar y reabrir el proyecto QA (unos 30 s cerrado). Con `municipal.f7` la sección de miembros y los controles no aparecen. Proyecto inexistente: «Proyecto no encontrado». Claro, oscuro, 375 px y 1280 px. No se forzó un error del listado de miembros (el código de error es el mismo patrón de las demás pantallas).
+
 ---
 
 ## 5. Limitaciones conocidas
@@ -281,9 +289,11 @@ lectura existe desde SIG-1.
 | `GET /api/projects` | `src/api/projects.ts` (F6) |
 | `POST /api/projects` | `src/api/projects.ts` (F6) |
 | `GET /api/projects/:id` | `src/api/projects.ts` (F6) |
-| `GET /api/projects/:id/members` | `src/api/projectMembers.ts` (F7) |
-| `POST /api/projects/:id/members` | `src/api/projectMembers.ts` (F7) |
-| `DELETE /api/projects/:id/members/:userId` | `src/api/projectMembers.ts` (F7) |
+| `GET /api/sivu/projects/:id/members` | `src/api/projectMembers.ts` (Fase 7, Paso 4) |
+| `POST /api/sivu/projects/:id/members` | `src/api/projectMembers.ts` (Fase 7, Paso 4) |
+| `DELETE /api/sivu/projects/:id/members/:userId` | `src/api/projectMembers.ts` (Fase 7, Paso 4) |
+| `PATCH /api/sivu/projects/:id` | `src/api/projects.ts` (Fase 7, Paso 4) |
+| `PATCH /api/sivu/projects/:id/estado` | `src/api/projects.ts` (Fase 7, Paso 4) |
 | `GET /api/projects/:id/trees` | `src/api/trees.ts` (SIG-1) |
 
 ## 8. Roadmap (F8 en adelante)

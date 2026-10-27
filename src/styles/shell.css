@@ -548,6 +548,34 @@
   }
 }
 
+/* Teléfono: el nombre del proyecto no cabe junto al logo y los botones; pasa a una fila propia. */
+@media (max-width: 560px) {
+  .sivu-topbar__left {
+    display: contents;
+  }
+  .sivu-topbar__brand {
+    order: 1;
+    margin-right: auto;
+  }
+  .sivu-topbar__left > .sivu-topbar__workspace {
+    order: 1;
+  }
+  .sivu-topbar__right {
+    order: 2;
+  }
+  .sivu-topbar__left .sivu-topbar__menu-wrap {
+    order: 3;
+    flex: 0 0 100%;
+  }
+  .sivu-topbar__project {
+    width: 100%;
+    justify-content: space-between;
+  }
+  .sivu-topbar__spaces {
+    order: 4;
+  }
+}
+
 /* Espacio de trabajo propio del rol (Inspector: «Mis OT», CC-064) */
 .sivu-topbar__workspace {
   display: inline-flex;
