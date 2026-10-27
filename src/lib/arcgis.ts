@@ -23,8 +23,9 @@ export const INVENTORY_BASEMAP = "arcgis/topographic";
  * de la maqueta, no la de ArcGIS).
  */
 export const BASEMAPS = [
-  { id: "mapa", label: "Mapa", hint: "Calles y direcciones", style: "arcgis/streets" },
+  // Satélite primero: es la capa con la que abren los mapas (autora, 2026-10-27).
   { id: "satelite", label: "Satélite", hint: "Terreno real", style: "arcgis/imagery/standard" },
+  { id: "mapa", label: "Mapa", hint: "Calles y direcciones", style: "arcgis/streets" },
   { id: "hibrido", label: "Híbrido", hint: "Satélite con nombres de calles", style: "arcgis/imagery" },
   { id: "limpio", label: "Limpio", hint: "Gris claro, para datos encima", style: "arcgis/light-gray" },
 ] as const;
@@ -33,7 +34,7 @@ export type BasemapId = (typeof BASEMAPS)[number]["id"];
 
 const BASEMAP_KEY = "sivu-basemap";
 
-/** Capa base elegida por este navegador (preferencia local; «Mapa» si no hay). */
+/** Capa base elegida por este navegador (preferencia local; «Satélite» si no hay). */
 export function getPreferredBasemap(): BasemapId {
   try {
     const saved = localStorage.getItem(BASEMAP_KEY);
@@ -41,7 +42,7 @@ export function getPreferredBasemap(): BasemapId {
   } catch {
     // Sin almacenamiento (modo privado): se usa la capa por defecto.
   }
-  return "mapa";
+  return "satelite";
 }
 
 export function savePreferredBasemap(id: BasemapId): void {

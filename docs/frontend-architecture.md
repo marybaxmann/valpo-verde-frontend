@@ -211,7 +211,7 @@ email, nunca hardcodeado.
 
 ### Fase 7 · Capas base en los mapas
 **Fecha:** 2026-10-26. Pedido de la autora.
-**Qué:** selector de capa base sobre el mapa (hoy, el del formulario «Nuevo árbol»): **Mapa** (`arcgis/streets`, por defecto), **Satélite** (`arcgis/imagery/standard`), **Híbrido** (`arcgis/imagery`) y **Limpio** (`arcgis/light-gray`). Definidas una sola vez en `src/lib/arcgis.ts` (`BASEMAPS`) para reutilizarlas en los mapas que vengan; componente `src/components/BasemapSwitcher.tsx`. La elección se recuerda en este navegador (`localStorage`, con respaldo si no hay almacenamiento).
+**Qué:** selector de capa base sobre los mapas (formulario «Nuevo árbol» y módulos territoriales): **Satélite** (`arcgis/imagery/standard`, capa inicial y primera opción desde el 2026-10-27, decisión de la autora), **Mapa** (`arcgis/streets`), **Híbrido** (`arcgis/imagery`) y **Limpio** (`arcgis/light-gray`). Definidas una sola vez en `src/lib/arcgis.ts` (`BASEMAPS`) para reutilizarlas en los mapas que vengan; componente `src/components/BasemapSwitcher.tsx`. La elección se recuerda en este navegador (`localStorage`, con respaldo si no hay almacenamiento).
 **Cartografía:** todas vienen del servicio Basemap Styles de ArcGIS con la API key existente y su atribución; no son imágenes descargadas ni se versionan (PR-016 v7.0). CC-057 excluye la imagen aérea fija de la maqueta, no la de ArcGIS.
 **Validación:** `tsc -b`, `npm run build` y `npm run lint` sin errores ni advertencias nuevas. Navegador: las cuatro capas cargan con su atribución; el marcador se conserva al cambiar de capa; la elección se recuerda.
 
@@ -221,6 +221,8 @@ email, nunca hardcodeado.
 **Archivos:** `src/pages/RiskPage.tsx` (ruta `/inspeccion` sin cambios), `src/components/TerritorialModule.tsx` (mapa a pantalla completa, encabezado y tarjeta flotantes; la reutilizará Infraestructura), `src/components/ProjectMapView.tsx` (mapa ArcGIS con selector de capas, zoom abajo a la izquierda), `src/styles/territory.css` (nuevos). `ModulePage` queda solo para Infraestructura hasta su paso; su rama de inspección (asistente `RiskAssessmentModal` de la demo) ya no tiene ruta.
 **Decisiones de la autora (2026-10-27):** mapa protagonista con tarjeta «pendiente» (B1/B7) en vez de pantalla vacía; estructura común Riesgo/Infraestructura; pedir al backend la geometría del sector (B13). Sin «Nueva evaluación» para el Usuario municipal (CC-059 punto 6): las inspecciones son del Inspector (CC-061).
 **Validación:** `tsc -b`, `npm run build` y `npm run lint` sin errores ni advertencias nuevas. Navegador contra pruebas con `municipal.f7`: pantalla angosta en claro (mapa bajo la barra sin desplazamiento, Territorio marcado, encabezado real, tarjeta pendiente, capas abajo) y vista ancha (1440 px) en oscuro con Satélite. Corregido: el encabezado flotante tapaba el zoom.
+
+**Ajuste 2026-10-27:** con Satélite como capa inicial, el encabezado flotante de los módulos territoriales pasa a tener fondo de vidrio (como la tarjeta) para leerse sobre la imagen en claro y oscuro.
 
 ---
 
