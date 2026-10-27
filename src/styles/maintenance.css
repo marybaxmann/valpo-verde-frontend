@@ -407,8 +407,31 @@
 }
 
 .sivu-newot__trees {
-  margin-top: 6px;
+  list-style: none;
+  margin: 6px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 4px;
+  max-height: 180px;
+  overflow-y: auto;
+}
+
+.sivu-newot__trees button {
   width: 100%;
+  padding: 7px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  color: var(--text);
+  font-size: 13px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.sivu-newot__trees button.is-on {
+  border-color: var(--interactive);
+  background: var(--surface-muted);
+  font-weight: 600;
 }
 
 .sivu-newot__hint {

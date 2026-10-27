@@ -185,21 +185,22 @@ export function NewInspectionOrderModal({
                     placeholder="Código, especie o ubicación"
                     disabled={creando}
                   />
-                  <select
-                    aria-label="Árbol"
-                    size={Math.min(5, Math.max(2, filtrados.length))}
-                    value={arbolId}
-                    onChange={(e) => setArbolId(e.target.value)}
-                    disabled={creando}
-                    className="sivu-newot__trees"
-                  >
+                  <ul className="sivu-newot__trees" aria-label="Árboles">
                     {filtrados.map((a) => (
-                      <option key={a.id} value={a.id}>
-                        {a.tree_code} · {a.especie_cientifica ?? "sin especie"}
-                        {a.nombre_comun ? ` (${a.nombre_comun})` : ""}
-                      </option>
+                      <li key={a.id}>
+                        <button
+                          type="button"
+                          aria-pressed={arbolId === a.id}
+                          className={arbolId === a.id ? "is-on" : ""}
+                          onClick={() => setArbolId(a.id)}
+                          disabled={creando}
+                        >
+                          <strong>{a.tree_code}</strong> · {a.especie_cientifica ?? "sin especie"}
+                          {a.nombre_comun ? ` (${a.nombre_comun})` : ""}
+                        </button>
+                      </li>
                     ))}
-                  </select>
+                  </ul>
                   {filtrados.length === 0 && <span className="hint">Ningún árbol coincide.</span>}
                   {arbolElegido?.ubicacion_descriptiva && <span className="hint">{arbolElegido.ubicacion_descriptiva}</span>}
                 </>
