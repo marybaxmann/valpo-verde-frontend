@@ -27,9 +27,15 @@ export function hoyChile(): string {
   return formatoFecha.format(new Date());
 }
 
-/** Día en Chile (AAAA-MM-DD) de una marca de tiempo ISO (timestamptz). */
+/**
+ * Día en Chile (AAAA-MM-DD) de una marca de tiempo ISO (timestamptz). Una
+ * fecha sin hora (columna `date`, p. ej. `fecha_registro`) ya es el día:
+ * se devuelve tal cual, porque `new Date("AAAA-MM-DD")` la toma como
+ * medianoche UTC y en Chile mostraría el día anterior.
+ */
 export function fechaChile(iso: string | null | undefined): string {
   if (!iso) return "—";
+  if (/^\d{4}-\d{2}-\d{2}$/.test(iso)) return iso;
   const d = new Date(iso);
   return Number.isNaN(d.getTime()) ? iso : formatoFecha.format(d);
 }

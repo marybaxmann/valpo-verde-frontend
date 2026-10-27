@@ -240,3 +240,123 @@ section > .sivu-picker__state {
     height: 280px;
   }
 }
+
+/* ---------- Tabla con B1 ---------- */
+
+.sivu-inv__toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 8px 8px 4px;
+}
+
+.sivu-inv__search {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1 1 260px;
+  height: 36px;
+  padding: 0 12px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-muted);
+}
+
+.sivu-inv__search input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--text);
+  font-size: 13px;
+}
+
+.sivu-inv__code-opt {
+  font-family: var(--font-mono);
+}
+
+.sivu-inv__pending-cols {
+  margin: 4px 8px 8px;
+  font-size: 11.5px;
+  color: var(--text-faint);
+}
+
+.sivu-inv__state {
+  padding: 28px 14px !important;
+  text-align: center;
+  color: var(--text-muted);
+}
+
+.sivu-inv__state--error {
+  color: var(--red-500);
+}
+
+.sivu-inv__code {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.sivu-inv__species {
+  display: flex;
+  flex-direction: column;
+}
+
+.sivu-inv__species strong {
+  font-weight: 600;
+}
+
+.sivu-inv__species em {
+  font-size: 11.5px;
+  color: var(--text-muted);
+}
+
+.sivu-inv__lifecycle {
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  padding: 2px 8px;
+  border-radius: var(--radius-pill);
+  background: var(--shell-soft);
+  color: var(--text-muted);
+}
+
+.sivu-inv__place {
+  max-width: 280px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sivu-inv__geo {
+  color: var(--sivu-accent);
+  text-align: center;
+}
+
+.sivu-table tbody tr.is-sel td {
+  background: var(--shell-current);
+}
+
+.sivu-inv__pager {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 10px 8px 2px;
+  font-size: 12.5px;
+  color: var(--text-muted);
+}
+
+.sivu-inv__pager .sivu-topbar__icon-btn {
+  width: 32px;
+  height: 32px;
+  box-shadow: none;
+}
+
+.sivu-inv__pager .sivu-topbar__icon-btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}

@@ -49,3 +49,8 @@ muestre como indicador viene del backend.
 - **Catálogo de especies vacío en pruebas:** `GET /api/sivu/projects/:id/species?nombre=Acer`
   responde `{"data":[]}`. No es un error; solo hace que el buscador no pueda
   probarse con coincidencias hasta que el Inspector incorpore especies (CC-053).
+- **2026-10-27 — B1 (`feature/fase6-consultas-frontend`), probado con el árbol A-000346:**
+  (a) la `busqueda` distingue tildes: «plátano» encuentra el árbol, «platano»
+  no (sugerencia: comparar sin tildes, por ejemplo con `unaccent`);
+  (b) `estado_ciclo_vida` llega solo como código (`activo`): el frontend lo
+  muestra tal cual hasta que llegue su etiqueta (punto 5 de la responsable).
