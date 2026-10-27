@@ -1,0 +1,120 @@
+/* Ficha del proyecto y miembros (Fase 7; estilo SIVU Lab, CC-057). */
+
+.sivu-state {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 10px 0 0;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.sivu-state--error {
+  color: var(--red-500);
+}
+
+.sivu-state--ok {
+  color: var(--green-600);
+}
+
+.btn-danger {
+  background: var(--red-500);
+  border: 1px solid var(--red-500);
+  color: #fff;
+}
+
+.btn-danger:hover:not(:disabled) {
+  filter: brightness(0.92);
+}
+
+/* Miembros */
+.sivu-members {
+  margin-top: 16px;
+}
+
+.sivu-members__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.sivu-members__head h2 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.sivu-members__count {
+  font-size: 12.5px;
+  color: var(--text-muted);
+}
+
+.sivu-members__intro {
+  margin: 4px 0 14px;
+  font-size: 12.5px;
+  color: var(--text-muted);
+}
+
+.sivu-members__id {
+  display: block;
+  margin-top: 2px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--text-muted);
+  overflow-wrap: anywhere;
+}
+
+.sivu-members__noname {
+  font-weight: 400;
+  font-style: italic;
+  color: var(--text-muted);
+}
+
+.sivu-members__person {
+  white-space: normal;
+}
+
+.sivu-members__confirm {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 6px;
+  max-width: 100%;
+  white-space: normal;
+  font-size: 12.5px;
+}
+
+.sivu-members__confirm > span {
+  flex-basis: 100%;
+  text-align: right;
+}
+
+.sivu-members__add {
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+  max-width: 560px;
+}
+
+.sivu-members__addrow {
+  display: flex;
+  gap: 8px;
+}
+
+.sivu-members__addrow input {
+  flex: 1;
+  min-width: 0;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 12.5px;
+}
+
+.sivu-members__add .hint {
+  display: block;
+  margin-top: 6px;
+  font-size: 12px;
+  line-height: 1.45;
+}

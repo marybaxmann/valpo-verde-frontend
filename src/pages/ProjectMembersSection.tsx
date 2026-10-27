@@ -1,56 +1,64 @@
 import { useEffect, useState } from "react";
 import { SivuTable } from "../components/SivuTable";
 import { addProjectMember, listProjectMembers, removeProjectMember } from "../api/projectMembers";
+import { ApiError } from "../api/client";
 import type { ProjectMember } from "../types/projectMember";
 import { Icon } from "../components/Icons";
 import { fechaChile } from "../lib/dates";
 
 /**
- * Sección de miembros del proyecto (F7). Solo se monta para admin (ver
- * ProjectDetail.tsx) — los tres endpoints son admin-only en el backend
- * (assertAdmin); ocultar esto para usuario_municipal es solo UX, el
- * backend sigue siendo quien de verdad bloquea (403).
+ * Miembros del proyecto (`/api/sivu`; PR-004 v7.0). Solo se monta para el
+ * Administrador (ver ProjectDetail.tsx): los tres endpoints son admin-only en
+ * el backend; ocultarlo a los demás roles es solo UX, el backend sigue
+ * bloqueando (403). Con el proyecto Cerrado los miembros se siguen
+ * gestionando (CC-042).
  *
- * "Agregar miembro" pide `user_id` (UUID) directamente: no existe
- * todavía ningún endpoint para listar usuarios municipales disponibles
- * (ver README/backend), así que no se inventa un selector — cuando ese
- * endpoint exista, este campo se reemplaza por uno real.
+ * «Agregar miembro» pide el `user_id` directamente: no existe un endpoint
+ * para listar usuarios (B11, docs/propuestas-cc/pendientes-backend.md), así
+ * que no se inventa un selector.
  */
 export default function ProjectMembersSection({ projectId }: { projectId: string }) {
   const [members, setMembers] = useState<ProjectMember[] | null>(null);
-  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const [newUserId, setNewUserId] = useState("");
   const [adding, setAdding] = useState(false);
   const [addError, setAddError] = useState<string | null>(null);
+  const [added, setAdded] = useState(false);
 
+  const [confirmingId, setConfirmingId] = useState<string | null>(null);
   const [removingId, setRemovingId] = useState<string | null>(null);
   const [removeError, setRemoveError] = useState<string | null>(null);
 
+  // Sin setState síncrono: «cargando» se deduce de que aún no hay lista ni error.
   function load() {
-    setLoading(true);
-    setError(null);
     listProjectMembers(projectId)
-      .then((data) => setMembers(data))
-      .catch((err: unknown) => {
-        setError(err instanceof Error ? err.message : "No se pudieron cargar los miembros.");
+      .then((data) => {
+        setMembers(data);
+        setError(null);
       })
-      .finally(() => setLoading(false));
+      .catch((err: unknown) => setError(mensajeError(err, "No se pudieron cargar los miembros.")));
   }
 
   useEffect(load, [projectId]);
 
-  async function handleAdd() {
+  async function handleAdd(e: React.FormEvent) {
+    e.preventDefault();
     if (!newUserId.trim()) return;
     setAdding(true);
     setAddError(null);
+    setAdded(false);
     try {
       await addProjectMember(projectId, { user_id: newUserId.trim() });
       setNewUserId("");
-      load(); // recarga desde el backend, igual que crear proyecto en F6
+      setAdded(true);
+      load(); // la lista se vuelve a leer del backend
     } catch (err) {
-      setAddError(err instanceof Error ? err.message : "No se pudo agregar el miembro.");
+      setAddError(
+        err instanceof ApiError && err.status === 400
+          ? "El identificador no tiene el formato correcto (ocho, cuatro, cuatro, cuatro y doce caracteres separados por guiones)."
+          : mensajeError(err, "No se pudo agregar el miembro.")
+      );
     } finally {
       setAdding(false);
     }
@@ -61,82 +69,148 @@ export default function ProjectMembersSection({ projectId }: { projectId: string
     setRemoveError(null);
     try {
       await removeProjectMember(projectId, userId);
+      setConfirmingId(null);
       load();
     } catch (err) {
-      setRemoveError(err instanceof Error ? err.message : "No se pudo eliminar el miembro.");
+      setRemoveError(mensajeError(err, "No se pudo quitar el miembro."));
     } finally {
       setRemovingId(null);
     }
   }
 
   return (
-    <div className="card card--pad" style={{ marginTop: 16 }}>
-      <h3 className="sivu-toolbar__title" style={{ marginBottom: 12 }}>Miembros del proyecto</h3>
+    <section className="card card--pad sivu-members" aria-labelledby="miembros-titulo">
+      <header className="sivu-members__head">
+        <h2 id="miembros-titulo">Miembros del proyecto</h2>
+        {members && !error && (
+          <span className="sivu-members__count">
+            {members.length} {members.length === 1 ? "miembro" : "miembros"}
+          </span>
+        )}
+      </header>
+      <p className="sivu-members__intro">
+        Solo los miembros acceden al proyecto. El rol de cada persona es el de su cuenta, no el del proyecto.
+      </p>
 
-      {loading && <p style={{ color: "var(--text-muted)" }}>Cargando miembros…</p>}
+      {!members && !error && <p className="sivu-state">Cargando miembros…</p>}
 
-      {!loading && error && (
-        <p style={{ color: "var(--red-500)" }}>
-          <Icon name="alert" size={12} /> {error}
+      {error && (
+        <p className="sivu-state sivu-state--error" role="alert">
+          <Icon name="alert" size={13} /> {error}
+          <button type="button" className="btn btn-ghost btn-sm" onClick={load}>
+            Reintentar
+          </button>
         </p>
       )}
 
-      {!loading && !error && members && (
-        <div style={{ marginBottom: 16 }}>
-          <SivuTable
-            columns={[
-              { label: "Usuario", width: "55%" },
-              { label: "Agregado", width: "25%" },
-              { label: "Acciones", width: "20%", align: "right" },
-            ]}
-            empty={members.length === 0 ? { icon: "user", title: "Este proyecto todavía no tiene miembros." } : null}
-          >
-            {members.map((m) => (
-              <tr key={m.id}>
-                <td className="sivu-table__strong">{m.user?.nombre ?? m.user_id}</td>
-                <td className="sivu-table__num">{fechaChile(m.created_at)}</td>
-                <td className="sivu-table__actions">
+      {!error && members && (
+        <SivuTable
+          columns={[
+            { label: "Persona", width: "52%" },
+            { label: "Desde", width: "18%" },
+            { label: "", width: "30%", align: "right" },
+          ]}
+          empty={members.length === 0 ? { icon: "user", title: "Este proyecto todavía no tiene miembros." } : null}
+        >
+          {members.map((m) => (
+            <tr key={m.id}>
+              <td className="sivu-table__strong sivu-members__person">
+                {m.user?.nombre ?? <span className="sivu-members__noname">Sin nombre registrado</span>}
+                <small className="sivu-members__id">{m.user_id}</small>
+              </td>
+              <td className="sivu-table__num">{fechaChile(m.created_at)}</td>
+              <td className="sivu-table__actions">
+                {confirmingId === m.user_id ? (
+                  <span className="sivu-members__confirm">
+                    <span>¿Quitar del proyecto?</span>
+                    <button
+                      type="button"
+                      className="btn btn-danger btn-sm"
+                      onClick={() => handleRemove(m.user_id)}
+                      disabled={removingId === m.user_id}
+                    >
+                      {removingId === m.user_id ? "Quitando…" : "Sí, quitar"}
+                    </button>
+                    <button
+                      type="button"
+                      className="btn btn-ghost btn-sm"
+                      onClick={() => setConfirmingId(null)}
+                      disabled={removingId === m.user_id}
+                    >
+                      Cancelar
+                    </button>
+                  </span>
+                ) : (
                   <button
+                    type="button"
                     className="btn btn-ghost btn-sm"
-                    onClick={() => handleRemove(m.user_id)}
-                    disabled={removingId === m.user_id}
+                    onClick={() => {
+                      setRemoveError(null);
+                      setAdded(false);
+                      setConfirmingId(m.user_id);
+                    }}
                   >
-                    {removingId === m.user_id ? "Quitando..." : "Quitar del proyecto"}
+                    Quitar
                   </button>
-                </td>
-              </tr>
-            ))}
-          </SivuTable>
-        </div>
+                )}
+              </td>
+            </tr>
+          ))}
+        </SivuTable>
       )}
 
       {removeError && (
-        <p style={{ color: "var(--red-500)", fontSize: 12.5, marginBottom: 12 }}>{removeError}</p>
+        <p className="sivu-state sivu-state--error" role="alert">
+          <Icon name="alert" size={13} /> {removeError}
+        </p>
       )}
 
-      {!loading && !error && (
-        <div className="field" style={{ maxWidth: 420 }}>
-          <label>
-            Agregar miembro <span className="hint">(ID de usuario)</span>
-          </label>
-          <div style={{ display: "flex", gap: 8 }}>
-            <input
-              type="text"
-              placeholder="UUID del usuario"
-              value={newUserId}
-              onChange={(e) => setNewUserId(e.target.value)}
-              disabled={adding}
-            />
-            <button className="btn btn-primary" onClick={handleAdd} disabled={adding || !newUserId.trim()}>
-              <Icon name="plus" size={14} />
-              {adding ? "Agregando..." : "Agregar"}
-            </button>
+      {!error && members && (
+        <form className="sivu-members__add" onSubmit={handleAdd}>
+          <div className="field">
+            <label htmlFor="nuevo-miembro">
+              Agregar miembro <span className="hint">identificador de usuario</span>
+            </label>
+            <div className="sivu-members__addrow">
+              <input
+                id="nuevo-miembro"
+                type="text"
+                placeholder="00000000-0000-0000-0000-000000000000"
+                autoComplete="off"
+                spellCheck={false}
+                value={newUserId}
+                onChange={(e) => {
+                  setNewUserId(e.target.value);
+                  setAdded(false);
+                }}
+                disabled={adding}
+              />
+              <button type="submit" className="btn btn-primary" disabled={adding || !newUserId.trim()}>
+                <Icon name="plus" size={14} />
+                {adding ? "Agregando…" : "Agregar"}
+              </button>
+            </div>
+            <small className="hint">
+              Todavía no se puede elegir a la persona de una lista: el sistema no entrega el listado de usuarios
+              (pendiente B11). Usa el identificador de su cuenta.
+            </small>
           </div>
           {addError && (
-            <p style={{ color: "var(--red-500)", fontSize: 12.5, marginTop: 8 }}>{addError}</p>
+            <p className="sivu-state sivu-state--error" role="alert">
+              <Icon name="alert" size={13} /> {addError}
+            </p>
           )}
-        </div>
+          {added && <p className="sivu-state sivu-state--ok">Miembro agregado.</p>}
+        </form>
       )}
-    </div>
+    </section>
   );
+}
+
+/** Mensaje del backend, salvo el 403, que se explica en palabras simples. */
+function mensajeError(err: unknown, porDefecto: string): string {
+  if (err instanceof ApiError && err.status === 403) {
+    return "Solo el Administrador gestiona los miembros del proyecto.";
+  }
+  return err instanceof Error ? err.message : porDefecto;
 }
