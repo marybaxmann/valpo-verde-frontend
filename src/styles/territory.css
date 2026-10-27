@@ -369,72 +369,10 @@
   height: 10px;
   border-radius: 50%;
   border: 1px solid rgba(20, 30, 15, 0.6);
-  background: #A7B0AB;
+  background: #9aa39a;
 }
 
 .sivu-diag__dot--critical { background: var(--classification-critical); }
 .sivu-diag__dot--high { background: var(--classification-high); }
 .sivu-diag__dot--medium { background: var(--classification-medium); }
 .sivu-diag__dot--low { background: var(--classification-low); }
-
-/* ── Aspecto de mapa de la maqueta SIVU Lab (CC-057; valores de styles.css,
-   .map__grade / .map__vignette / .glass--dark). Solo presentación. ── */
-.sivu-terr__grade {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background:
-    linear-gradient(90deg, rgba(5, 18, 12, 0.62) 0%, rgba(5, 18, 12, 0.3) 22%, rgba(5, 18, 12, 0) 40%),
-    linear-gradient(180deg, rgba(5, 18, 12, 0.4) 0%, rgba(5, 18, 12, 0) 14%),
-    linear-gradient(0deg, rgba(5, 18, 12, 0.45) 0%, rgba(5, 18, 12, 0) 16%),
-    linear-gradient(160deg, rgba(40, 110, 70, 0.22), rgba(20, 60, 40, 0.08) 55%, rgba(40, 105, 70, 0.2));
-}
-
-/* Paneles flotantes en vidrio oscuro con texto claro, en ambos modos. */
-.sivu-terr__overlay {
-  --text: #f1f6f1;
-  --text-primary: #f1f6f1;
-  --text-muted: rgba(231, 240, 233, 0.66);
-  --text-secondary: rgba(231, 240, 233, 0.66);
-  --surface: rgba(255, 255, 255, 0.06);
-  --surface-subtle: rgba(255, 255, 255, 0.1);
-  --surface-muted: rgba(168, 230, 195, 0.12);
-  --border: rgba(255, 255, 255, 0.12);
-  --interactive: #a8e6c3;
-  --sivu-accent: #a8e6c3;
-  --shell-current: rgba(168, 230, 195, 0.14);
-  --shell-current-line: rgba(168, 230, 195, 0.3);
-  --badge-critical-fg: #FFB3B5;
-  --badge-critical-bg: #3A1416;
-  --badge-critical-border: #6E2226;
-  --badge-high-fg: #FFB4A5;
-  --badge-high-bg: #3A1A12;
-  --badge-high-border: #6E3022;
-  --badge-medium-fg: #FFD98A;
-  --badge-medium-bg: #33270C;
-  --badge-medium-border: #6B5214;
-  --badge-low-fg: #DCE8A9;
-  --badge-low-bg: #252C14;
-  --badge-low-border: #4A5A22;
-  --badge-low-dot: #B5CC63;
-  color: var(--text);
-}
-
-.sivu-terr__place,
-.sivu-terr__card {
-  background: rgba(10, 24, 18, 0.62);
-  border-color: rgba(255, 255, 255, 0.1);
-  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.06) inset, 0 18px 48px -12px rgba(3, 14, 9, 0.55), 0 4px 14px rgba(3, 14, 9, 0.25);
-  backdrop-filter: blur(26px) saturate(150%);
-  -webkit-backdrop-filter: blur(26px) saturate(150%);
-}
-
-.sivu-terr__overlay .sivu-diag__list button:hover {
-  background: rgba(168, 230, 195, 0.12);
-}
-
-.sivu-terr__overlay .status-pill {
-  background: rgba(255, 255, 255, 0.08);
-  color: rgba(231, 240, 233, 0.8);
-  border-color: rgba(255, 255, 255, 0.14);
-}
