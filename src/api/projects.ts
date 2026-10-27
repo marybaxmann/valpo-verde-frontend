@@ -33,6 +33,14 @@ export function editProject(id: string, input: EditProjectInput): Promise<void> 
   return api.patch(`/api/sivu/projects/${id}`, input).then(() => undefined);
 }
 
+/**
+ * PATCH /api/sivu/projects/:id/estado (D-265; CC-042). Solo Administrador.
+ * Un proyecto Cerrado queda solo para consulta; reabrirlo no altera su historial.
+ */
+export function changeProjectState(id: string, estado: Project["estado_proyecto"]): Promise<void> {
+  return api.patch(`/api/sivu/projects/${id}/estado`, { estado_proyecto: estado }).then(() => undefined);
+}
+
 /** Demo (ver `CreateProjectInput`): la respuesta no se usa, se recarga la lista. */
 export function createProject(input: CreateProjectInput): Promise<unknown> {
   return api.post<{ data: unknown }>("/api/projects", input).then((res) => res.data);

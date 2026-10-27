@@ -18,6 +18,7 @@ import { Badge } from "../components/Badge";
 import { useAuth } from "../hooks/useAuth";
 import ProjectMembersSection from "./ProjectMembersSection";
 import { ProjectEditForm } from "../components/ProjectEditForm";
+import { ProjectStateControl } from "../components/ProjectStateControl";
 import { useCurrentProject } from "../hooks/useCurrentProject";
 import { fechaHoraChile } from "../lib/dates";
 import { ESTADO_PROYECTO_LABEL } from "../lib/projects";
@@ -111,6 +112,12 @@ export default function ProjectDetail() {
           {ESTADO_PROYECTO_LABEL[project.estado_proyecto]}
         </Badge>
       </div>
+
+      {isAdmin && !editing && (
+        <div className="sivu-project-state-row">
+          <ProjectStateControl key={project.estado_proyecto} project={project} onChanged={handleSaved} />
+        </div>
+      )}
 
       <div
         style={{

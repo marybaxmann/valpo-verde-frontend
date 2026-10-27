@@ -161,3 +161,42 @@
     table-layout: auto;
   }
 }
+
+/* Cerrar o reabrir el proyecto (CC-042) */
+.sivu-project-state-row {
+  margin: -4px 0 14px;
+}
+
+.sivu-project-state {
+  max-width: 560px;
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--surface);
+}
+
+.sivu-project-state h2 {
+  margin: 0 0 8px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.sivu-project-state ul,
+.sivu-project-state p {
+  margin: 0;
+  padding-left: 18px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+
+.sivu-project-state p {
+  padding-left: 0;
+}
+
+.sivu-project-state__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 12px;
+}
