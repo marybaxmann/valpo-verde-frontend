@@ -31,9 +31,11 @@ muestre como indicador viene del backend.
 | # | Para qué pantalla | Qué necesita el frontend (necesidad, no formato) |
 |---|---|---|
 | B7 | Dashboard (indicadores, distribución por riesgo, composición, operación) | Por proyecto: total de árboles y por estado de ciclo de vida; georreferenciados y sin georreferenciar; evaluados y sin evaluación; conteo por clasificación de riesgo vigente (incluidas «Sin clasificación» / «No determinado», con sus etiquetas de catálogo); especies distintas y las más registradas; OT por estado (CC-050) e incidencias por estado (con sus etiquetas). |
-| B1 | Inventario, mapas, buscador, Dashboard | Listado de árboles del proyecto con sus datos vigentes (código, especie, ciclo de vida, ubicación, DAP, altura, clasificación de riesgo vigente con su etiqueta, fecha de vigencia). |
+| B1 | Inventario, mapas, buscador, Dashboard | Listado de árboles del proyecto con sus datos vigentes. **Columnas decididas por la responsable el 2026-10-27** (ciclo de vida, riesgo efectivo, DAP equivalente del backend, «datos vigentes desde»): ver `B1-listado-arboles.md`. |
 | B5 | Dashboard (Agenda), Mantención | Recordatorios de próxima inspección y monitoreo por proyecto (CC-037: inicio y término del rango, árbol, tipo). Las vistas `v_upcoming_inspections` / `v_tree_fechas_vigentes` ya existen en la base. |
 | B13 | Riesgo Arbóreo, Infraestructura, Inventario, alta de árbol | **Geometría del sector del proyecto** en lectura (WGS84, como el GeoJSON de los árboles): `GET /api/sivu/projects/:id` hoy entrega solo `nombre_sector` y `superficie_sector_m2`. Sirve para centrar los mapas en el sector y dibujar su contorno (pedido de la responsable, 2026-10-26). |
+| B14 | Módulo Inspección: crear OT de Inspección | **Inspectores del proyecto** que el Usuario municipal puede asignar como responsables (`id`, `nombre`): hoy `GET /api/sivu/projects/:id/members` es solo del Administrador. La función de la 024 (`fn_miembros_proyecto`, CC-065) ya devuelve `id`, `nombre` y `rol` de los miembros a un miembro activo; falta exponerla. |
+| B15 | Módulo Inspección: crear OT de Inspección | **Catálogos de acción y subtipo de las OT de Inspección** con `codigo` y `etiqueta` (D-196/D-197; los códigos ya los valida `crearOrdenTrabajoInspeccionSchema`). Hoy no hay endpoint de catálogos en `/api/sivu` y el frontend no los escribe (PR-021). Lo mismo servirá para prioridad (`clasificacion_prioridad`). |
 
 ## Observaciones de las pruebas del frontend
 
