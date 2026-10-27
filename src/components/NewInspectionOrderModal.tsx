@@ -85,6 +85,8 @@ export function NewInspectionOrderModal({
   if (subtipos.length > 0 && !subtipo) faltan.push("el subtipo");
   if (!esLevantamiento && !arbolId) faltan.push("el árbol");
   if (!inspectorId) faltan.push("el Inspector responsable");
+  // Temporal: sin prioridad el backend responde 500 al proponerla (PGRST201, pendientes-backend.md).
+  if (!prioridad) faltan.push("la prioridad");
   const puedeCrear = !!catalogos && faltan.length === 0 && !creando;
 
   async function crear() {
@@ -96,7 +98,7 @@ export function NewInspectionOrderModal({
         ...(esLevantamiento ? {} : { tree_id: arbolId }),
         accion_solicitada: accion,
         subtipo_accion: subtipos.length > 0 ? subtipo : null,
-        ...(prioridad ? { prioridad } : {}),
+        prioridad,
         motivo: motivo.trim() || null,
         observaciones: observaciones.trim() || null,
         responsable_accion_id: inspectorId,
@@ -225,11 +227,9 @@ export function NewInspectionOrderModal({
           </div>
 
           <div className="field">
-            <label htmlFor="ot-prioridad">
-              Prioridad <span className="hint">(opcional si el árbol tiene evaluación vigente)</span>
-            </label>
+            <label htmlFor="ot-prioridad">Prioridad</label>
             <select id="ot-prioridad" value={prioridad} onChange={(e) => setPrioridad(e.target.value)} disabled={creando}>
-              <option value="">La propone el sistema</option>
+              <option value="">Elige una prioridad</option>
               {prioridades.map((p) => (
                 <option key={p.codigo} value={p.codigo}>
                   {p.etiqueta}

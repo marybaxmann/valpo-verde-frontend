@@ -92,3 +92,14 @@ Detalle en `formulario-inspeccion-bloqueos.md` y `mensaje-backend-b16.md`.
   cualquier error de lectura, y `auth.service.ts` lo convierte en 403. Un
   fallo momentáneo de Supabase se ve como falta de permiso. Sugerencia:
   distinguir «no existe el perfil» (403) de «no se pudo leer» (500/503).
+- **2026-10-27 — `release/demo` (`f3a7356`), probado con datos reales.**
+  `assignable-members?rol=inspector`, `catalogs` y `diagnosticos` responden
+  200. **Falla:** `POST /api/sivu/projects/:id/work-orders` sin `prioridad`
+  responde 500; el log dice «Could not embed because more than one
+  relationship was found for 'evaluations' and 'inspections'» (PGRST201) en
+  `obtenerPrioridadVigenteDelArbol` (`workOrder.repository.ts:155`).
+  Sugerencia: nombrar la relación en el embed (p. ej.
+  `inspections!evaluations_inspection_id_fkey(...)`). Mientras tanto el
+  frontend exige la prioridad. Con prioridad, la OT se crea bien
+  (OT-I-000261). Además, el catálogo `subtipo_inspeccion` trae la etiqueta
+  «Post_intervención» con guion bajo.
