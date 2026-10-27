@@ -17,12 +17,12 @@ import type { KnownRole } from "./types/authProfile";
 const ProjectsList = lazy(() => import("./pages/ProjectsList"));
 const ProjectDetail = lazy(() => import("./pages/ProjectDetail"));
 const ProjectDashboard = lazy(() => import("./pages/ProjectDashboard"));
-const ModulePage = lazy(() => import("./pages/ModulePage"));
 const MaintenancePage = lazy(() => import("./pages/MaintenancePage"));
 const IncidentsPage = lazy(() => import("./pages/IncidentsPage"));
 const IndicesPage = lazy(() => import("./pages/IndicesPage"));
 const InventoryPage = lazy(() => import("./pages/InventoryPage"));
 const RiskPage = lazy(() => import("./pages/RiskPage"));
+const InfrastructurePage = lazy(() => import("./pages/InfrastructurePage"));
 
 // Inventario (Fase 7): tabla protagonista; ruta /mapa sin cambios (CC-059).
 function InventoryRoute() {
@@ -58,7 +58,7 @@ export default function App() {
           <Route path="projects/:projectId/mapa" element={<InventoryRoute />} />
           <Route path="projects/:projectId/inventario" element={<Navigate to="../mapa" replace />} />
           <Route path="projects/:projectId/inspeccion" element={<RiskPage />} />
-          <Route path="projects/:projectId/infraestructura" element={<ModulePage module="infraestructura" />} />
+          <Route path="projects/:projectId/infraestructura" element={<InfrastructurePage />} />
           <Route path="projects/:projectId/mantencion" element={<MaintenancePage />} />
           <Route path="projects/:projectId/incidencias" element={<IncidentsPage />} />
           <Route path="projects/:projectId/indices" element={<IndicesPage />} />
@@ -74,7 +74,7 @@ export default function App() {
           <Route path="projects/:projectId/mapa" element={<InventoryRoute />} />
           <Route path="projects/:projectId/inventario" element={<Navigate to="../mapa" replace />} />
           <Route path="projects/:projectId/inspeccion" element={<RiskPage />} />
-          <Route path="projects/:projectId/infraestructura" element={<ModulePage module="infraestructura" />} />
+          <Route path="projects/:projectId/infraestructura" element={<InfrastructurePage />} />
           <Route path="projects/:projectId/mantencion" element={<MaintenancePage />} />
           <Route path="projects/:projectId/incidencias" element={<IncidentsPage />} />
           <Route path="projects/:projectId/indices" element={<IndicesPage />} />

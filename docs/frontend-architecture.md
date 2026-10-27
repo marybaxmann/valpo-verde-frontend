@@ -224,6 +224,13 @@ email, nunca hardcodeado.
 
 **Ajuste 2026-10-27:** con Satélite como capa inicial, el encabezado flotante de los módulos territoriales pasa a tener fondo de vidrio (como la tarjeta) para leerse sobre la imagen en claro y oscuro.
 
+### Fase 7 · Paso 4 (Infraestructura) — misma estructura territorial; se retira la pantalla vieja
+**Fecha:** 2026-10-27. Rama `feature/fase7-maqueta-lab`.
+**Objetivo:** Infraestructura de la maqueta (CC-057) con la estructura de Riesgo Arbóreo (`TerritorialModule`), solo consulta.
+**Archivos:** `src/pages/InfrastructurePage.tsx` (nuevo, ruta `/infraestructura` sin cambios). Se eliminan la pantalla vieja `ModulePage.tsx` y lo que solo ella usaba, casi todo flujos de la demo que CC-059 (punto 6) saca del frontend nuevo: `RiskAssessmentModal`, `InfrastructureAssessmentModal` e `infrastructureFields` (catálogos escritos en el código), `TreeDetailModal`, `EditTreeModal`, `TreeModulesSummary`, `SpeciesCombobox`, `RiskComponentDiagram` y `MapPlaceholder`. Se conserva `InventoryMapView` como base para dibujar los árboles cuando exista B1.
+**Decisiones de la autora (2026-10-27):** misma estructura con tarjeta «pendiente» (B8, B1); retirar la pantalla vieja y lo que queda sin uso. Leyenda y barras por componente llegarán con B8, con las categorías y etiquetas del backend.
+**Validación:** `tsc -b`, `npm run build` y `npm run lint` sin errores ni advertencias nuevas; ninguna referencia a lo eliminado. Navegador contra pruebas con `municipal.f7`: mapa en Satélite bajo la barra sin desplazamiento, Territorio marcado, encabezado real, tarjeta pendiente, sin botón de registro.
+
 ---
 
 ## 5. Limitaciones conocidas
