@@ -1,6 +1,6 @@
 import { api } from "./client";
 import { cachedGet } from "./cache";
-import type { CreateProjectInput, Project, ProjectWithSector } from "../types/project";
+import type { CreateProjectInput, EditProjectInput, Project, ProjectWithSector } from "../types/project";
 
 /**
  * Capa mínima de proyectos: reutiliza `api` de client.ts (HTTP + JWT ya
@@ -22,6 +22,15 @@ export function getProjectWithSector(id: string): Promise<ProjectWithSector> {
 
 export function getProject(id: string): Promise<Project> {
   return getProjectWithSector(id).then((res) => res.proyecto);
+}
+
+/**
+ * PATCH /api/sivu/projects/:id (solo Administrador; `editarProyectoSchema`).
+ * Solo nombres: la delimitación del sector (KML/KMZ) no se edita aquí. Con el
+ * proyecto Cerrado el backend responde 409 (CC-042).
+ */
+export function editProject(id: string, input: EditProjectInput): Promise<void> {
+  return api.patch(`/api/sivu/projects/${id}`, input).then(() => undefined);
 }
 
 /** Demo (ver `CreateProjectInput`): la respuesta no se usa, se recarga la lista. */

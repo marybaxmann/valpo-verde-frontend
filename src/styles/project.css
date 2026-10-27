@@ -118,3 +118,46 @@
   font-size: 12px;
   line-height: 1.45;
 }
+
+/* Ficha: editar nombres */
+.sivu-project-card__head {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.sivu-project-card__head .sivu-state {
+  margin: 0;
+}
+
+.sivu-project-edit {
+  display: grid;
+  gap: 12px;
+  max-width: 520px;
+}
+
+.sivu-project-edit .field {
+  margin: 0;
+}
+
+.sivu-project-edit .hint {
+  display: block;
+  margin-top: 6px;
+  font-size: 12px;
+}
+
+.sivu-project-edit__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+/* Pantalla angosta: las columnas se ajustan al contenido (fecha y botón no se pisan). */
+@media (max-width: 520px) {
+  .sivu-members .sivu-table--fixed {
+    table-layout: auto;
+  }
+}

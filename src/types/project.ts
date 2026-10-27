@@ -31,6 +31,15 @@ export interface ProjectWithSector {
 }
 
 /**
+ * Body de PATCH /api/sivu/projects/:id (`editarProyectoSchema`, `.strict()`):
+ * al menos uno de los dos; sin `geometria_sector` (no se edita aquí).
+ */
+export interface EditProjectInput {
+  nombre_proyecto?: string;
+  sector?: { nombre_sector: string };
+}
+
+/**
  * Body de POST /api/projects de la demo, igual que `createProjectSchema`
  * en valpo-verde-backend/src/schemas/project.schema.ts (`.strict()`).
  * Crear un proyecto con su sector (POST /api/sivu/projects, KML/KMZ) llega

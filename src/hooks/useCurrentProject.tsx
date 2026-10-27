@@ -7,9 +7,16 @@ interface CurrentProjectState {
   project: Project | null;
   /** Mensaje real del backend si GET /api/sivu/projects/:id falló. */
   projectError: string | null;
+  /** Vuelve a leer el proyecto (tras editarlo o cambiar su estado). */
+  refresh: () => void;
 }
 
-const CurrentProjectContext = createContext<CurrentProjectState>({ projectId: null, project: null, projectError: null });
+const CurrentProjectContext = createContext<CurrentProjectState>({
+  projectId: null,
+  project: null,
+  projectError: null,
+  refresh: () => {},
+});
 
 /**
  * Proyecto en el que trabaja el usuario (workspace), resuelto una sola vez
@@ -21,9 +28,9 @@ const CurrentProjectContext = createContext<CurrentProjectState>({ projectId: nu
 export function CurrentProjectProvider({ projectId, children }: { projectId: string | null; children: ReactNode }) {
   const [project, setProject] = useState<Project | null>(null);
   const [failed, setFailed] = useState<{ id: string; message: string } | null>(null);
+  const [version, setVersion] = useState(0);
 
   useEffect(() => {
-    setProject(null);
     if (!projectId) return;
     let cancelled = false;
     getProject(projectId)
@@ -38,7 +45,7 @@ export function CurrentProjectProvider({ projectId, children }: { projectId: str
     return () => {
       cancelled = true;
     };
-  }, [projectId]);
+  }, [projectId, version]);
 
   return (
     <CurrentProjectContext.Provider
@@ -46,6 +53,7 @@ export function CurrentProjectProvider({ projectId, children }: { projectId: str
         projectId,
         project: project && project.id === projectId ? project : null,
         projectError: failed && failed.id === projectId ? failed.message : null,
+        refresh: () => setVersion((v) => v + 1),
       }}
     >
       {children}

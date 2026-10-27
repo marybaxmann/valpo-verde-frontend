@@ -17,6 +17,8 @@ const MODULE_LINKS: { to: string; label: string; icon: IconName }[] = [
 import { Badge } from "../components/Badge";
 import { useAuth } from "../hooks/useAuth";
 import ProjectMembersSection from "./ProjectMembersSection";
+import { ProjectEditForm } from "../components/ProjectEditForm";
+import { useCurrentProject } from "../hooks/useCurrentProject";
 import { fechaHoraChile } from "../lib/dates";
 import { ESTADO_PROYECTO_LABEL } from "../lib/projects";
 
@@ -39,17 +41,20 @@ export default function ProjectDetail() {
   const [detail, setDetail] = useState<ProjectWithSector | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [editing, setEditing] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const [version, setVersion] = useState(0);
+  const { refresh: refreshCurrentProject } = useCurrentProject();
+  const isAdmin = profile?.role === "admin";
 
   useEffect(() => {
     let cancelled = false;
-    setLoading(true);
-    setError(null);
-    setDetail(null);
 
     getProjectWithSector(projectId)
       .then((data) => {
         if (cancelled) return;
         setDetail(data);
+        setError(null);
         setLoading(false);
       })
       .catch((err: unknown) => {
@@ -61,7 +66,14 @@ export default function ProjectDetail() {
     return () => {
       cancelled = true;
     };
-  }, [projectId]);
+  }, [projectId, version]);
+
+  function handleSaved() {
+    setEditing(false);
+    setSaved(true);
+    setVersion((v) => v + 1); // la ficha se vuelve a leer del backend
+    refreshCurrentProject(); // y el nombre de la barra superior
+  }
 
   // «Miembros del proyecto» (menú del proyecto, barra superior) llega con #miembros.
   useEffect(() => {
@@ -70,7 +82,8 @@ export default function ProjectDetail() {
     }
   }, [hash, detail]);
 
-  if (loading) {
+  // Al cambiar de proyecto, la ficha anterior no se muestra mientras llega la nueva.
+  if (loading || (detail && detail.proyecto.id !== projectId && !error)) {
     return <p style={{ color: "var(--text-muted)" }}>Cargando proyecto…</p>;
   }
 
@@ -121,6 +134,34 @@ export default function ProjectDetail() {
       </div>
 
       <div className="card card--pad">
+        {isAdmin && !editing && (
+          <div className="sivu-project-card__head">
+            {saved && <span className="sivu-state sivu-state--ok">Cambios guardados.</span>}
+            {project.estado_proyecto === "cerrado" ? (
+              <span className="sivu-state">Proyecto cerrado: los nombres no se pueden editar.</span>
+            ) : (
+              <button
+                type="button"
+                className="btn btn-secondary btn-sm"
+                onClick={() => {
+                  setSaved(false);
+                  setEditing(true);
+                }}
+              >
+                <Icon name="edit" size={13} />
+                Editar nombres
+              </button>
+            )}
+          </div>
+        )}
+        {editing ? (
+          <ProjectEditForm
+            project={project}
+            sector={sector}
+            onCancel={() => setEditing(false)}
+            onSaved={handleSaved}
+          />
+        ) : (
         <div className="info-list">
           <div className="info-list__item">
             <span>Sector</span>
@@ -141,9 +182,10 @@ export default function ProjectDetail() {
             {fechaHoraChile(project.updated_at)}
           </div>
         </div>
+        )}
       </div>
 
-      {profile?.role === "admin" && (
+      {isAdmin && (
         <div id="miembros">
           <ProjectMembersSection projectId={project.id} />
         </div>
