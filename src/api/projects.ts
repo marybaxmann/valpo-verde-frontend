@@ -1,6 +1,14 @@
 import { api } from "./client";
 import { cachedGet } from "./cache";
-import type { CreateProjectInput, EditProjectInput, Project, ProjectWithSector } from "../types/project";
+import type {
+  CreateProjectInput,
+  CreateProjectResult,
+  EditProjectInput,
+  GeometriaSectorArchivo,
+  Project,
+  ProjectWithSector,
+  VistaPreviaSector,
+} from "../types/project";
 
 /**
  * Capa mínima de proyectos: reutiliza `api` de client.ts (HTTP + JWT ya
@@ -41,7 +49,20 @@ export function changeProjectState(id: string, estado: Project["estado_proyecto"
   return api.patch(`/api/sivu/projects/${id}/estado`, { estado_proyecto: estado }).then(() => undefined);
 }
 
-/** Demo (ver `CreateProjectInput`): la respuesta no se usa, se recarga la lista. */
-export function createProject(input: CreateProjectInput): Promise<unknown> {
-  return api.post<{ data: unknown }>("/api/projects", input).then((res) => res.data);
+/**
+ * POST /api/sivu/projects (D-254, D-255, D-264): proyecto y sector en una
+ * sola operación. Solo Administrador.
+ */
+export function createProject(input: CreateProjectInput): Promise<CreateProjectResult> {
+  return api.post<{ data: CreateProjectResult }>("/api/sivu/projects", input).then((res) => res.data);
+}
+
+/**
+ * POST /api/sivu/projects/sector-preview (D-255; CC-047): lee el KML/KMZ y
+ * devuelve cada elemento con su estado, sin guardar nada. Solo Administrador.
+ */
+export function previewSector(archivo: Omit<GeometriaSectorArchivo, "indicesSeleccionados">): Promise<VistaPreviaSector> {
+  return api
+    .post<{ data: VistaPreviaSector }>("/api/sivu/projects/sector-preview", archivo)
+    .then((res) => res.data);
 }

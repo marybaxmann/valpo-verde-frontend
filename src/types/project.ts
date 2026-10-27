@@ -39,15 +39,48 @@ export interface EditProjectInput {
   sector?: { nombre_sector: string };
 }
 
-/**
- * Body de POST /api/projects de la demo, igual que `createProjectSchema`
- * en valpo-verde-backend/src/schemas/project.schema.ts (`.strict()`).
- * Crear un proyecto con su sector (POST /api/sivu/projects, KML/KMZ) llega
- * en el Paso 5 de la Fase 7; hasta entonces el formulario usa la demo y,
- * contra la base de pruebas, muestra el error real que devuelva.
- */
+/** Geometría del sector desde un archivo (`geometriaSectorInput`, rama KML/KMZ). */
+export interface GeometriaSectorArchivo {
+  formato: "kml" | "kmz";
+  /** Contenido del archivo en base64, sin el prefijo `data:`. */
+  archivoBase64: string;
+  /** Índices de la vista previa que integran el sector (CC-047). */
+  indicesSeleccionados?: number[];
+}
+
+/** Body de POST /api/sivu/projects (`crearProyectoConSectorSchema`). Solo Administrador. */
 export interface CreateProjectInput {
-  name: string;
-  institution_name: string;
-  responsible_professional?: string;
+  nombre_proyecto: string;
+  sector: { nombre_sector: string; geometria_sector: GeometriaSectorArchivo };
+}
+
+/** Respuesta de POST /api/sivu/projects. */
+export interface CreateProjectResult {
+  projectId: string;
+  sectorId: string;
+  /** Puntos y líneas del archivo que no integran el sector (D-255). */
+  superficiesExcluidas: number;
+}
+
+/** Estado de cada elemento del archivo en la vista previa (CC-047). */
+export type EstadoSuperficie = "valida" | "invalida" | "excluida";
+
+/** Un elemento del KML/KMZ (`SuperficieVistaPrevia` del backend). */
+export interface SuperficieVistaPrevia {
+  indice: number;
+  nombre: string | null;
+  estado: EstadoSuperficie;
+  tipo: string | null;
+  /** Motivo de `invalida` o `excluida`, tal como lo da el backend. */
+  motivo: string | null;
+  /** GeoJSON en WGS84; null si no se pudo leer. */
+  geometria: { type: string; coordinates: unknown } | null;
+}
+
+/** POST /api/sivu/projects/sector-preview: no guarda nada. */
+export interface VistaPreviaSector {
+  superficies: SuperficieVistaPrevia[];
+  validas: number;
+  invalidas: number;
+  excluidas: number;
 }

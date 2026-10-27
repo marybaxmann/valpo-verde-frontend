@@ -200,3 +200,87 @@
   gap: 8px;
   margin-top: 12px;
 }
+
+/* Crear proyecto con su sector (D-255; CC-047). */
+.modal:has(.sivu-newproject__preview) {
+  max-width: 720px;
+}
+
+.sivu-newproject {
+  display: grid;
+  gap: 4px;
+}
+
+.sivu-newproject__preview {
+  display: grid;
+  gap: 10px;
+  margin-top: 6px;
+}
+
+.sivu-newproject__summary,
+.sivu-newproject__hint {
+  margin: 0;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.sivu-newproject__summary strong {
+  color: var(--text);
+  overflow-wrap: anywhere;
+}
+
+.sivu-newproject__preview .sivu-picker {
+  height: 300px;
+}
+
+.sivu-newproject__preview .sivu-picker__map {
+  cursor: grab;
+}
+
+.sivu-newproject__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 6px;
+}
+
+.sivu-newproject__list li {
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  font-size: 13px;
+}
+
+.sivu-newproject__list label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sivu-newproject__name {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.sivu-newproject__estado {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.sivu-newproject__list li.is-invalida .sivu-newproject__estado {
+  color: var(--red-500);
+}
+
+.sivu-newproject__list li.is-valida .sivu-newproject__estado {
+  color: var(--green-600);
+}
+
+.sivu-newproject__list small {
+  display: block;
+  margin: 4px 0 0 26px;
+  font-size: 12px;
+  color: var(--text-muted);
+  overflow-wrap: anywhere;
+}

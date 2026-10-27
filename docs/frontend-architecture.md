@@ -278,6 +278,14 @@ email, nunca hardcodeado.
 **Reglas aplicadas:** se completan solo género y familia; origen, persistencia del follaje y tipo de hoja se muestran como código, sin editarse, hasta B20 (PR-021). Un campo vaciado se envía como `null`. Corregir el nombre pide confirmación y avisa que cambia en todos los proyectos. Errores 400, 403 y 409 en palabras simples.
 **Validación:** `tsc -b`, `npm run build` y `npm run lint` sin errores ni advertencias nuevas. Con `inspector.f7` en la base de pruebas: búsqueda vacía («zzz»), búsqueda con resultado (`Acer pseudoplatanus`, incorporada al finalizar AV_000007), ficha, y dos correcciones rechazadas por el backend («Acer sp.» y «No determinado») sin cambiar datos. Claro y oscuro, 375 px. Con autorización de la autora se guardó género `Acer` y familia `Sapindaceae` en `Acer pseudoplatanus`: «Ficha guardada», la lista se actualiza y la API lo devuelve al releer; el nombre y los otros tres campos no cambiaron. **Sin probar:** una corrección de nombre aceptada y el 409 (no hay otra especie en el catálogo de pruebas), y las sugerencias del formulario (la única OT de Evaluación inicial ya está finalizada).
 
+### Fase 7 · Paso 5 — Crear proyecto con su sector (KML/KMZ)
+**Fecha:** 2026-10-27. Rama `feature/fase7-maqueta-lab`.
+**Objetivo:** que «Crear proyecto» use la API de la Fase 6. Hasta ahora usaba la demo (`POST /api/projects`, con institución y profesional responsable, que el modelo nuevo ya no tiene) y el proyecto quedaba sin sector.
+**Contratos consumidos (`feature/b16-inspection-form-schema`, `54fd44d`), solo Administrador:** `POST /api/sivu/projects/sector-preview` (lee el KML/KMZ y devuelve cada elemento con estado `valida`/`invalida`/`excluida`, motivo y GeoJSON; no guarda) y `POST /api/sivu/projects` (`nombre_proyecto`, `sector.nombre_sector`, `sector.geometria_sector` con `formato`, `archivoBase64` e `indicesSeleccionados`; responde `superficiesExcluidas`).
+**Archivos:** `src/components/NewProjectModal.tsx` y `src/components/SectorPreviewMap.tsx` (nuevos), `src/pages/ProjectsList.tsx`, `src/api/projects.ts`, `src/types/project.ts` (se retira el tipo de la demo), estilos en `src/styles/project.css`.
+**Reglas aplicadas:** qué superficie es válida lo decide el backend; ninguna viene marcada (CC-047); solo las válidas se pueden marcar; «Crear proyecto» exige los dos nombres y al menos una superficie. Archivo de más de 5 MB rechazado en el navegador (el backend acepta cuerpos JSON de hasta 8 MB y el base64 crece un tercio). El mapa solo representa (ADR-015). La delimitación de un proyecto existente (PATCH con `geometria_sector`) queda para otro paso.
+**Validación:** `tsc -b`, `npm run build` y `npm run lint` sin errores ni advertencias nuevas. Con `admin.f7`, vista previa de los dos archivos de prueba del backend: `solo_puntos_lineas.kml` (0 válidas, 4 excluidas; aviso de que no hay superficie válida y botón desactivado) y `sectores_piloto.kml` (4 válidas, 3 puntos excluidos; mapa encuadrado; marcar y desmarcar). Claro y oscuro. **Sin probar:** crear el proyecto (no hay forma de borrarlo; espera la decisión de la autora) y un archivo con superficies inválidas.
+
 ---
 
 ## 5. Limitaciones conocidas
@@ -303,7 +311,8 @@ lectura existe desde SIG-1.
 |---|---|
 | `GET /api/auth/me` | `src/hooks/useAuth.tsx` (F4) |
 | `GET /api/projects` | `src/api/projects.ts` (F6) |
-| `POST /api/projects` | `src/api/projects.ts` (F6) |
+| `POST /api/sivu/projects` | `src/api/projects.ts` (Fase 7, Paso 5; antes la demo `POST /api/projects`) |
+| `POST /api/sivu/projects/sector-preview` | `src/api/projects.ts` (Fase 7, Paso 5) |
 | `GET /api/projects/:id` | `src/api/projects.ts` (F6) |
 | `GET /api/sivu/projects/:id/members` | `src/api/projectMembers.ts` (Fase 7, Paso 4) |
 | `POST /api/sivu/projects/:id/members` | `src/api/projectMembers.ts` (Fase 7, Paso 4) |
