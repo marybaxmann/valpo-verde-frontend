@@ -21,7 +21,8 @@ export function RoleLayout({ basePath, roleLabel }: { basePath: "/admin" | "/usu
 
   const match = location.pathname.match(new RegExp(`^${basePath}/projects/([a-f0-9-]+)`));
   const currentProjectId = match ? match[1] : null;
-  const isWorkspace = WORKSPACE_SUFFIXES.some((suffix) => location.pathname.endsWith(suffix));
+  // Solo los mapas de un proyecto: el formulario /inspector/ot/:id/inspeccion también termina en «/inspeccion» y debe desplazarse.
+  const isWorkspace = !!currentProjectId && WORKSPACE_SUFFIXES.some((suffix) => location.pathname.endsWith(suffix));
   const projectsPath = `${basePath}/projects`;
 
   // Ctrl K / ⌘ K abre el buscador, solo dentro de un proyecto.
