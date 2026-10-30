@@ -28,6 +28,7 @@ El lunes 2 a las 12:00, el sitio publicado muestra el **ciclo central de SIVU co
 - **Congelamiento: lunes 2 a las 12:00.** Después solo se corrigen errores, con aviso a la responsable.
 - Al cerrar cada tarea: commit y push, marcar la tarea `[x]` aquí y escribir una línea en «Registro» (sección 6) con fecha, hora y commit.
 - Si una tarea se atrasa más de medio día respecto a su fecha, avisar a la responsable con una propuesta de recorte.
+- **Las fechas son máximos, no turnos.** Una tarea se adelanta apenas sus dependencias estén listas; la meta de la responsable es tener todo listo el **viernes 30**. B-8 y F-10 pueden etiquetar una versión candidata (`presentacion-2026-11-03-rc1`, `-rc2`…) cada vez que algo quede estable; la etiqueta final se pone al cerrar todo.
 
 ## 3. Tareas del backend (sesión backend)
 
