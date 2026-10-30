@@ -1,4 +1,4 @@
-import type { CodigoEtiqueta, Diagnostico } from "../types/diagnostico";
+import type { CodigoEtiqueta, Diagnostico, ResultadoDiagnostico } from "../types/diagnostico";
 import { ClassificationBadge, getClassificationTone } from "./ClassificationBadge";
 import { fechaChile } from "../lib/dates";
 
@@ -14,8 +14,8 @@ function color(c: CodigoEtiqueta | null | undefined): string {
  * que entregó el backend para ese componente; el frontend no compara ni
  * elige el «más desfavorable».
  */
-function TreeGlyph({ d }: { d: Diagnostico }) {
-  const comp = d.resultado.componentes;
+function TreeGlyph({ r }: { r: ResultadoDiagnostico | null }) {
+  const comp = r?.componentes;
   const copa = color(comp?.copa_ramas?.clasificacion);
   const tronco = color(comp?.tronco?.clasificacion);
   const raices = color(comp?.raices_cuello?.clasificacion);
@@ -40,26 +40,19 @@ function TreeGlyph({ d }: { d: Diagnostico }) {
   );
 }
 
-/** Diagnóstico de la última inspección finalizada, en la ficha del árbol (B18 mínimo). */
-export function TreeDiagnosis({ d }: { d: Diagnostico }) {
-  const comp = d.resultado.componentes;
+function Resultado({ r }: { r: ResultadoDiagnostico }) {
   const filas: [string, "copa_ramas" | "tronco" | "raices_cuello"][] = [
     ["Copa y ramas", "copa_ramas"],
     ["Tronco", "tronco"],
     ["Raíces y cuello", "raices_cuello"],
   ];
-  const inf = d.resultado.infraestructura;
   return (
-    <section className="sivu-treediag" aria-label="Diagnóstico del árbol">
-      <div className="sivu-treediag__head">
-        <h3>Diagnóstico finalizado</h3>
-        {d.resultado.clasificacion_riesgo && <ClassificationBadge level={d.resultado.clasificacion_riesgo.etiqueta} />}
-      </div>
+    <>
       <div className="sivu-treediag__comps">
-        <TreeGlyph d={d} />
+        <TreeGlyph r={r} />
         <ul>
           {filas.map(([nombre, clave]) => {
-            const c = comp?.[clave];
+            const c = r.componentes?.[clave];
             return (
               <li key={clave}>
                 <span className="sivu-treediag__dot" style={{ background: color(c?.clasificacion) }} aria-hidden="true" />
@@ -77,21 +70,65 @@ export function TreeDiagnosis({ d }: { d: Diagnostico }) {
       <dl className="sivu-treediag__rows">
         <div>
           <dt>Infraestructura</dt>
-          <dd>{inf?.clasificacion?.etiqueta ?? "—"}</dd>
+          <dd>{r.infraestructura?.clasificacion?.etiqueta ?? "—"}</dd>
         </div>
         <div>
           <dt>Prioridad</dt>
-          <dd>{d.resultado.prioridad?.etiqueta ?? "—"}</dd>
-        </div>
-        <div>
-          <dt>Próxima inspección</dt>
-          <dd>{d.fecha_proxima_inspeccion ? fechaChile(d.fecha_proxima_inspeccion) : "—"}</dd>
-        </div>
-        <div>
-          <dt>Próximo monitoreo</dt>
-          <dd>{d.fecha_proximo_monitoreo ? fechaChile(d.fecha_proximo_monitoreo) : "—"}</dd>
+          <dd>{r.prioridad?.etiqueta ?? "—"}</dd>
         </div>
       </dl>
+    </>
+  );
+}
+
+/**
+ * Evaluación del árbol en su ficha (B18). Manda la vigente (CC-050); sin
+ * ella, «Evaluación pendiente» (REGLAS_GENERALES «Historial y vigencia»).
+ * Una inspección finalizada cuya OT todavía no se completa se muestra aparte,
+ * como resultado por confirmar.
+ */
+export function TreeDiagnosis({ d }: { d: Diagnostico }) {
+  const v = d.vigente;
+  const pendienteDeCompletar = !v || v.inspection_id !== d.inspection_id;
+  const fechasDeLaVigente = !!v && v.inspection_id === d.inspection_id;
+  return (
+    <section className="sivu-treediag" aria-label="Evaluación del árbol">
+      <div className="sivu-treediag__head">
+        <h3>{v ? "Evaluación vigente" : "Evaluación pendiente"}</h3>
+        {v?.resultado.clasificacion_riesgo && <ClassificationBadge level={v.resultado.clasificacion_riesgo.etiqueta} />}
+      </div>
+      {v ? (
+        <>
+          <p className="sivu-treediag__meta">Vigente desde el {fechaChile(v.desde)}.</p>
+          {v.requiere_revision_ajuste && (
+            <p className="sivu-treediag__meta">El ajuste del Inspector se descartó al recalcular y requiere revisión.</p>
+          )}
+          <Resultado r={v.resultado} />
+          {fechasDeLaVigente && (
+            <dl className="sivu-treediag__rows">
+              <div>
+                <dt>Próxima inspección</dt>
+                <dd>{d.fecha_proxima_inspeccion ? fechaChile(d.fecha_proxima_inspeccion) : "—"}</dd>
+              </div>
+              <div>
+                <dt>Próximo monitoreo</dt>
+                <dd>{d.fecha_proximo_monitoreo ? fechaChile(d.fecha_proximo_monitoreo) : "—"}</dd>
+              </div>
+            </dl>
+          )}
+        </>
+      ) : (
+        <p className="sivu-treediag__meta">El árbol todavía no tiene una orden de trabajo completada.</p>
+      )}
+      {pendienteDeCompletar && (
+        <details className="sivu-treediag__pending" open={!v}>
+          <summary>
+            Inspección finalizada {d.codigo_inspeccion ?? ""}
+            {d.fecha_inspeccion ? ` del ${fechaChile(d.fecha_inspeccion)}` : ""}: pasa a vigente al completar su orden
+          </summary>
+          <Resultado r={d.resultado} />
+        </details>
+      )}
     </section>
   );
 }

@@ -77,3 +77,20 @@ export interface CrearOtInspeccionInput {
 export function crearOtInspeccion(projectId: string, body: CrearOtInspeccionInput): Promise<unknown> {
   return api.post<{ data: unknown }>(`/api/sivu/projects/${projectId}/work-orders`, body).then((res) => res.data);
 }
+
+/** Completa una OT de Inspección (Usuario municipal; CC-050, D-242). La fecha la asigna el Sistema. */
+export function completarOt(workOrderId: string): Promise<unknown> {
+  return api.post<{ data: unknown }>(`/api/sivu/work-orders/${workOrderId}/completar`, {}).then((res) => res.data);
+}
+
+/** Cancela una OT con su motivo (Usuario municipal; CC-050). No se reabre: se crea otra. */
+export function cancelarOt(workOrderId: string, motivo_cancelacion: string): Promise<unknown> {
+  return api.post<{ data: unknown }>(`/api/sivu/work-orders/${workOrderId}/cancelar`, { motivo_cancelacion }).then((res) => res.data);
+}
+
+/** Cambia el responsable de una OT (Usuario municipal; CC-050, D-244). */
+export function reasignarOt(workOrderId: string, responsable_accion_id: string): Promise<unknown> {
+  return api
+    .patch<{ data: unknown }>(`/api/sivu/work-orders/${workOrderId}/responsable`, { responsable_accion_id })
+    .then((res) => res.data);
+}

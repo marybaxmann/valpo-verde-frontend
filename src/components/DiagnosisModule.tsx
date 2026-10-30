@@ -4,7 +4,7 @@ import { listarDiagnosticos } from "../api/diagnosticos";
 import { listarInventarioCompleto } from "../api/inventory";
 import { obtenerCatalogos } from "../api/catalogs";
 import type { CatalogoItem } from "../types/catalogs";
-import type { Componente, Diagnostico } from "../types/diagnostico";
+import type { Componente, Diagnostico, ResultadoDiagnostico } from "../types/diagnostico";
 import type { ArbolInventario } from "../types/inventory";
 import { TerritorialModule } from "./TerritorialModule";
 import { ClassificationBadge, getClassificationTone } from "./ClassificationBadge";
@@ -14,11 +14,11 @@ import { fechaChile } from "../lib/dates";
 type Vista = "riesgo" | "infraestructura";
 
 /**
- * Riesgo Arbóreo e Infraestructura con el diagnóstico de la última
- * inspección finalizada de cada árbol (B18 mínimo). Todo valor viene de la
- * API con su etiqueta; el frontend no calcula ni cuenta. Es el diagnóstico
- * finalizado, no el vigente (la vigencia llega al completar la OT, CC-050).
- * Un árbol sin diagnóstico se muestra «Sin evaluación».
+ * Riesgo Arbóreo e Infraestructura con la evaluación vigente de cada árbol
+ * (B18 `vigente`; CC-050). Todo valor viene de la API con su etiqueta; el
+ * frontend no calcula ni cuenta. Sin evaluación vigente, el árbol se
+ * muestra «Evaluación pendiente» (REGLAS_GENERALES «Historial y vigencia»);
+ * una inspección finalizada cuya OT no se completa se ve aparte, por confirmar.
  */
 export function DiagnosisModule({ vista }: { vista: Vista }) {
   const { projectId = "" } = useParams();
@@ -57,7 +57,7 @@ export function DiagnosisModule({ vista }: { vista: Vista }) {
   }, [projectId]);
 
   const valor = (d: Diagnostico | undefined) =>
-    vista === "riesgo" ? d?.resultado.clasificacion_riesgo : d?.resultado.infraestructura?.clasificacion;
+    vista === "riesgo" ? d?.vigente?.resultado.clasificacion_riesgo : d?.vigente?.resultado.infraestructura?.clasificacion;
   const titulo = vista === "riesgo" ? "Riesgo Arbóreo" : "Infraestructura";
   const points = (datos?.arboles ?? [])
     .filter((a) => a.ubicacion)
@@ -85,7 +85,7 @@ export function DiagnosisModule({ vista }: { vista: Vista }) {
         <>
           <div className="sivu-panel__head">
             <h2>{titulo}</h2>
-            <span className="sivu-diag__tag">Diagnóstico finalizado</span>
+            <span className="sivu-diag__tag">Evaluación vigente</span>
           </div>
           {leyenda && leyenda.length > 0 && (
             <ul className="sivu-diag__legend" aria-label="Leyenda del mapa">
@@ -99,7 +99,7 @@ export function DiagnosisModule({ vista }: { vista: Vista }) {
                 ))}
               <li>
                 <span className="sivu-diag__dot sivu-diag__dot--neutral" aria-hidden="true" />
-                Sin evaluación
+                Evaluación pendiente
               </li>
             </ul>
           )}
@@ -119,30 +119,40 @@ export function DiagnosisModule({ vista }: { vista: Vista }) {
               <h3>
                 {arbol.tree_code} · <em>{arbol.especie_cientifica ?? "sin especie"}</em>
               </h3>
-              {!diag ? (
-                <p className="sivu-state">Sin evaluación.</p>
+              {!diag?.vigente ? (
+                <p className="sivu-state">Evaluación pendiente: el árbol todavía no tiene una orden de trabajo completada.</p>
               ) : (
                 <>
-                  <p className="sivu-diag__meta">
-                    {diag.tipo_inspeccion?.etiqueta ?? "Inspección"} {diag.codigo_inspeccion ?? ""}
-                    {diag.fecha_inspeccion ? ` · ${fechaChile(diag.fecha_inspeccion)}` : ""}
-                  </p>
-                  {vista === "riesgo" ? <DetalleRiesgo d={diag} /> : <DetalleInfra d={diag} />}
+                  <p className="sivu-diag__meta">Vigente desde el {fechaChile(diag.vigente.desde)}</p>
+                  {vista === "riesgo" ? <DetalleRiesgo r={diag.vigente.resultado} /> : <DetalleInfra r={diag.vigente.resultado} />}
                   <dl className="sivu-diag__dl">
                     <div>
                       <dt>Prioridad</dt>
-                      <dd>{diag.resultado.prioridad?.etiqueta ?? "—"}</dd>
+                      <dd>{diag.vigente.resultado.prioridad?.etiqueta ?? "—"}</dd>
                     </div>
-                    <div>
-                      <dt>Próxima inspección</dt>
-                      <dd>{diag.fecha_proxima_inspeccion ? fechaChile(diag.fecha_proxima_inspeccion) : "—"}</dd>
-                    </div>
-                    <div>
-                      <dt>Próximo monitoreo</dt>
-                      <dd>{diag.fecha_proximo_monitoreo ? fechaChile(diag.fecha_proximo_monitoreo) : "—"}</dd>
-                    </div>
+                    {diag.vigente.inspection_id === diag.inspection_id && (
+                      <>
+                        <div>
+                          <dt>Próxima inspección</dt>
+                          <dd>{diag.fecha_proxima_inspeccion ? fechaChile(diag.fecha_proxima_inspeccion) : "—"}</dd>
+                        </div>
+                        <div>
+                          <dt>Próximo monitoreo</dt>
+                          <dd>{diag.fecha_proximo_monitoreo ? fechaChile(diag.fecha_proximo_monitoreo) : "—"}</dd>
+                        </div>
+                      </>
+                    )}
                   </dl>
                 </>
+              )}
+              {diag && diag.vigente?.inspection_id !== diag.inspection_id && (
+                <details className="sivu-diag__pending" open={!diag.vigente}>
+                  <summary>
+                    {diag.tipo_inspeccion?.etiqueta ?? "Inspección"} {diag.codigo_inspeccion ?? ""} finalizada
+                    {diag.fecha_inspeccion ? ` el ${fechaChile(diag.fecha_inspeccion)}` : ""}: pasa a vigente al completar su orden
+                  </summary>
+                  {vista === "riesgo" ? <DetalleRiesgo r={diag.resultado} /> : <DetalleInfra r={diag.resultado} />}
+                </details>
               )}
             </div>
           )}
@@ -157,7 +167,7 @@ export function DiagnosisModule({ vista }: { vista: Vista }) {
                       <span>
                         <strong>{a.tree_code}</strong> <em>{a.especie_cientifica ?? ""}</em>
                       </span>
-                      {v ? <ClassificationBadge level={v.etiqueta} /> : <span className="status-pill">Sin evaluación</span>}
+                      {v ? <ClassificationBadge level={v.etiqueta} /> : <span className="status-pill">Evaluación pendiente</span>}
                     </button>
                   </li>
                 );
@@ -165,7 +175,7 @@ export function DiagnosisModule({ vista }: { vista: Vista }) {
             </ul>
           )}
           <p className="sivu-terr__note">
-            Muestra la última inspección finalizada de cada árbol; pasa a vigente cuando se completa su orden de trabajo.
+            Muestra la evaluación vigente de cada árbol. Una inspección finalizada pasa a vigente cuando se completa su orden de trabajo.
           </p>
         </>
       }
@@ -173,8 +183,8 @@ export function DiagnosisModule({ vista }: { vista: Vista }) {
   );
 }
 
-function DetalleRiesgo({ d }: { d: Diagnostico }) {
-  const c = d.resultado.componentes;
+function DetalleRiesgo({ r }: { r: ResultadoDiagnostico }) {
+  const c = r.componentes;
   const filas: [string, Componente | null][] = [
     ["Raíces y cuello", c?.raices_cuello ?? null],
     ["Tronco", c?.tronco ?? null],
@@ -184,8 +194,8 @@ function DetalleRiesgo({ d }: { d: Diagnostico }) {
     <>
       <div className="sivu-diag__main">
         <span>Clasificación de riesgo</span>
-        {d.resultado.clasificacion_riesgo ? (
-          <ClassificationBadge level={d.resultado.clasificacion_riesgo.etiqueta} />
+        {r.clasificacion_riesgo ? (
+          <ClassificationBadge level={r.clasificacion_riesgo.etiqueta} />
         ) : (
           <span className="status-pill">—</span>
         )}
@@ -212,8 +222,8 @@ function DetalleRiesgo({ d }: { d: Diagnostico }) {
   );
 }
 
-function DetalleInfra({ d }: { d: Diagnostico }) {
-  const inf = d.resultado.infraestructura;
+function DetalleInfra({ r }: { r: ResultadoDiagnostico }) {
+  const inf = r.infraestructura;
   return (
     <>
       <div className="sivu-diag__main">

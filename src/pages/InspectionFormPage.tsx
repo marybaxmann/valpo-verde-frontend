@@ -7,6 +7,7 @@ import {
   finalizarInspeccion,
   guardarBorrador,
   listarFotos,
+  listarInspeccionesDeOt,
   obtenerEsquemaFormulario,
   subirFoto,
 } from "../api/inspections";
@@ -23,7 +24,9 @@ import type {
   FinalizacionRespuesta,
   FinalizarBody,
   FotoInspeccion,
+  InspeccionDeOt,
   SeccionFormulario,
+  ValorCampo,
   VistaFoto,
 } from "../types/inspection";
 import { InspectionField } from "../components/InspectionField";
@@ -64,31 +67,18 @@ const AJUSTABLES: { campo: CampoAjustable; titulo: string; catalogo: string; cal
 /** El valor ajustado siempre es una categoría determinada (CC-044): nunca estos códigos. */
 const NO_AJUSTABLES = ["no_determinado", "no_aplica", "sin_clasificacion"];
 
-/**
- * Sin lectura de la inspección en curso (B17), el id del borrador y lo
- * escrito se recuerdan en este navegador para poder retomarlo. Es solo una
- * comodidad local: la fuente es el backend.
- */
-const claveLocal = (otId: string) => `sivu-inspeccion-${otId}`;
-interface CopiaLocal {
-  inspectionId: string | null;
-  valores: ValoresCrudos;
+/** Valor guardado en el backend → lo que muestra cada control (texto para números y listas). */
+function aCrudo(v: ValorCampo): ValorCrudo {
+  if (v === null || v === undefined) return null;
+  if (typeof v === "number") return String(v);
+  if (Array.isArray(v)) return v.every((x) => typeof x === "number") ? (v as number[]).join(" ") : (v as string[]);
+  return v as string | boolean;
 }
-function leerCopia(otId: string): CopiaLocal {
-  try {
-    const raw = localStorage.getItem(claveLocal(otId));
-    if (raw) return JSON.parse(raw) as CopiaLocal;
-  } catch {
-    /* sin almacenamiento: se empieza vacío */
-  }
-  return { inspectionId: null, valores: {} };
-}
-function guardarCopia(otId: string, copia: CopiaLocal) {
-  try {
-    localStorage.setItem(claveLocal(otId), JSON.stringify(copia));
-  } catch {
-    /* sin almacenamiento: no se recuerda */
-  }
+
+function valoresDeBorrador(i: InspeccionDeOt): ValoresCrudos {
+  const out: ValoresCrudos = {};
+  for (const [k, v] of Object.entries({ ...i.campos_arbol, ...i.variables })) out[k] = aCrudo(v);
+  return out;
 }
 
 function mensaje(err: unknown, porDefecto: string): string {
@@ -137,8 +127,9 @@ export default function InspectionFormPage() {
   const [catalogos, setCatalogos] = useState<Catalogos>({});
   const [errorCarga, setErrorCarga] = useState<string | null>(null);
 
-  const [inspectionId, setInspectionId] = useState<string | null>(() => leerCopia(workOrderId).inspectionId);
-  const [valores, setValores] = useState<ValoresCrudos>(() => leerCopia(workOrderId).valores);
+  const [inspectionId, setInspectionId] = useState<string | null>(null);
+  const [valores, setValores] = useState<ValoresCrudos>({});
+  const [finalizadasPrevias, setFinalizadasPrevias] = useState(0);
   const [sinGuardar, setSinGuardar] = useState(false);
 
   const [guardando, setGuardando] = useState(false);
@@ -182,10 +173,19 @@ export default function InspectionFormPage() {
         }
         if (cancelado) return null;
         setOt(encontrada);
-        return obtenerEsquemaFormulario(encontrada.proyecto.id);
+        // B17: el borrador en curso (Preguardado) se retoma desde el backend, en cualquier equipo.
+        return Promise.all([obtenerEsquemaFormulario(encontrada.proyecto.id), listarInspeccionesDeOt(encontrada.id)]);
       })
-      .then((e) => {
-        if (!cancelado && e) setEsquema(e);
+      .then((r) => {
+        if (cancelado || !r) return;
+        const [e, inspecciones] = r;
+        const borrador = [...inspecciones].reverse().find((i) => i.estado_registro === "preguardado") ?? null;
+        if (borrador) {
+          setInspectionId(borrador.inspection_id);
+          setValores(valoresDeBorrador(borrador));
+        }
+        setFinalizadasPrevias(inspecciones.filter((i) => i.estado_registro === "finalizado").length);
+        setEsquema(e);
       })
       .catch((err: unknown) => {
         if (!cancelado) setErrorCarga(mensaje(err, "No se pudo cargar la OT."));
@@ -252,11 +252,7 @@ export default function InspectionFormPage() {
   }
 
   function cambiar(id: string, v: ValorCrudo) {
-    setValores((prev) => {
-      const next = { ...prev, [id]: v };
-      guardarCopia(workOrderId, { inspectionId, valores: next });
-      return next;
-    });
+    setValores((prev) => ({ ...prev, [id]: v }));
     setSinGuardar(true);
     setGuardadoOk(null);
     invalidarCalculo();
@@ -271,7 +267,6 @@ export default function InspectionFormPage() {
       const body = armarBody(esquema.variables, esquema.campos_arbol, valores, ot.accion.codigo, ot.subtipo?.codigo ?? null);
       const res = inspectionId ? await guardarBorrador(inspectionId, body) : await crearBorrador(workOrderId, body);
       setInspectionId(res.inspection_id);
-      guardarCopia(workOrderId, { inspectionId: res.inspection_id, valores });
       setSinGuardar(false);
       invalidarCalculo();
       setGuardadoOk("Borrador guardado.");
@@ -336,13 +331,6 @@ export default function InspectionFormPage() {
       const res = await finalizarInspeccion(inspectionId, body);
       setFinal(res);
       setConfirmando(false);
-      if (res.finalizada) {
-        try {
-          localStorage.removeItem(claveLocal(workOrderId));
-        } catch {
-          /* nada que limpiar */
-        }
-      }
     } catch (err) {
       setFinalError(
         err instanceof ApiError && err.status === 409
@@ -392,10 +380,21 @@ export default function InspectionFormPage() {
         <span className="sivu-insp__estado">{ot.estado.etiqueta}</span>
       </header>
 
-      <div className="sivu-insp__notes">
-        <PendingNotice what="el borrador guardado desde cualquier equipo; por ahora se retoma en este mismo navegador" refs="B17" compact />
-        {hayEtiquetasPendientes && <PendingNotice what="el nombre visible de algunos campos" refs="B16 · etiqueta_pendiente" compact />}
-      </div>
+      {(hayEtiquetasPendientes || finalizadasPrevias > 0 || inspectionId) && (
+        <div className="sivu-insp__notes">
+          {inspectionId && (
+            <p className="sivu-state" role="status">
+              Retomas el borrador guardado de esta orden. Lo que no hayas guardado en otro equipo no aparece aquí.
+            </p>
+          )}
+          {!inspectionId && finalizadasPrevias > 0 && (
+            <p className="sivu-state" role="status">
+              Esta orden ya tiene {finalizadasPrevias} inspección(es) finalizada(s). Vas a registrar una nueva.
+            </p>
+          )}
+          {hayEtiquetasPendientes && <PendingNotice what="el nombre visible de algunos campos" refs="B16 · etiqueta_pendiente" compact />}
+        </div>
+      )}
 
       {grupos.map(({ seccion, campos }) => {
         const visibles = campos.filter((c) => cumple(c.condicion_activacion, convertidos));

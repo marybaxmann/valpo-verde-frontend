@@ -163,3 +163,24 @@ export interface FinalizarBody {
   fecha_proximo_monitoreo?: string;
   justificacion_ajuste_fecha?: string;
 }
+
+/** Inspección de una OT tal como la entrega B17 (`listarInspeccionesDeOrdenTrabajo`). */
+export interface InspeccionDeOt {
+  inspection_id: string;
+  codigo_inspeccion: string | null;
+  tree_id: string;
+  /** preguardado | finalizado | anulado */
+  estado_registro: string;
+  tipo_inspeccion_realizada: string | null;
+  subtipo_inspeccion: string | null;
+  metodo_instrumental: string | null;
+  fecha_inspeccion: string;
+  observaciones: string | null;
+  inspector: string | null;
+  finalizada_at: string | null;
+  motivo_anulacion: string | null;
+  fecha_anulacion: string | null;
+  /** Solo lo registrado en el borrador. */
+  variables: Record<string, ValorCampo>;
+  campos_arbol: Record<string, ValorCampo>;
+}

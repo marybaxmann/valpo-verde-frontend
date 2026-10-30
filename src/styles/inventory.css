@@ -493,3 +493,26 @@ section > .sivu-picker__state {
   margin: 2px 0 0;
   font-weight: 600;
 }
+
+/* Evaluación vigente y resultado finalizado por confirmar (B18; CC-050). */
+.sivu-treediag__meta,
+.sivu-diag__meta {
+  margin: 0 0 8px;
+  font-size: 12.5px;
+  color: var(--text-muted);
+}
+
+.sivu-treediag__pending,
+.sivu-diag__pending {
+  margin-top: 12px;
+  padding: 8px 10px;
+  border: 1px dashed var(--border);
+  border-radius: 10px;
+  font-size: 12.5px;
+}
+
+.sivu-treediag__pending summary,
+.sivu-diag__pending summary {
+  cursor: pointer;
+  color: var(--text-muted);
+}

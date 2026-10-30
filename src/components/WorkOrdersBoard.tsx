@@ -6,6 +6,8 @@ import { Icon } from "./Icons";
 import { PendingNotice } from "./PendingNotice";
 import { getArcgisApiKey } from "../lib/arcgis";
 import { TIPOS_CON_FORMULARIO } from "../lib/inspectionForm";
+import { useAuth } from "../hooks/useAuth";
+import { OtGestion } from "./OtGestion";
 import { fechaChile, hoyChile } from "../lib/dates";
 import type { MapPoint } from "./ProjectMapView";
 
@@ -77,6 +79,8 @@ export function WorkOrdersBoard({
   headerExtra?: ReactNode;
 }) {
   const apiKey = getArcgisApiKey();
+  const { profile } = useAuth();
+  const [aviso, setAviso] = useState<string | null>(null);
   const hoy = hoyChile();
   const [incluirCerradas, setIncluirCerradas] = useState(false);
   const [ots, setOts] = useState<OtListada[] | null>(null);
@@ -213,6 +217,15 @@ export function WorkOrdersBoard({
       </header>
 
       {headerExtra}
+
+      {aviso && (
+        <p className="sivu-state sivu-state--ok sivu-mant__aviso" role="status">
+          {aviso}
+          <button type="button" className="sivu-panel__link" onClick={() => setAviso(null)}>
+            Cerrar
+          </button>
+        </p>
+      )}
 
       {!error && (
         <div className="sivu-mant__layout">
@@ -375,6 +388,17 @@ export function WorkOrdersBoard({
                       />
                     )}
                   </div>
+                )}
+                {selected.tipo_ot.codigo === "inspeccion" && (
+                  <OtGestion
+                    key={selected.id}
+                    ot={selected}
+                    role={profile?.role ?? null}
+                    onChanged={(mensaje) => {
+                      setAviso(`${selected.codigo_ot ?? "Orden"}: ${mensaje}`);
+                      setVersion((v) => v + 1);
+                    }}
+                  />
                 )}
                 {accionError && (
                   <p className="sivu-newtree__error" role="alert">

@@ -8,6 +8,7 @@ import type {
   FinalizacionRespuesta,
   FinalizarBody,
   FotoInspeccion,
+  InspeccionDeOt,
   VistaFoto,
 } from "../types/inspection";
 
@@ -64,4 +65,14 @@ export function finalizarInspeccion(inspectionId: string, body: FinalizarBody): 
   return api
     .post<{ data: FinalizacionRespuesta }>(`/api/sivu/inspections/${inspectionId}/finalizar`, body)
     .then((res) => res.data);
+}
+
+/** B17 — inspecciones de una OT, con lo registrado en cada una, para retomar el borrador desde cualquier equipo. */
+export function listarInspeccionesDeOt(workOrderId: string): Promise<InspeccionDeOt[]> {
+  return api.get<{ data: InspeccionDeOt[] }>(`/api/sivu/work-orders/${workOrderId}/inspections`).then((res) => res.data);
+}
+
+/** Anula una inspección finalizada con su motivo (solo Usuario municipal; CC-067, D-210). */
+export function anularInspeccion(inspectionId: string, motivo_anulacion: string): Promise<unknown> {
+  return api.post<{ data: unknown }>(`/api/sivu/inspections/${inspectionId}/anular`, { motivo_anulacion }).then((res) => res.data);
 }

@@ -14,12 +14,20 @@ export interface Project {
   updated_at: string;
 }
 
+/** Geometría del sector tal como la entrega la API (B13). */
+export interface SectorGeoJson {
+  type: "MultiPolygon" | "Polygon";
+  coordinates: number[][][][] | number[][][];
+}
+
 /** Sector del proyecto (`SectorRow` del mismo repositorio; SECTORES). */
 export interface ProjectSector {
   id: string;
   project_id: string;
   nombre_sector: string;
   superficie_sector_m2: number;
+  /** Contorno del sector en GeoJSON WGS84, longitud primero (B13); null si no se pudo leer. */
+  geometria_sector?: SectorGeoJson | null;
   created_at: string;
   updated_at: string;
 }

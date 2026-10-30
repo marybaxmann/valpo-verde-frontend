@@ -56,7 +56,13 @@ export function TerritorialModule({
     <div className="sivu-terr">
       {apiKey ? (
         <Suspense fallback={<div className="sivu-terr__map sivu-terr__map--loading">Cargando mapa…</div>}>
-          <ProjectMapView apiKey={apiKey} points={points} selectedId={selectedId} onSelect={onSelect} />
+          <ProjectMapView
+            apiKey={apiKey}
+            points={points}
+            selectedId={selectedId}
+            onSelect={onSelect}
+            sector={detail?.sector?.geometria_sector ?? null}
+          />
         </Suspense>
       ) : (
         <div className="sivu-terr__map sivu-terr__map--loading">

@@ -6,6 +6,9 @@ import type { ProjectWithSector } from "../types/project";
 import type { ArbolAlta } from "../types/treeAlta";
 import { ESTADOS_CICLO_VIDA_B1, type ArbolInventario } from "../types/inventory";
 import { obtenerCatalogos } from "../api/catalogs";
+import { listarDiagnosticos } from "../api/diagnosticos";
+import type { EvaluacionVigente } from "../types/diagnostico";
+import { ClassificationBadge } from "../components/ClassificationBadge";
 import { Icon } from "../components/Icons";
 import { PendingNotice } from "../components/PendingNotice";
 import { TreePhotos } from "../components/TreePhotos";
@@ -24,9 +27,9 @@ const PAGE = 50;
  * Inventario (Fase 7, Paso 4): composición de la maqueta SIVU Lab
  * (CC-057) — tabla protagonista, especies y minimapa al lado — con B1
  * (GET /api/sivu/projects/:id/trees; paginado, búsqueda y filtro por ciclo
- * de vida en el backend). Muestra solo lo que B1 entrega hoy; DAP, altura,
- * riesgo efectivo, vigencia y la etiqueta del ciclo de vida están aprobados
- * y quedan como pendientes de integración (no se simulan ni se calculan).
+ * de vida en el backend). Muestra lo que B1 entrega y, en la columna de riesgo,
+ * la evaluación vigente de B18 (CC-050). DAP y altura están aprobados y
+ * quedan como pendientes de integración (no se simulan ni se calculan).
  * El ciclo de vida se muestra con el código que llega, sin inventar su
  * etiqueta (PR-021). El minimapa recorre todas las páginas de B1.
  * «Nuevo árbol»: alta municipal mínima (POST /api/sivu/projects/:id/trees),
@@ -56,6 +59,22 @@ export default function InventoryPage() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   // Etiquetas del ciclo de vida desde el catálogo de la API (provisionales, D-28).
   const [cicloLabel, setCicloLabel] = useState<Record<string, string>>({});
+  // Evaluación vigente por árbol (B18 `vigente`, CC-050): la columna de riesgo la muestra tal como llega.
+  const [vigentes, setVigentes] = useState<Map<string, EvaluacionVigente> | null>(null);
+  useEffect(() => {
+    let cancelled = false;
+    listarDiagnosticos(projectId)
+      .then((ds) => {
+        if (cancelled) return;
+        const m = new Map<string, EvaluacionVigente>();
+        for (const d of ds) if (d.vigente) m.set(d.tree_id, d.vigente);
+        setVigentes(m);
+      })
+      .catch(() => !cancelled && setVigentes(new Map()));
+    return () => {
+      cancelled = true;
+    };
+  }, [projectId, version]);
   useEffect(() => {
     let cancelled = false;
     obtenerCatalogos()
@@ -245,9 +264,7 @@ export default function InventoryPage() {
               </div>
             </div>
 
-            <p className="sivu-inv__pending-cols">
-              Pendientes de integración en el listado: DAP, altura, riesgo efectivo y fecha de vigencia.
-            </p>
+            <p className="sivu-inv__pending-cols">El DAP y la altura se agregarán al listado en una próxima etapa.</p>
 
             <div className="sivu-table-scroll">
               <table className="sivu-table">
@@ -256,6 +273,7 @@ export default function InventoryPage() {
                     <th>Código</th>
                     <th>Especie</th>
                     <th>Ciclo de vida</th>
+                    <th>Riesgo vigente</th>
                     <th>Sector</th>
                     <th>Ubicación</th>
                     <th>Registro</th>
@@ -265,21 +283,21 @@ export default function InventoryPage() {
                 <tbody>
                   {!pagina && !listError && (
                     <tr>
-                      <td colSpan={7} className="sivu-inv__state">
+                      <td colSpan={8} className="sivu-inv__state">
                         Cargando inventario…
                       </td>
                     </tr>
                   )}
                   {listError && (
                     <tr>
-                      <td colSpan={7} className="sivu-inv__state sivu-inv__state--error">
+                      <td colSpan={8} className="sivu-inv__state sivu-inv__state--error">
                         <Icon name="alert" size={13} /> {listError}
                       </td>
                     </tr>
                   )}
                   {pagina && !listError && pagina.data.length === 0 && (
                     <tr>
-                      <td colSpan={7} className="sivu-inv__state">
+                      <td colSpan={8} className="sivu-inv__state">
                         {filtrando ? "Ningún árbol coincide con la búsqueda o el filtro." : "El proyecto todavía no tiene árboles registrados."}
                       </td>
                     </tr>
@@ -301,6 +319,13 @@ export default function InventoryPage() {
                         </td>
                         <td>
                           <span className="sivu-inv__lifecycle">{ciclo(a.estado_ciclo_vida)}</span>
+                        </td>
+                        <td>
+                          {vigentes?.get(a.id)?.resultado.clasificacion_riesgo ? (
+                            <ClassificationBadge level={vigentes.get(a.id)!.resultado.clasificacion_riesgo!.etiqueta} />
+                          ) : (
+                            <span className="status-pill">{vigentes ? "Pendiente" : "…"}</span>
+                          )}
                         </td>
                         <td>{a.sector ?? "—"}</td>
                         <td className="sivu-inv__place">{a.ubicacion_descriptiva ?? "—"}</td>
@@ -395,6 +420,7 @@ export default function InventoryPage() {
                       selectedId={selectedId}
                       onSelect={setSelectedId}
                       className="sivu-mant__map-inner"
+                      sector={detail?.sector?.geometria_sector ?? null}
                     />
                   </Suspense>
                 ) : (

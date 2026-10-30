@@ -439,3 +439,87 @@
   font-size: 13px;
   color: var(--text-muted);
 }
+
+/* Gestión de la OT de Inspección: inspecciones (B17) y acciones del Usuario municipal (CC-050, CC-067). */
+.sivu-mant__aviso {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0 0 12px;
+}
+
+.sivu-otg {
+  display: grid;
+  gap: 10px;
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+
+.sivu-otg__title {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.sivu-otg__list {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sivu-otg__insp {
+  display: grid;
+  gap: 4px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: var(--surface-muted);
+  font-size: 12.5px;
+}
+
+.sivu-otg__insp.is-anulado {
+  opacity: 0.7;
+}
+
+.sivu-otg__insp-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.sivu-otg__estado {
+  font-weight: 600;
+}
+
+.sivu-otg__insp > button {
+  justify-self: start;
+}
+
+.sivu-otg__form {
+  display: grid;
+  gap: 8px;
+  font-size: 13px;
+}
+
+.sivu-otg__form p {
+  margin: 0;
+}
+
+.sivu-otg__form textarea,
+.sivu-otg__form select {
+  width: 100%;
+}
+
+.sivu-otg__warn {
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.sivu-otg__actions {
+  display: grid;
+  gap: 8px;
+}

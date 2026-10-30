@@ -6,6 +6,8 @@ import BasemapStyle from "@arcgis/core/support/BasemapStyle";
 import MapView from "@arcgis/core/views/MapView";
 import GraphicsLayer from "@arcgis/core/layers/GraphicsLayer";
 import Graphic from "@arcgis/core/Graphic";
+import Polygon from "@arcgis/core/geometry/Polygon";
+import type { SectorGeoJson } from "../types/project";
 import Point from "@arcgis/core/geometry/Point";
 import "@arcgis/core/assets/esri/themes/light/main.css";
 import {
@@ -62,9 +64,12 @@ export default function ProjectMapView({
   selectedId = null,
   onSelect,
   className = "sivu-terr__map",
+  sector = null,
 }: {
   apiKey: string;
   points?: MapPoint[];
+  /** Contorno del sector del proyecto (B13): se dibuja debajo de los puntos y encuadra el mapa. */
+  sector?: SectorGeoJson | null;
   selectedId?: string | null;
   onSelect?: (id: string) => void;
   className?: string;
@@ -73,6 +78,7 @@ export default function ProjectMapView({
   const mapRef = useRef<ArcGISMap | null>(null);
   const viewRef = useRef<MapView | null>(null);
   const layerRef = useRef<GraphicsLayer | null>(null);
+  const sectorLayerRef = useRef<GraphicsLayer | null>(null);
   const onSelectRef = useRef(onSelect);
   const [status, setStatus] = useState<"loading" | "ready" | "error">("loading");
   const [basemap, setBasemap] = useState<BasemapId>(getPreferredBasemap);
@@ -87,9 +93,11 @@ export default function ProjectMapView({
     let cancelled = false;
     esriConfig.apiKey = apiKey;
     const layer = new GraphicsLayer();
-    const map = new ArcGISMap({ basemap: makeBasemap(initialBasemap.current), layers: [layer] });
+    const sectorLayer = new GraphicsLayer();
+    const map = new ArcGISMap({ basemap: makeBasemap(initialBasemap.current), layers: [sectorLayer, layer] });
     mapRef.current = map;
     layerRef.current = layer;
+    sectorLayerRef.current = sectorLayer;
     const view = new MapView({
       container: containerRef.current,
       map,
@@ -122,6 +130,7 @@ export default function ProjectMapView({
       mapRef.current = null;
       viewRef.current = null;
       layerRef.current = null;
+      sectorLayerRef.current = null;
     };
   }, [apiKey]);
 
@@ -194,13 +203,40 @@ export default function ProjectMapView({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pointsKey, selectedId, status]);
 
+  // Contorno del sector (B13): solo se representa; nunca se edita en el mapa (ADR-015).
+  const sectorKey = sector ? JSON.stringify(sector.coordinates).length + ":" + sector.type : "";
+  useEffect(() => {
+    const sectorLayer = sectorLayerRef.current;
+    if (!sectorLayer || status !== "ready") return;
+    sectorLayer.removeAll();
+    if (!sector) return;
+    const poligonos = sector.type === "Polygon" ? [sector.coordinates as number[][][]] : (sector.coordinates as number[][][][]);
+    const rings = poligonos.flat();
+    if (!rings.length) return;
+    sectorLayer.add(
+      new Graphic({
+        geometry: new Polygon({ rings, spatialReference: { wkid: 4326 } }),
+        symbol: {
+          type: "simple-fill",
+          color: [63, 176, 126, 0.08],
+          outline: { color: [31, 122, 85, 0.95], width: 2, style: "dash" },
+        },
+      })
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sectorKey, status]);
+
+  // Encuadre: el sector y los puntos juntos; sin ninguno, el encuadre por defecto.
   useEffect(() => {
     const view = viewRef.current;
     const layer = layerRef.current;
-    if (!view || !layer || status !== "ready" || !(points ?? []).length) return;
-    view.goTo(layer.graphics.toArray(), { animate: false }).catch(() => undefined);
+    const sectorLayer = sectorLayerRef.current;
+    if (!view || !layer || !sectorLayer || status !== "ready") return;
+    const objetivo = [...sectorLayer.graphics.toArray(), ...layer.graphics.toArray()];
+    if (!objetivo.length) return;
+    view.goTo(objetivo, { animate: false }).catch(() => undefined);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pointsKey, status]);
+  }, [pointsKey, sectorKey, status]);
 
   return (
     <div className={className}>
