@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { listarMisOts } from "../api/workOrders";
 import {
@@ -140,9 +140,14 @@ export default function InspectionFormPage() {
 
   const [fotos, setFotos] = useState<FotoInspeccion[] | null>(null);
   const [fotosError, setFotosError] = useState<string | null>(null);
-  const [subiendo, setSubiendo] = useState<VistaFoto | null>(null);
+  // Cada vista sube y elimina por su cuenta: una foto en curso no bloquea las otras vistas.
+  const [subiendo, setSubiendo] = useState<ReadonlySet<VistaFoto>>(new Set());
   const [porEliminar, setPorEliminar] = useState<string | null>(null);
-  const [eliminando, setEliminando] = useState(false);
+  const [eliminando, setEliminando] = useState<string | null>(null);
+  const [erroresFoto, setErroresFoto] = useState<Partial<Record<VistaFoto, string>>>({});
+  const listadoFotos = useRef(0);
+  const ediciones = useRef(0);
+  const cambiosDesdeCalculo = useRef(0);
 
   const [calculo, setCalculo] = useState<CalculoRespuesta | null>(null);
   const [calculando, setCalculando] = useState(false);
@@ -224,7 +229,8 @@ export default function InspectionFormPage() {
   }, [calculo]);
   const hayInvalidos = todos.some((c) => valorInvalido(c, valores[c.identificador]));
   const finalizada = final?.finalizada === true;
-  const bloqueado = guardando || finalizando || finalizada;
+  // Guardar no bloquea los campos: lo escrito durante el guardado queda como «sin guardar».
+  const bloqueado = finalizando || finalizada;
 
   /** Etiqueta de un código de catálogo; el código si el catálogo no lo trae. */
   const etiqueta = (catalogo: string, codigo: unknown): string => {
@@ -251,12 +257,14 @@ export default function InspectionFormPage() {
   const fechasSinJustificar = (fechaInspeccionCambiada || fechaMonitoreoCambiada) && !justificacionFecha.trim();
 
   function invalidarCalculo() {
+    cambiosDesdeCalculo.current += 1;
     setCalculo(null); // la huella ya no corresponde
     setConfirmando(false);
   }
 
   function cambiar(id: string, v: ValorCrudo) {
     setValores((prev) => ({ ...prev, [id]: v }));
+    ediciones.current += 1;
     setSinGuardar(true);
     setGuardadoOk(null);
     invalidarCalculo();
@@ -267,13 +275,15 @@ export default function InspectionFormPage() {
     setGuardando(true);
     setGuardadoError(null);
     setGuardadoOk(null);
+    const edicionesAlGuardar = ediciones.current;
     try {
       const body = armarBody(esquema.variables, esquema.campos_arbol, valores, ot.accion.codigo, ot.subtipo?.codigo ?? null);
       const res = inspectionId ? await guardarBorrador(inspectionId, body) : await crearBorrador(workOrderId, body);
       setInspectionId(res.inspection_id);
-      setSinGuardar(false);
+      const editadoMientras = ediciones.current !== edicionesAlGuardar;
+      setSinGuardar(editadoMientras);
       invalidarCalculo();
-      setGuardadoOk("Borrador guardado.");
+      setGuardadoOk(editadoMientras ? "Borrador guardado. Hay cambios posteriores sin guardar." : "Borrador guardado.");
     } catch (err) {
       setGuardadoError(mensaje(err, "No se pudo guardar el borrador."));
     } finally {
@@ -281,34 +291,49 @@ export default function InspectionFormPage() {
     }
   }
 
+  /** Con varias vistas en curso, solo se aplica el listado pedido más recientemente. */
+  async function recargarFotos(id: string) {
+    const n = ++listadoFotos.current;
+    const lista = await listarFotos(id);
+    if (n === listadoFotos.current) setFotos(lista);
+  }
+
+  function errorFoto(vista: VistaFoto, texto: string | null) {
+    setErroresFoto((e) => ({ ...e, [vista]: texto ?? undefined }));
+  }
+
   async function subir(vista: VistaFoto, archivo: File | undefined) {
     if (!archivo || !inspectionId) return;
-    setSubiendo(vista);
-    setFotosError(null);
+    setSubiendo((s) => new Set(s).add(vista));
+    errorFoto(vista, null);
     try {
       await subirFoto(inspectionId, vista, archivo);
-      setFotos(await listarFotos(inspectionId));
       invalidarCalculo();
+      await recargarFotos(inspectionId);
     } catch (err) {
-      setFotosError(mensaje(err, "No se pudo subir la foto."));
+      errorFoto(vista, mensaje(err, "No se pudo subir la foto."));
     } finally {
-      setSubiendo(null);
+      setSubiendo((s) => {
+        const n = new Set(s);
+        n.delete(vista);
+        return n;
+      });
     }
   }
 
-  async function quitarFoto(photoId: string) {
+  async function quitarFoto(vista: VistaFoto, photoId: string) {
     if (!inspectionId) return;
-    setEliminando(true);
-    setFotosError(null);
+    setEliminando(photoId);
+    errorFoto(vista, null);
     try {
       await eliminarFoto(inspectionId, photoId);
-      setFotos(await listarFotos(inspectionId));
       setPorEliminar(null);
       invalidarCalculo();
+      await recargarFotos(inspectionId);
     } catch (err) {
-      setFotosError(mensaje(err, "No se pudo eliminar la foto."));
+      errorFoto(vista, mensaje(err, "No se pudo eliminar la foto."));
     } finally {
-      setEliminando(false);
+      setEliminando(null);
     }
   }
 
@@ -316,8 +341,11 @@ export default function InspectionFormPage() {
     if (!inspectionId || ajustesSinJustificar) return;
     setCalculando(true);
     setCalculoError(null);
+    const cambiosAlCalcular = cambiosDesdeCalculo.current;
     try {
       const res = await calcularInspeccion(inspectionId, ajustesBody);
+      // Si mientras tanto cambió un campo o una foto, ese resultado ya no corresponde.
+      if (cambiosDesdeCalculo.current !== cambiosAlCalcular) return;
       setCalculo(res);
       setAjustesCalculados(ajustesFirma);
       setFechaInspeccion(res.fechas_sugeridas.fecha_proxima_inspeccion.fecha ?? "");
@@ -484,10 +512,10 @@ export default function InspectionFormPage() {
                           <img src={f.url} alt={`${nombre}, foto ${n + 1}`} />
                           {porEliminar === f.id ? (
                             <span className="sivu-insp__photo-confirm">
-                              <button type="button" className="btn btn-primary btn-sm" onClick={() => void quitarFoto(f.id)} disabled={eliminando}>
-                                {eliminando ? "Eliminando…" : "Sí, eliminar"}
+                              <button type="button" className="btn btn-primary btn-sm" onClick={() => void quitarFoto(v, f.id)} disabled={eliminando === f.id}>
+                                {eliminando === f.id ? "Eliminando…" : "Sí, eliminar"}
                               </button>
-                              <button type="button" className="btn btn-ghost btn-sm" onClick={() => setPorEliminar(null)} disabled={eliminando}>
+                              <button type="button" className="btn btn-ghost btn-sm" onClick={() => setPorEliminar(null)} disabled={eliminando === f.id}>
                                 No
                               </button>
                             </span>
@@ -496,7 +524,7 @@ export default function InspectionFormPage() {
                               type="button"
                               className="btn btn-ghost btn-sm"
                               onClick={() => setPorEliminar(f.id)}
-                              disabled={subiendo !== null || eliminando}
+                              disabled={subiendo.has(v) || eliminando !== null}
                             >
                               Eliminar
                             </button>
@@ -506,18 +534,23 @@ export default function InspectionFormPage() {
                     </ul>
                   )}
                   <label className="btn btn-secondary btn-sm">
-                    {subiendo === v ? "Subiendo…" : ultima ? "Agregar otra" : "Subir foto"}
+                    {subiendo.has(v) ? "Subiendo…" : ultima ? "Agregar otra" : "Subir foto"}
                     <input
                       type="file"
                       accept="image/jpeg,image/png"
                       hidden
-                      disabled={subiendo !== null || finalizada}
+                      disabled={subiendo.has(v) || finalizada}
                       onChange={(e) => {
                         void subir(v, e.target.files?.[0]);
                         e.target.value = "";
                       }}
                     />
                   </label>
+                  {erroresFoto[v] && (
+                    <p className="sivu-state sivu-state--error" role="alert">
+                      <Icon name="alert" size={13} /> {erroresFoto[v]}
+                    </p>
+                  )}
                 </div>
               );
             })}
@@ -672,7 +705,7 @@ export default function InspectionFormPage() {
           </div>
         ) : (
           <div className="sivu-insp__bar-actions">
-            <button type="button" className="btn btn-secondary btn-sm" onClick={guardar} disabled={bloqueado || hayInvalidos || (!sinGuardar && !!inspectionId)}>
+            <button type="button" className="btn btn-secondary btn-sm" onClick={guardar} disabled={bloqueado || guardando || hayInvalidos || (!sinGuardar && !!inspectionId)}>
               {guardando ? "Guardando…" : "Guardar borrador"}
             </button>
             <button
