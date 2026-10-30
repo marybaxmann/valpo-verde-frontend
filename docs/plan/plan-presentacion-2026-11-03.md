@@ -69,6 +69,14 @@ El lunes 2 a las 12:00, el sitio publicado muestra el **ciclo central de SIVU co
 | R-4 | Cuentas de presentación por rol (crearlas o autorizar su creación) | Dom 1 |
 | R-5 | Ensayo del guion | Lun 2 |
 
+## 5b. Pendientes sin fecha (no entran en el plan del lunes)
+
+Ideas aprobadas como pendientes por la responsable, **sin fecha asignada**. No se trabajan hasta que ella les ponga fecha; si se adelantan, nunca antes de cerrar F-8 y F-9.
+
+| ID | Qué | Notas |
+|---|---|---|
+| P-1 | **Animaciones y microinteracciones del frontend** (registrado el 2026-10-30) | Animación de espera al iniciar sesión y al cargar cada módulo; transiciones suaves al seleccionar un árbol, una OT o una pestaña; una pequeña animación al completar acciones (guardar, finalizar, completar la OT). Con transiciones de CSS, sin librerías pesadas; respetar `prefers-reduced-motion`; ninguna animación bloquea ni hace más lenta la página. Skills candidatas: `frontend-design` (oficial de Anthropic) para el trabajo y `web-design-guidelines` (Vercel) como revisión. Las skills de la comunidad («UI UX Pro Max», «Transitions dev», «Animate») se revisan antes de instalarlas. |
+
 ## 6. Registro
 
 Una línea por tarea cerrada: `AAAA-MM-DD HH:MM · ID · commit · nota`.
