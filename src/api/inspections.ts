@@ -1,20 +1,23 @@
 import { api } from "./client";
 import type {
+  AjustesBody,
   BorradorBody,
   BorradorResultado,
   CalculoRespuesta,
   EsquemaFormulario,
   FinalizacionRespuesta,
+  FinalizarBody,
   FotoInspeccion,
   VistaFoto,
 } from "../types/inspection";
 
 /**
- * Inspección del Inspector (Evaluación inicial). Las reglas (quién puede,
- * qué falta, qué se calcula) las decide el backend; aquí solo se llama.
+ * Inspección del Inspector (Evaluación inicial y Reevaluación: misma
+ * evaluación completa, CC-040). Las reglas (quién puede, qué falta, qué se
+ * calcula) las decide el backend; aquí solo se llama.
  */
 
-/** B16 — campos del formulario, sus opciones y condiciones (solo Evaluación inicial). */
+/** B16 — campos del formulario de la evaluación completa, sus opciones, secciones y condiciones. */
 export function obtenerEsquemaFormulario(projectId: string): Promise<EsquemaFormulario> {
   return api
     .get<{ data: EsquemaFormulario }>(`/api/sivu/projects/${projectId}/inspection-form-schema?tipo=evaluacion_inicial`)
@@ -45,19 +48,20 @@ export function subirFoto(inspectionId: string, vista: VistaFoto, archivo: File)
   return api.post(`/api/sivu/inspections/${inspectionId}/photos`, form);
 }
 
-/** No escribe nada: devuelve resultados, faltantes y la `huella` para finalizar (CC-054). */
-export function calcularInspeccion(inspectionId: string): Promise<CalculoRespuesta> {
+/** No escribe nada: devuelve resultados, faltantes y la `huella` para finalizar (CC-054). Con ajustes, muestra su efecto. */
+export function calcularInspeccion(inspectionId: string, ajustes?: AjustesBody): Promise<CalculoRespuesta> {
   return api
-    .post<{ data: CalculoRespuesta }>(`/api/sivu/inspections/${inspectionId}/calcular`, {})
+    .post<{ data: CalculoRespuesta }>(`/api/sivu/inspections/${inspectionId}/calcular`, ajustes ? { ajustes } : {})
     .then((res) => res.data);
 }
 
 /**
- * Finaliza con la `huella` del último cálculo. Sin ajustes ni fechas: el
- * backend usa las fechas sugeridas (los ajustes llegan en otro paso).
+ * Finaliza con la `huella` del último cálculo. Los ajustes se envían de
+ * nuevo (no forman parte de la huella). Sin fechas, el backend usa las
+ * sugeridas; una fecha distinta exige su justificación (D-204).
  */
-export function finalizarInspeccion(inspectionId: string, huella: string): Promise<FinalizacionRespuesta> {
+export function finalizarInspeccion(inspectionId: string, body: FinalizarBody): Promise<FinalizacionRespuesta> {
   return api
-    .post<{ data: FinalizacionRespuesta }>(`/api/sivu/inspections/${inspectionId}/finalizar`, { huella })
+    .post<{ data: FinalizacionRespuesta }>(`/api/sivu/inspections/${inspectionId}/finalizar`, body)
     .then((res) => res.data);
 }

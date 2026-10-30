@@ -246,21 +246,21 @@ function SpeciesSheet({
 
       <dl className="sivu-species__dl">
         <div>
-          <dt>origen_biogeografico</dt>
+          <dt>Origen biogeográfico</dt>
           <dd>{codigo(especie.origen_biogeografico)}</dd>
         </div>
         <div>
-          <dt>persistencia_follaje</dt>
+          <dt>Persistencia del follaje</dt>
           <dd>{codigo(especie.persistencia_follaje)}</dd>
         </div>
         <div>
-          <dt>tipo_hoja</dt>
+          <dt>Tipo de hoja</dt>
           <dd>{codigo(especie.tipo_hoja)}</dd>
         </div>
       </dl>
       <PendingNotice
         compact
-        what="las opciones de origen, persistencia del follaje y tipo de hoja; por eso se muestran sus códigos y no se editan aquí"
+        what="la edición del origen, la persistencia del follaje y el tipo de hoja"
         refs="B20 · catálogos de CATALOGO_ESPECIES"
       />
 

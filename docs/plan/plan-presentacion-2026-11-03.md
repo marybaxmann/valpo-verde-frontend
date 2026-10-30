@@ -52,7 +52,7 @@ El lunes 2 a las 12:00, el sitio publicado muestra el **ciclo central de SIVU co
 | F-4 | Mapas, ficha y Dashboard con la **evaluación vigente** (B18 `vigente`), distinguiendo «finalizado» de «vigente» | Vie 30 | B-1 | Árbol con OT completada se ve con su vigente |
 | F-5 | Formulario con las etiquetas y secciones aprobadas (139) y tipos Reevaluación y Monitoreo | Sáb 31 | — | Sin nombres técnicos; los 3 tipos probados |
 | F-6 | Contorno del sector en los mapas | Sáb 31 | B-3 | Contorno visible y mapas centrados en el sector |
-| F-7 | Limpieza: borrar código de la demo vieja (`api/trees.ts`, `api/moduleRecords.ts`, `api/treeRiskAssessments.ts` y lo que dependa); módulos fuera de alcance como «en desarrollo»; sin avisos técnicos en pantalla | Sáb 31 | — | Build y lint limpios; ninguna llamada a `/api/` fuera de `/api/sivu` y `/api/auth` |
+| F-7 ✔ | Limpieza: borrar código de la demo vieja (`api/trees.ts`, `api/moduleRecords.ts`, `api/treeRiskAssessments.ts` y lo que dependa); módulos fuera de alcance como «en desarrollo»; sin avisos técnicos en pantalla | Sáb 31 | — | Build y lint limpios; ninguna llamada a `/api/` fuera de `/api/sivu` y `/api/auth` |
 | F-8 | Carga de datos reales del piloto con la propia aplicación (proyecto, sector, árboles, OT, inspecciones con fotos, completar OT) | Dom 1 | F-2 a F-6, datos de la responsable | 3 o 4 árboles con evaluación vigente; el resto dado de alta |
 | F-9 | Recorrido completo por rol en el sitio publicado (Administrador, Usuario municipal, Inspector), computador y teléfono, claro y oscuro; corregir lo que aparezca | Dom 1 | F-8 | Lista de errores en cero o aceptados por la responsable |
 | F-10 | Congelar: rama del frontend etiquetada `presentacion-2026-11-03` y desplegada | Lun 2, 12:00 | Todo lo anterior | Etiqueta creada |
@@ -73,3 +73,5 @@ El lunes 2 a las 12:00, el sitio publicado muestra el **ciclo central de SIVU co
 Una línea por tarea cerrada: `AAAA-MM-DD HH:MM · ID · commit · nota`.
 
 - 2026-10-29 · plan acordado con la responsable.
+- 2026-10-30 · F-7 · (este commit) · borrado el código de la demo vieja (3 módulos de API y 13 archivos sin uso); avisos «En desarrollo» sin códigos técnicos; build y lint limpios.
+- 2026-10-30 · F-5 en curso · (este commit) · secciones y etiquetas del Excel, Reevaluación, ajustes del Inspector y fechas con justificación; falta probar en el navegador. Monitoreo espera que el backend entregue el esquema por subtipo.

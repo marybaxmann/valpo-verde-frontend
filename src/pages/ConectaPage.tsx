@@ -98,7 +98,7 @@ export default function ConectaPage() {
           <p className="sivu-conecta__lead">
             Cada árbol tendrá un código en terreno que abre su ficha pública y el formulario para reportar.
           </p>
-          <PendingNotice what="la dirección pública de la ficha ni el código QR de cada árbol" refs="CC-062" />
+          <PendingNotice what="la dirección pública de la ficha y el código QR de cada árbol" refs="CC-062" />
         </section>
       )}
 

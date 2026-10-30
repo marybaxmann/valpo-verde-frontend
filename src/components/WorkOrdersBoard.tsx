@@ -5,6 +5,7 @@ import { ESTADOS_OT_ABIERTOS, ESTADOS_OT_CERRADOS, type ListadoOt, type OtListad
 import { Icon } from "./Icons";
 import { PendingNotice } from "./PendingNotice";
 import { getArcgisApiKey } from "../lib/arcgis";
+import { TIPOS_CON_FORMULARIO } from "../lib/inspectionForm";
 import { fechaChile, hoyChile } from "../lib/dates";
 import type { MapPoint } from "./ProjectMapView";
 
@@ -360,15 +361,15 @@ export function WorkOrdersBoard({
                 )}
                 {selected.acciones.includes("trabajar") && (
                   <div className="sivu-mant__action">
-                    {/* Solo el Inspector responsable recibe «trabajar» (CC-065); hoy solo Evaluación inicial (B16). */}
-                    {selected.accion.codigo === "evaluacion_inicial" ? (
+                    {/* Solo el Inspector responsable recibe «trabajar» (CC-065); evaluación completa (B16, CC-040). */}
+                    {TIPOS_CON_FORMULARIO.includes(selected.accion.codigo) ? (
                       <Link className="btn btn-primary" to={`/inspector/ot/${selected.id}/inspeccion`}>
                         <Icon name="check-square" size={14} />
                         Trabajar la inspección
                       </Link>
                     ) : (
                       <PendingNotice
-                        what={`el formulario para ${selected.accion.etiqueta} (por ahora solo Evaluación inicial)`}
+                        what={`el formulario de ${selected.accion.etiqueta}`}
                         refs="B16"
                         compact
                       />

@@ -10,24 +10,59 @@ import {
   obtenerEsquemaFormulario,
   subirFoto,
 } from "../api/inspections";
+import { obtenerCatalogos } from "../api/catalogs";
 import { ApiError } from "../api/client";
 import type { OtListada } from "../types/workOrder";
+import type { Catalogos } from "../types/catalogs";
 import type {
+  AjustesBody,
   CalculoRespuesta,
+  CampoAjustable,
   CampoFormulario,
   EsquemaFormulario,
   FinalizacionRespuesta,
+  FinalizarBody,
   FotoInspeccion,
+  SeccionFormulario,
   VistaFoto,
 } from "../types/inspection";
 import { InspectionField } from "../components/InspectionField";
 import { PendingNotice } from "../components/PendingNotice";
 import { Icon } from "../components/Icons";
-import { armarBody, cumple, ordenar, valorInvalido, valoresConvertidos, type ValoresCrudos, type ValorCrudo } from "../lib/inspectionForm";
+import {
+  armarBody,
+  cumple,
+  ordenar,
+  TIPOS_CON_FORMULARIO,
+  valorInvalido,
+  valoresConvertidos,
+  type ValoresCrudos,
+  type ValorCrudo,
+} from "../lib/inspectionForm";
 import { fechaChile } from "../lib/dates";
 
-/** Las cuatro vistas obligatorias de Evaluación inicial (PR-010 v4.0, D-27). Etiquetas pendientes del backend. */
+/** Las cuatro vistas obligatorias de la evaluación completa (D-27); su etiqueta viene del catálogo `vista_foto`. */
 const VISTAS: VistaFoto[] = ["arbol_completo", "base", "tronco", "copa"];
+
+/** Clasificaciones que el Inspector puede ajustar con justificación (D-170 a D-173; CC-044), con su catálogo. */
+const AJUSTABLES: { campo: CampoAjustable; titulo: string; catalogo: string; calculada: string }[] = [
+  { campo: "clasificacion_riesgo", titulo: "Riesgo del árbol", catalogo: "clasificacion_riesgo", calculada: "clasificacion_riesgo_calculada" },
+  {
+    campo: "clasificacion_infraestructura",
+    titulo: "Conflicto con la infraestructura",
+    catalogo: "clasificacion_infraestructura",
+    calculada: "clasificacion_infraestructura_calculada",
+  },
+  {
+    campo: "clasificacion_prioridad",
+    titulo: "Prioridad de intervención",
+    catalogo: "clasificacion_prioridad",
+    calculada: "clasificacion_prioridad_calculada",
+  },
+];
+
+/** El valor ajustado siempre es una categoría determinada (CC-044): nunca estos códigos. */
+const NO_AJUSTABLES = ["no_determinado", "no_aplica", "sin_clasificacion"];
 
 /**
  * Sin lectura de la inspección en curso (B17), el id del borrador y lo
@@ -71,10 +106,35 @@ function referenciaArbol(ot: OtListada, campo: string): string | null {
   return null;
 }
 
+/** Agrupa los campos por la sección que entrega el backend, en el orden de `secciones`. */
+function agruparPorSeccion(campos: CampoFormulario[], secciones: SeccionFormulario[]): { seccion: SeccionFormulario; campos: CampoFormulario[] }[] {
+  const otros: SeccionFormulario = { codigo: "__otros", etiqueta: "Otros datos" };
+  const orden = [...secciones].sort((a, b) => (a.orden ?? 0) - (b.orden ?? 0));
+  const grupos = new Map<string, CampoFormulario[]>();
+  for (const c of campos) {
+    const codigo = c.seccion?.codigo ?? otros.codigo;
+    if (!grupos.has(codigo)) grupos.set(codigo, []);
+    grupos.get(codigo)!.push(c);
+  }
+  const conocidas = orden.filter((s) => grupos.has(s.codigo)).map((s) => ({ seccion: s, campos: grupos.get(s.codigo)! }));
+  // Una sección que el backend nombra en un campo pero no en `secciones` se agrega al final con su propia etiqueta.
+  const sueltas = [...grupos.keys()]
+    .filter((k) => k !== otros.codigo && !orden.some((s) => s.codigo === k))
+    .map((k) => ({ seccion: grupos.get(k)![0].seccion ?? otros, campos: grupos.get(k)! }));
+  const resto = grupos.has(otros.codigo) ? [{ seccion: otros, campos: grupos.get(otros.codigo)! }] : [];
+  return [...conocidas, ...sueltas, ...resto];
+}
+
+interface AjusteEditable {
+  valor: string;
+  justificacion: string;
+}
+
 export default function InspectionFormPage() {
   const { workOrderId = "" } = useParams();
   const [ot, setOt] = useState<OtListada | null>(null);
   const [esquema, setEsquema] = useState<EsquemaFormulario | null>(null);
+  const [catalogos, setCatalogos] = useState<Catalogos>({});
   const [errorCarga, setErrorCarga] = useState<string | null>(null);
 
   const [inspectionId, setInspectionId] = useState<string | null>(() => leerCopia(workOrderId).inspectionId);
@@ -93,18 +153,33 @@ export default function InspectionFormPage() {
   const [calculando, setCalculando] = useState(false);
   const [calculoError, setCalculoError] = useState<string | null>(null);
 
+  // Ajustes del Inspector y fechas (solo después de calcular). Los ajustes se ven con «Recalcular».
+  const [ajustes, setAjustes] = useState<Partial<Record<CampoAjustable, AjusteEditable>>>({});
+  const [ajustesCalculados, setAjustesCalculados] = useState<string>("");
+  const [fechaInspeccion, setFechaInspeccion] = useState("");
+  const [fechaMonitoreo, setFechaMonitoreo] = useState("");
+  const [justificacionFecha, setJustificacionFecha] = useState("");
+
   const [confirmando, setConfirmando] = useState(false);
   const [finalizando, setFinalizando] = useState(false);
   const [final, setFinal] = useState<FinalizacionRespuesta | null>(null);
   const [finalError, setFinalError] = useState<string | null>(null);
 
-  // OT (desde B4: no hay lectura de una sola OT) y luego el esquema de su proyecto (B16).
+  // OT (desde B4: no hay lectura de una sola OT), el esquema de su proyecto (B16) y los catálogos (etiquetas).
   useEffect(() => {
     let cancelado = false;
+    obtenerCatalogos()
+      .then((c) => !cancelado && setCatalogos(c))
+      .catch(() => {
+        /* sin catálogos se muestran los códigos */
+      });
     listarMisOts({ limit: 200 })
       .then((res) => {
         const encontrada = res.data.find((o) => o.id === workOrderId) ?? null;
         if (!encontrada) throw new Error("Esta OT no está entre tus órdenes abiertas.");
+        if (!TIPOS_CON_FORMULARIO.includes(encontrada.accion.codigo)) {
+          throw new Error(`El formulario para ${encontrada.accion.etiqueta} está en desarrollo.`);
+        }
         if (cancelado) return null;
         setOt(encontrada);
         return obtenerEsquemaFormulario(encontrada.proyecto.id);
@@ -135,6 +210,8 @@ export default function InspectionFormPage() {
   const camposArbol = useMemo(() => (esquema ? ordenar(esquema.campos_arbol) : []), [esquema]);
   const variables = useMemo(() => (esquema ? ordenar(esquema.variables) : []), [esquema]);
   const todos = useMemo(() => [...camposArbol, ...variables], [camposArbol, variables]);
+  const grupos = useMemo(() => agruparPorSeccion(todos, esquema?.secciones ?? []), [todos, esquema]);
+  const etiquetaDe = useMemo(() => new Map(todos.map((c) => [c.identificador, c.etiqueta])), [todos]);
   const convertidos = useMemo(() => valoresConvertidos(todos, valores), [todos, valores]);
   const faltantes = useMemo(() => {
     const m = new Map<string, string>();
@@ -145,6 +222,35 @@ export default function InspectionFormPage() {
   const finalizada = final?.finalizada === true;
   const bloqueado = guardando || finalizando || finalizada;
 
+  /** Etiqueta de un código de catálogo; el código si el catálogo no lo trae. */
+  const etiqueta = (catalogo: string, codigo: unknown): string => {
+    if (codigo === null || codigo === undefined || codigo === "") return "—";
+    return catalogos[catalogo]?.find((i) => i.codigo === codigo)?.etiqueta ?? String(codigo);
+  };
+
+  const ajustesBody = useMemo<AjustesBody | undefined>(() => {
+    const body: AjustesBody = {};
+    for (const a of AJUSTABLES) {
+      const e = ajustes[a.campo];
+      if (e?.valor) body[a.campo] = { valor_ajustado: e.valor, justificacion_ajuste_clasificacion: e.justificacion.trim() };
+    }
+    return Object.keys(body).length ? body : undefined;
+  }, [ajustes]);
+  const ajustesFirma = JSON.stringify(ajustesBody ?? {});
+  const ajustesSinJustificar = AJUSTABLES.some((a) => ajustes[a.campo]?.valor && !ajustes[a.campo]?.justificacion.trim());
+  const ajustesPendientesDeCalcular = ajustesFirma !== ajustesCalculados;
+
+  const sugeridaInspeccion = calculo?.fechas_sugeridas.fecha_proxima_inspeccion.fecha ?? "";
+  const sugeridaMonitoreo = calculo?.fechas_sugeridas.fecha_proximo_monitoreo.fecha ?? "";
+  const fechaInspeccionCambiada = !!fechaInspeccion && fechaInspeccion !== sugeridaInspeccion;
+  const fechaMonitoreoCambiada = !!fechaMonitoreo && fechaMonitoreo !== sugeridaMonitoreo;
+  const fechasSinJustificar = (fechaInspeccionCambiada || fechaMonitoreoCambiada) && !justificacionFecha.trim();
+
+  function invalidarCalculo() {
+    setCalculo(null); // la huella ya no corresponde
+    setConfirmando(false);
+  }
+
   function cambiar(id: string, v: ValorCrudo) {
     setValores((prev) => {
       const next = { ...prev, [id]: v };
@@ -153,22 +259,21 @@ export default function InspectionFormPage() {
     });
     setSinGuardar(true);
     setGuardadoOk(null);
-    setCalculo(null); // la huella ya no corresponde
-    setConfirmando(false);
+    invalidarCalculo();
   }
 
   async function guardar() {
-    if (!esquema || hayInvalidos) return;
+    if (!esquema || !ot || hayInvalidos) return;
     setGuardando(true);
     setGuardadoError(null);
     setGuardadoOk(null);
     try {
-      const body = armarBody(esquema.variables, esquema.campos_arbol, valores);
+      const body = armarBody(esquema.variables, esquema.campos_arbol, valores, ot.accion.codigo, ot.subtipo?.codigo ?? null);
       const res = inspectionId ? await guardarBorrador(inspectionId, body) : await crearBorrador(workOrderId, body);
       setInspectionId(res.inspection_id);
       guardarCopia(workOrderId, { inspectionId: res.inspection_id, valores });
       setSinGuardar(false);
-      setCalculo(null);
+      invalidarCalculo();
       setGuardadoOk("Borrador guardado.");
     } catch (err) {
       setGuardadoError(mensaje(err, "No se pudo guardar el borrador."));
@@ -184,7 +289,7 @@ export default function InspectionFormPage() {
     try {
       await subirFoto(inspectionId, vista, archivo);
       setFotos(await listarFotos(inspectionId));
-      setCalculo(null);
+      invalidarCalculo();
     } catch (err) {
       setFotosError(mensaje(err, "No se pudo subir la foto."));
     } finally {
@@ -193,11 +298,16 @@ export default function InspectionFormPage() {
   }
 
   async function calcular() {
-    if (!inspectionId) return;
+    if (!inspectionId || ajustesSinJustificar) return;
     setCalculando(true);
     setCalculoError(null);
     try {
-      setCalculo(await calcularInspeccion(inspectionId));
+      const res = await calcularInspeccion(inspectionId, ajustesBody);
+      setCalculo(res);
+      setAjustesCalculados(ajustesFirma);
+      setFechaInspeccion(res.fechas_sugeridas.fecha_proxima_inspeccion.fecha ?? "");
+      setFechaMonitoreo(res.fechas_sugeridas.fecha_proximo_monitoreo.fecha ?? "");
+      setJustificacionFecha("");
     } catch (err) {
       setCalculoError(mensaje(err, "No se pudo calcular."));
     } finally {
@@ -205,12 +315,25 @@ export default function InspectionFormPage() {
     }
   }
 
+  function cambiarAjuste(campo: CampoAjustable, parcial: Partial<AjusteEditable>) {
+    setAjustes((prev) => {
+      const actual = prev[campo] ?? { valor: "", justificacion: "" };
+      return { ...prev, [campo]: { ...actual, ...parcial } };
+    });
+    setConfirmando(false);
+  }
+
   async function finalizar() {
     if (!inspectionId || !calculo) return;
     setFinalizando(true);
     setFinalError(null);
     try {
-      const res = await finalizarInspeccion(inspectionId, calculo.huella);
+      const body: FinalizarBody = { huella: calculo.huella };
+      if (ajustesBody) body.ajustes = ajustesBody;
+      if (fechaInspeccionCambiada) body.fecha_proxima_inspeccion = fechaInspeccion;
+      if (fechaMonitoreoCambiada) body.fecha_proximo_monitoreo = fechaMonitoreo;
+      if (fechaInspeccionCambiada || fechaMonitoreoCambiada) body.justificacion_ajuste_fecha = justificacionFecha.trim();
+      const res = await finalizarInspeccion(inspectionId, body);
       setFinal(res);
       setConfirmando(false);
       if (res.finalizada) {
@@ -246,27 +369,9 @@ export default function InspectionFormPage() {
   }
   if (!ot || !esquema) return <p className="sivu-state">Cargando la inspección…</p>;
 
-  const seccion = (titulo: string, campos: CampoFormulario[]) => (
-    <section className="card card--pad sivu-insp__section">
-      <h2>{titulo}</h2>
-      <div className="sivu-insp__grid">
-        {campos
-          .filter((c) => cumple(c.condicion_activacion, convertidos))
-          .map((c) => (
-            <InspectionField
-              key={c.identificador}
-              campo={c}
-              valor={valores[c.identificador]}
-              onChange={(v) => cambiar(c.identificador, v)}
-              disabled={bloqueado}
-              referencia={referenciaArbol(ot, c.identificador)}
-              faltante={faltantes.get(c.identificador)}
-              projectId={ot.proyecto.id}
-            />
-          ))}
-      </div>
-    </section>
-  );
+  const hayEtiquetasPendientes = todos.some((c) => c.etiqueta_pendiente);
+  const puedeFinalizar =
+    !!calculo?.puede_finalizar && !sinGuardar && !finalizada && !ajustesPendientesDeCalcular && !ajustesSinJustificar && !fechasSinJustificar;
 
   return (
     <div className="sivu-insp">
@@ -275,7 +380,10 @@ export default function InspectionFormPage() {
       </Link>
       <header className="page-header">
         <div>
-          <h1>Evaluación inicial</h1>
+          <h1>
+            {ot.accion.etiqueta}
+            {ot.subtipo ? ` · ${ot.subtipo.etiqueta}` : ""}
+          </h1>
           <p className="page-header__sub">
             {ot.codigo_ot ?? "OT"} · {ot.arbol?.tree_code ?? "sin árbol"}
             {ot.arbol?.nombre_comun ? ` · ${ot.arbol.nombre_comun}` : ""} · {ot.proyecto.nombre_proyecto}
@@ -285,16 +393,37 @@ export default function InspectionFormPage() {
       </header>
 
       <div className="sivu-insp__notes">
-        <PendingNotice what="los nombres visibles de los campos; se muestran sus nombres técnicos" refs="B16 · etiqueta_pendiente" compact />
-        <PendingNotice what="la lectura del borrador guardado; lo escrito se recuerda solo en este navegador" refs="B17" compact />
+        <PendingNotice what="el borrador guardado desde cualquier equipo; por ahora se retoma en este mismo navegador" refs="B17" compact />
+        {hayEtiquetasPendientes && <PendingNotice what="el nombre visible de algunos campos" refs="B16 · etiqueta_pendiente" compact />}
       </div>
 
-      {seccion("Datos del árbol", camposArbol)}
-      {seccion("Evaluación", variables)}
+      {grupos.map(({ seccion, campos }) => {
+        const visibles = campos.filter((c) => cumple(c.condicion_activacion, convertidos));
+        if (visibles.length === 0) return null;
+        return (
+          <section key={seccion.codigo} className="card card--pad sivu-insp__section">
+            <h2>{seccion.etiqueta}</h2>
+            <div className="sivu-insp__grid">
+              {visibles.map((c) => (
+                <InspectionField
+                  key={c.identificador}
+                  campo={c}
+                  valor={valores[c.identificador]}
+                  onChange={(v) => cambiar(c.identificador, v)}
+                  disabled={bloqueado}
+                  referencia={referenciaArbol(ot, c.identificador)}
+                  faltante={faltantes.get(c.identificador)}
+                  projectId={ot.proyecto.id}
+                />
+              ))}
+            </div>
+          </section>
+        );
+      })}
 
       <section className="card card--pad sivu-insp__section">
         <h2>Fotografías</h2>
-        <p className="sivu-insp__intro">Cuatro vistas obligatorias (PR-010 v4.0). JPG o PNG, hasta 10 MB.</p>
+        <p className="sivu-insp__intro">Cuatro vistas obligatorias. JPG o PNG, hasta 10 MB.</p>
         {!inspectionId ? (
           <p className="sivu-state">Guarda el borrador para poder subir las fotos.</p>
         ) : (
@@ -302,12 +431,13 @@ export default function InspectionFormPage() {
             {VISTAS.map((v) => {
               const deVista = (fotos ?? []).filter((f) => f.vista === v);
               const ultima = deVista[deVista.length - 1];
+              const nombre = etiqueta("vista_foto", v);
               return (
                 <div key={v} className={`sivu-insp__photo ${faltantes.has("fotografias_arbol") && !ultima ? "is-missing" : ""}`}>
                   <div className="sivu-insp__thumb">
-                    {ultima ? <img src={ultima.url} alt={`Foto ${v}`} /> : <Icon name="camera" size={22} />}
+                    {ultima ? <img src={ultima.url} alt={`Foto: ${nombre}`} /> : <Icon name="camera" size={22} />}
                   </div>
-                  <span className="sivu-insp__photo-name">{v}</span>
+                  <span className="sivu-insp__photo-name">{nombre}</span>
                   <small>{deVista.length ? `${deVista.length} subida(s)` : "Sin foto"}</small>
                   <label className="btn btn-secondary btn-sm">
                     {subiendo === v ? "Subiendo…" : ultima ? "Agregar otra" : "Subir foto"}
@@ -334,7 +464,106 @@ export default function InspectionFormPage() {
         )}
       </section>
 
-      {calculo && <ResultadoCalculo calculo={calculo} finalizada={!!final} />}
+      {calculo && <ResultadoCalculo calculo={calculo} finalizada={!!final} etiqueta={etiqueta} etiquetaCampo={(c) => etiquetaDe.get(c) ?? c} />}
+
+      {calculo && calculo.puede_finalizar && !finalizada && (
+        <section className="card card--pad sivu-insp__section">
+          <h2>Ajustes del Inspector</h2>
+          <p className="sivu-insp__intro">
+            Opcional. Si tu criterio técnico difiere del resultado calculado, elige otra categoría y justifícala. El valor calculado se
+            conserva junto al ajuste.
+          </p>
+          <div className="sivu-insp__grid">
+            {AJUSTABLES.map((a) => {
+              const calculada = calculo.resultado[a.calculada];
+              const opciones = (catalogos[a.catalogo] ?? []).filter((i) => !NO_AJUSTABLES.includes(i.codigo) && i.codigo !== calculada);
+              const e = ajustes[a.campo] ?? { valor: "", justificacion: "" };
+              const id = `ajuste-${a.campo}`;
+              return (
+                <div key={a.campo} className="sivu-insp-field">
+                  <div className="sivu-insp-field__head">
+                    <label htmlFor={id} className="sivu-insp-field__name">
+                      {a.titulo}
+                    </label>
+                  </div>
+                  <small className="sivu-insp-field__hint">Calculado: {etiqueta(a.catalogo, calculada)}</small>
+                  <select id={id} value={e.valor} onChange={(ev) => cambiarAjuste(a.campo, { valor: ev.target.value })} disabled={finalizando}>
+                    <option value="">Mantener el calculado</option>
+                    {opciones.map((o) => (
+                      <option key={o.codigo} value={o.codigo}>
+                        {o.etiqueta}
+                      </option>
+                    ))}
+                  </select>
+                  {e.valor && (
+                    <textarea
+                      id={`${id}-justificacion`}
+                      rows={2}
+                      placeholder="Justificación técnica del ajuste (obligatoria)"
+                      aria-label={`Justificación del ajuste de ${a.titulo}`}
+                      value={e.justificacion}
+                      onChange={(ev) => cambiarAjuste(a.campo, { justificacion: ev.target.value })}
+                      disabled={finalizando}
+                    />
+                  )}
+                  {e.valor && !e.justificacion.trim() && <small className="sivu-insp-field__error">Escribe la justificación del ajuste.</small>}
+                </div>
+              );
+            })}
+          </div>
+          {ajustesPendientesDeCalcular && (
+            <p className="sivu-state" role="status">
+              Recalcula para ver el efecto de los ajustes en la prioridad y las fechas antes de finalizar.
+            </p>
+          )}
+
+          <h2 className="sivu-insp__subhead">Próximas fechas</h2>
+          <p className="sivu-insp__intro">Vienen sugeridas según el nivel de riesgo. Si cambias alguna, justifícalo.</p>
+          <div className="sivu-insp__grid">
+            <div className="sivu-insp-field">
+              <label htmlFor="fecha-proxima-inspeccion" className="sivu-insp-field__name">
+                Próxima inspección
+              </label>
+              <input
+                id="fecha-proxima-inspeccion"
+                type="date"
+                value={fechaInspeccion}
+                onChange={(e) => setFechaInspeccion(e.target.value)}
+                disabled={finalizando || calculo.fechas_sugeridas.fecha_proxima_inspeccion.inmediato_y_continuo}
+              />
+              <small className="sivu-insp-field__hint">Sugerida: {fechaSugeridaTexto(calculo.fechas_sugeridas.fecha_proxima_inspeccion)}</small>
+            </div>
+            <div className="sivu-insp-field">
+              <label htmlFor="fecha-proximo-monitoreo" className="sivu-insp-field__name">
+                Próximo monitoreo
+              </label>
+              <input
+                id="fecha-proximo-monitoreo"
+                type="date"
+                value={fechaMonitoreo}
+                onChange={(e) => setFechaMonitoreo(e.target.value)}
+                disabled={finalizando || calculo.fechas_sugeridas.fecha_proximo_monitoreo.inmediato_y_continuo}
+              />
+              <small className="sivu-insp-field__hint">Sugerida: {fechaSugeridaTexto(calculo.fechas_sugeridas.fecha_proximo_monitoreo)}</small>
+            </div>
+            {(fechaInspeccionCambiada || fechaMonitoreoCambiada) && (
+              <div className="sivu-insp-field">
+                <label htmlFor="justificacion-fecha" className="sivu-insp-field__name">
+                  Justificación del cambio de fecha
+                </label>
+                <textarea
+                  id="justificacion-fecha"
+                  rows={2}
+                  value={justificacionFecha}
+                  onChange={(e) => setJustificacionFecha(e.target.value)}
+                  disabled={finalizando}
+                />
+                {fechasSinJustificar && <small className="sivu-insp-field__error">Escribe por qué cambias la fecha sugerida.</small>}
+              </div>
+            )}
+          </div>
+        </section>
+      )}
 
       {final && (
         <section className={`card card--pad sivu-insp__section ${final.finalizada ? "sivu-insp__done" : ""}`} role="status">
@@ -345,9 +574,7 @@ export default function InspectionFormPage() {
                 Próxima inspección: {fechaChile(final.fecha_proxima_inspeccion)} · próximo monitoreo:{" "}
                 {fechaChile(final.fecha_proximo_monitoreo)}.
               </p>
-              <p className="sivu-insp__intro">
-                Los datos pasan a vigentes cuando se completa la OT (CC-050); completar la OT todavía no está disponible.
-              </p>
+              <p className="sivu-insp__intro">Los datos pasan a vigentes cuando el Usuario municipal completa la OT.</p>
             </>
           ) : (
             <>
@@ -369,7 +596,7 @@ export default function InspectionFormPage() {
         </div>
         {confirmando ? (
           <div className="sivu-insp__bar-actions">
-            <span>¿Finalizar con las fechas sugeridas? No se podrá editar después.</span>
+            <span>¿Finalizar la inspección? No se podrá editar después.</span>
             <button type="button" className="btn btn-secondary btn-sm" onClick={() => setConfirmando(false)} disabled={finalizando}>
               Cancelar
             </button>
@@ -382,15 +609,15 @@ export default function InspectionFormPage() {
             <button type="button" className="btn btn-secondary btn-sm" onClick={guardar} disabled={bloqueado || hayInvalidos || (!sinGuardar && !!inspectionId)}>
               {guardando ? "Guardando…" : "Guardar borrador"}
             </button>
-            <button type="button" className="btn btn-secondary btn-sm" onClick={calcular} disabled={!inspectionId || sinGuardar || calculando || finalizada}>
-              {calculando ? "Calculando…" : "Calcular"}
-            </button>
             <button
               type="button"
-              className="btn btn-primary btn-sm"
-              onClick={() => setConfirmando(true)}
-              disabled={!calculo?.puede_finalizar || sinGuardar || finalizada}
+              className="btn btn-secondary btn-sm"
+              onClick={calcular}
+              disabled={!inspectionId || sinGuardar || calculando || finalizada || ajustesSinJustificar}
             >
+              {calculando ? "Calculando…" : calculo && ajustesPendientesDeCalcular ? "Recalcular" : "Calcular"}
+            </button>
+            <button type="button" className="btn btn-primary btn-sm" onClick={() => setConfirmando(true)} disabled={!puedeFinalizar}>
               Finalizar
             </button>
           </div>
@@ -400,20 +627,39 @@ export default function InspectionFormPage() {
   );
 }
 
-/** Resultado de `/calcular`, tal como lo entrega el backend (códigos; etiquetas pendientes, B18). */
-function ResultadoCalculo({ calculo, finalizada }: { calculo: CalculoRespuesta; finalizada: boolean }) {
+function fechaSugeridaTexto(f: CalculoRespuesta["fechas_sugeridas"]["fecha_proxima_inspeccion"]): string {
+  if (f.inmediato_y_continuo) return "inmediato y continuo";
+  const rango = f.rango_fin && f.rango_fin !== f.rango_inicio ? ` (entre ${fechaChile(f.rango_inicio)} y ${fechaChile(f.rango_fin)})` : "";
+  return `${fechaChile(f.fecha)}${rango}`;
+}
+
+/** Resultado de `/calcular`, con las etiquetas de los catálogos de la API. */
+function ResultadoCalculo({
+  calculo,
+  finalizada,
+  etiqueta,
+  etiquetaCampo,
+}: {
+  calculo: CalculoRespuesta;
+  finalizada: boolean;
+  etiqueta: (catalogo: string, codigo: unknown) => string;
+  etiquetaCampo: (campo: string) => string;
+}) {
   const r = calculo.resultado;
-  const filas: [string, unknown][] = [
-    ["nivel_riesgo", calculo.nivel_riesgo],
-    ["clasificacion_riesgo_calculada", r.clasificacion_riesgo_calculada],
-    ["clasificacion_raices_cuello", r.clasificacion_raices_cuello],
-    ["clasificacion_tronco", r.clasificacion_tronco],
-    ["clasificacion_copa_ramas", r.clasificacion_copa_ramas],
-    ["clasificacion_infraestructura_calculada", r.clasificacion_infraestructura_calculada],
-    ["clasificacion_prioridad_calculada", r.clasificacion_prioridad_calculada],
+  const filas: [string, string][] = [
+    ["Nivel de riesgo", etiqueta("clasificacion_riesgo", calculo.nivel_riesgo)],
+    ["Riesgo calculado", etiqueta("clasificacion_riesgo", r.clasificacion_riesgo_calculada)],
+    ["Raíces y cuello", etiqueta("clasificacion_riesgo", r.clasificacion_raices_cuello)],
+    ["Tronco", etiqueta("clasificacion_riesgo", r.clasificacion_tronco)],
+    ["Copa y ramas", etiqueta("clasificacion_riesgo", r.clasificacion_copa_ramas)],
+    ["Conflicto con la infraestructura", etiqueta("clasificacion_infraestructura", r.clasificacion_infraestructura_calculada)],
+    ["Prioridad de intervención", etiqueta("clasificacion_prioridad", r.clasificacion_prioridad_calculada)],
   ];
-  const fi = calculo.fechas_sugeridas.fecha_proxima_inspeccion;
-  const fm = calculo.fechas_sugeridas.fecha_proximo_monitoreo;
+  const ajustadas: [string, string][] = [
+    ["Riesgo ajustado", etiqueta("clasificacion_riesgo", r.clasificacion_riesgo_ajustada)],
+    ["Infraestructura ajustada", etiqueta("clasificacion_infraestructura", r.clasificacion_infraestructura_ajustada)],
+    ["Prioridad ajustada", etiqueta("clasificacion_prioridad", r.clasificacion_prioridad_ajustada)],
+  ].filter(([, v]) => v !== "—") as [string, string][];
   return (
     <section className="card card--pad sivu-insp__section" aria-live="polite">
       <h2>Resultado del cálculo</h2>
@@ -428,7 +674,7 @@ function ResultadoCalculo({ calculo, finalizada }: { calculo: CalculoRespuesta; 
         <ul className="sivu-insp__missing">
           {calculo.campos_faltantes.map((f) => (
             <li key={`${f.hoja}-${f.campo}`}>
-              <a href={`#wrap-campo-${f.campo}`}>{f.campo}</a> — {f.motivo}
+              <a href={`#wrap-campo-${f.campo}`}>{etiquetaCampo(f.campo)}</a> — {f.motivo}
             </li>
           ))}
         </ul>
@@ -441,22 +687,21 @@ function ResultadoCalculo({ calculo, finalizada }: { calculo: CalculoRespuesta; 
         </ul>
       )}
       <dl className="sivu-insp__result">
-        {filas.map(([k, v]) => (
+        {[...filas, ...ajustadas].map(([k, v]) => (
           <div key={k}>
             <dt>{k}</dt>
-            <dd>{v === null || v === undefined ? "—" : String(v)}</dd>
+            <dd>{v}</dd>
           </div>
         ))}
         <div>
-          <dt>fecha_proxima_inspeccion sugerida</dt>
-          <dd>{fi.inmediato_y_continuo ? "Inmediata y continua" : fechaChile(fi.fecha)}</dd>
+          <dt>Próxima inspección sugerida</dt>
+          <dd>{fechaSugeridaTexto(calculo.fechas_sugeridas.fecha_proxima_inspeccion)}</dd>
         </div>
         <div>
-          <dt>fecha_proximo_monitoreo sugerida</dt>
-          <dd>{fm.inmediato_y_continuo ? "Inmediato y continuo" : fechaChile(fm.fecha)}</dd>
+          <dt>Próximo monitoreo sugerido</dt>
+          <dd>{fechaSugeridaTexto(calculo.fechas_sugeridas.fecha_proximo_monitoreo)}</dd>
         </div>
       </dl>
-      <PendingNotice what="las etiquetas de los resultados; se muestran sus códigos" refs="B18" compact />
     </section>
   );
 }

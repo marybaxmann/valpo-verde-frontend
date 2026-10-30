@@ -8,6 +8,13 @@ import type { BorradorBody, CampoFormulario, CondicionActivacion, ValorCampo } f
  * todo resultado lo decide el backend en `/calcular` (CC-054).
  */
 
+/**
+ * Tipos de inspección con evaluación completa (REGLAS_GENERALES fila 28,
+ * CC-040): usan el mismo esquema de B16. El Levantamiento con árbol nuevo
+ * (CC-052) y el Monitoreo por subtipo esperan su contrato en el backend.
+ */
+export const TIPOS_CON_FORMULARIO: readonly string[] = ["evaluacion_inicial", "reevaluacion"];
+
 /** Lo que guarda cada control: texto para números y listas, booleano o códigos. */
 export type ValorCrudo = string | boolean | string[] | null;
 export type ValoresCrudos = Record<string, ValorCrudo>;
@@ -111,7 +118,9 @@ export function valoresConvertidos(campos: CampoFormulario[], crudos: ValoresCru
 export function armarBody(
   variables: CampoFormulario[],
   camposArbol: CampoFormulario[],
-  crudos: ValoresCrudos
+  crudos: ValoresCrudos,
+  tipo: string,
+  subtipo: string | null
 ): BorradorBody {
   const todos = valoresConvertidos([...variables, ...camposArbol], crudos);
   const bloque = (campos: CampoFormulario[]) => {
@@ -123,8 +132,8 @@ export function armarBody(
     return out;
   };
   return {
-    tipo_inspeccion_realizada: "evaluacion_inicial",
-    subtipo_inspeccion: null,
+    tipo_inspeccion_realizada: tipo,
+    subtipo_inspeccion: subtipo,
     variables: bloque(variables),
     campos_arbol: bloque(camposArbol),
   };

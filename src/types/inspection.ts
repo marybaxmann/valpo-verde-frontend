@@ -35,9 +35,17 @@ export interface OpcionCampo {
   etiqueta: string;
 }
 
+/** Sección del formulario (B16): orden de las columnas del Excel, etiquetas aprobadas por la responsable. */
+export interface SeccionFormulario {
+  codigo: string;
+  etiqueta: string;
+  orden?: number;
+  propuesta?: boolean;
+}
+
 export interface CampoFormulario {
   identificador: string;
-  /** Hoy igual a `identificador` mientras `etiqueta_pendiente` sea true (B16). */
+  /** Etiqueta aprobada (B16); igual a `identificador` si `etiqueta_pendiente` es true. */
   etiqueta: string;
   etiqueta_pendiente: boolean;
   tipo: string | null;
@@ -48,7 +56,7 @@ export interface CampoFormulario {
   /** Texto literal de la columna de obligatoriedad del Excel. */
   obligatoriedad: string | null;
   condicion_activacion: CondicionActivacion | null;
-  seccion: string | null;
+  seccion: SeccionFormulario | null;
   /** Fila del Excel. */
   orden: number | null;
   exigencia: string | null;
@@ -58,7 +66,8 @@ export interface CampoFormulario {
 }
 
 export interface EsquemaFormulario {
-  tipo: "evaluacion_inicial";
+  tipo: string;
+  secciones?: SeccionFormulario[];
   variables: CampoFormulario[];
   campos_arbol: CampoFormulario[];
 }
@@ -67,8 +76,9 @@ export type ValorCampo = string | number | boolean | null | string[] | number[];
 
 /** Body de POST /work-orders/:id/inspections y PATCH /inspections/:id (estado COMPLETO, nunca un delta). */
 export interface BorradorBody {
-  tipo_inspeccion_realizada: "evaluacion_inicial";
-  subtipo_inspeccion: null;
+  /** Debe corresponder a la acción de la OT (D-196). */
+  tipo_inspeccion_realizada: string;
+  subtipo_inspeccion: string | null;
   variables: Record<string, ValorCampo>;
   campos_arbol: Record<string, ValorCampo>;
 }
@@ -134,3 +144,22 @@ export type FinalizacionRespuesta =
       fecha_proximo_monitoreo: string;
       [k: string]: unknown;
     };
+
+/** Ajuste del Inspector sobre una clasificación calculada (D-170 a D-173; CC-044). */
+export interface AjusteClasificacion {
+  valor_ajustado: string;
+  justificacion_ajuste_clasificacion: string;
+}
+
+export type CampoAjustable = "clasificacion_riesgo" | "clasificacion_infraestructura" | "clasificacion_prioridad";
+
+export type AjustesBody = Partial<Record<CampoAjustable, AjusteClasificacion>>;
+
+/** Body de POST /inspections/:id/finalizar (CC-054, CC-055; D-202 a D-204). */
+export interface FinalizarBody {
+  huella: string;
+  ajustes?: AjustesBody;
+  fecha_proxima_inspeccion?: string;
+  fecha_proximo_monitoreo?: string;
+  justificacion_ajuste_fecha?: string;
+}
