@@ -4,7 +4,7 @@ import { listarDiagnosticos } from "../api/diagnosticos";
 import { listarInventarioCompleto } from "../api/inventory";
 import { obtenerCatalogos } from "../api/catalogs";
 import type { CatalogoItem } from "../types/catalogs";
-import type { Componente, Diagnostico, ResultadoDiagnostico } from "../types/diagnostico";
+import { finalizadaYaVigente, type Componente, type Diagnostico, type ResultadoDiagnostico } from "../types/diagnostico";
 import type { ArbolInventario } from "../types/inventory";
 import { TerritorialModule } from "./TerritorialModule";
 import { ClassificationBadge, getClassificationTone } from "./ClassificationBadge";
@@ -130,7 +130,7 @@ export function DiagnosisModule({ vista }: { vista: Vista }) {
                       <dt>Prioridad</dt>
                       <dd>{diag.vigente.resultado.prioridad?.etiqueta ?? "—"}</dd>
                     </div>
-                    {diag.vigente.inspection_id === diag.inspection_id && (
+                    {finalizadaYaVigente(diag) && (
                       <>
                         <div>
                           <dt>Próxima inspección</dt>
@@ -145,7 +145,7 @@ export function DiagnosisModule({ vista }: { vista: Vista }) {
                   </dl>
                 </>
               )}
-              {diag && diag.vigente?.inspection_id !== diag.inspection_id && (
+              {diag && !finalizadaYaVigente(diag) && (
                 <details className="sivu-diag__pending" open={!diag.vigente}>
                   <summary>
                     {diag.tipo_inspeccion?.etiqueta ?? "Inspección"} {diag.codigo_inspeccion ?? ""} finalizada

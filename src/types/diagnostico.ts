@@ -29,6 +29,7 @@ export interface ResultadoDiagnostico {
 export interface EvaluacionVigente {
   evento: string;
   work_order_id: string | null;
+  /** null cuando la vigente se compuso al completar una OT (`ot_completada`). */
   inspection_id: string | null;
   /** Desde cuándo rige (al completar la OT o al recomponer tras una anulación). */
   desde: string;
@@ -50,10 +51,20 @@ export interface Diagnostico {
   nombre_comun: string | null;
   inspection_id: string;
   codigo_inspeccion: string | null;
+  /** OT de la inspección finalizada. */
+  work_order_id: string | null;
   tipo_inspeccion: CodigoEtiqueta | null;
   fecha_inspeccion: string | null;
   fecha_proxima_inspeccion: string | null;
   fecha_proximo_monitoreo: string | null;
   resultado: ResultadoDiagnostico;
   vigente: EvaluacionVigente | null;
+}
+
+/** La inspección finalizada ya es parte de la evaluación vigente (misma OT completada, o la misma inspección). */
+export function finalizadaYaVigente(d: Diagnostico): boolean {
+  const v = d.vigente;
+  if (!v) return false;
+  if (v.inspection_id && v.inspection_id === d.inspection_id) return true;
+  return !!v.work_order_id && v.work_order_id === d.work_order_id;
 }

@@ -1,4 +1,4 @@
-import type { CodigoEtiqueta, Diagnostico, ResultadoDiagnostico } from "../types/diagnostico";
+import { finalizadaYaVigente, type CodigoEtiqueta, type Diagnostico, type ResultadoDiagnostico } from "../types/diagnostico";
 import { ClassificationBadge, getClassificationTone } from "./ClassificationBadge";
 import { fechaChile } from "../lib/dates";
 
@@ -89,8 +89,8 @@ function Resultado({ r }: { r: ResultadoDiagnostico }) {
  */
 export function TreeDiagnosis({ d }: { d: Diagnostico }) {
   const v = d.vigente;
-  const pendienteDeCompletar = !v || v.inspection_id !== d.inspection_id;
-  const fechasDeLaVigente = !!v && v.inspection_id === d.inspection_id;
+  const fechasDeLaVigente = finalizadaYaVigente(d);
+  const pendienteDeCompletar = !fechasDeLaVigente;
   return (
     <section className="sivu-treediag" aria-label="Evaluación del árbol">
       <div className="sivu-treediag__head">
