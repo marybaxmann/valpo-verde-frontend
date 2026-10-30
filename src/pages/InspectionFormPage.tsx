@@ -6,6 +6,7 @@ import {
   crearBorrador,
   finalizarInspeccion,
   guardarBorrador,
+  eliminarFoto,
   listarFotos,
   listarInspeccionesDeOt,
   obtenerEsquemaFormulario,
@@ -140,6 +141,8 @@ export default function InspectionFormPage() {
   const [fotos, setFotos] = useState<FotoInspeccion[] | null>(null);
   const [fotosError, setFotosError] = useState<string | null>(null);
   const [subiendo, setSubiendo] = useState<VistaFoto | null>(null);
+  const [porEliminar, setPorEliminar] = useState<string | null>(null);
+  const [eliminando, setEliminando] = useState(false);
 
   const [calculo, setCalculo] = useState<CalculoRespuesta | null>(null);
   const [calculando, setCalculando] = useState(false);
@@ -293,6 +296,22 @@ export default function InspectionFormPage() {
     }
   }
 
+  async function quitarFoto(photoId: string) {
+    if (!inspectionId) return;
+    setEliminando(true);
+    setFotosError(null);
+    try {
+      await eliminarFoto(inspectionId, photoId);
+      setFotos(await listarFotos(inspectionId));
+      setPorEliminar(null);
+      invalidarCalculo();
+    } catch (err) {
+      setFotosError(mensaje(err, "No se pudo eliminar la foto."));
+    } finally {
+      setEliminando(false);
+    }
+  }
+
   async function calcular() {
     if (!inspectionId || ajustesSinJustificar) return;
     setCalculando(true);
@@ -440,7 +459,9 @@ export default function InspectionFormPage() {
 
       <section className="card card--pad sivu-insp__section">
         <h2>Fotografías</h2>
-        <p className="sivu-insp__intro">Cuatro vistas obligatorias. JPG o PNG, hasta 10 MB.</p>
+        <p className="sivu-insp__intro">
+          Cuatro vistas obligatorias. JPG o PNG, hasta 10 MB. Mientras la inspección esté en borrador, una foto subida por error se puede eliminar.
+        </p>
         {!inspectionId ? (
           <p className="sivu-state">Guarda el borrador para poder subir las fotos.</p>
         ) : (
@@ -456,6 +477,34 @@ export default function InspectionFormPage() {
                   </div>
                   <span className="sivu-insp__photo-name">{nombre}</span>
                   <small>{deVista.length ? `${deVista.length} subida(s)` : "Sin foto"}</small>
+                  {!finalizada && deVista.length > 0 && (
+                    <ul className="sivu-insp__photo-list" aria-label={`Fotos subidas: ${nombre}`}>
+                      {deVista.map((f, n) => (
+                        <li key={f.id}>
+                          <img src={f.url} alt={`${nombre}, foto ${n + 1}`} />
+                          {porEliminar === f.id ? (
+                            <span className="sivu-insp__photo-confirm">
+                              <button type="button" className="btn btn-primary btn-sm" onClick={() => void quitarFoto(f.id)} disabled={eliminando}>
+                                {eliminando ? "Eliminando…" : "Sí, eliminar"}
+                              </button>
+                              <button type="button" className="btn btn-ghost btn-sm" onClick={() => setPorEliminar(null)} disabled={eliminando}>
+                                No
+                              </button>
+                            </span>
+                          ) : (
+                            <button
+                              type="button"
+                              className="btn btn-ghost btn-sm"
+                              onClick={() => setPorEliminar(f.id)}
+                              disabled={subiendo !== null || eliminando}
+                            >
+                              Eliminar
+                            </button>
+                          )}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
                   <label className="btn btn-secondary btn-sm">
                     {subiendo === v ? "Subiendo…" : ultima ? "Agregar otra" : "Subir foto"}
                     <input

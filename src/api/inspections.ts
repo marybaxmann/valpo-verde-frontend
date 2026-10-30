@@ -49,6 +49,11 @@ export function subirFoto(inspectionId: string, vista: VistaFoto, archivo: File)
   return api.post(`/api/sivu/inspections/${inspectionId}/photos`, form);
 }
 
+/** Quita una foto subida por error; el backend solo lo permite en un borrador (Preguardado). */
+export function eliminarFoto(inspectionId: string, photoId: string): Promise<void> {
+  return api.delete(`/api/sivu/inspections/${inspectionId}/photos/${photoId}`);
+}
+
 /** No escribe nada: devuelve resultados, faltantes y la `huella` para finalizar (CC-054). Con ajustes, muestra su efecto. */
 export function calcularInspeccion(inspectionId: string, ajustes?: AjustesBody): Promise<CalculoRespuesta> {
   return api

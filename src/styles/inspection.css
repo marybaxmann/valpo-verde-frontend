@@ -199,6 +199,35 @@
   object-fit: cover;
 }
 
+.sivu-insp__photo-list {
+  display: grid;
+  gap: 6px;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sivu-insp__photo-list li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sivu-insp__photo-list img {
+  width: 44px;
+  height: 33px;
+  border-radius: 6px;
+  object-fit: cover;
+  flex: none;
+}
+
+.sivu-insp__photo-confirm {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
 /* Resultado */
 .sivu-insp__missing {
   margin: 10px 0;
