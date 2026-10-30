@@ -1,5 +1,5 @@
 import type { CampoFormulario } from "../types/inspection";
-import { valorInvalido, type ValorCrudo } from "../lib/inspectionForm";
+import { nombreLegible, valorInvalido, type ValorCrudo } from "../lib/inspectionForm";
 import { SpeciesInput } from "./SpeciesInput";
 
 /**
@@ -16,6 +16,7 @@ export function InspectionField({
   referencia,
   faltante,
   projectId,
+  etiquetaDe,
 }: {
   campo: CampoFormulario;
   valor: ValorCrudo | undefined;
@@ -27,6 +28,8 @@ export function InspectionField({
   faltante?: string;
   /** Proyecto de la OT, para sugerir especies del catálogo (CC-053). */
   projectId?: string;
+  /** Etiqueta de otro campo del formulario, para leer la condición en palabras (B16). */
+  etiquetaDe?: (identificador: string) => string | undefined;
 }) {
   const id = `campo-${campo.identificador}`;
   const invalido = valorInvalido(campo, valor);
@@ -131,15 +134,30 @@ export function InspectionField({
       <div className="sivu-insp-field__head">
         <label id={`${id}-label`} htmlFor={id} className="sivu-insp-field__name">
           {campo.etiqueta}
-          {campo.unidad && campo.unidad !== "Sin unidad" && <span className="sivu-insp-field__unit">{campo.unidad}</span>}
+          {mostrarUnidad(campo) && <span className="sivu-insp-field__unit">{campo.unidad}</span>}
         </label>
         {campo.obligatoriedad && <span className="sivu-insp-field__req">{campo.obligatoriedad}</span>}
       </div>
       {control}
       {referencia && <small className="sivu-insp-field__hint">Registrado en el árbol: {referencia}</small>}
-      {campo.condicion_texto && <small className="sivu-insp-field__hint">{campo.condicion_texto}</small>}
+      {campo.condicion_texto && <small className="sivu-insp-field__hint">{condicionLegible(campo.condicion_texto, etiquetaDe)}</small>}
       {invalido && <small className="sivu-insp-field__error">No es un número válido.</small>}
       {faltante && <small className="sivu-insp-field__error">{faltante}</small>}
     </div>
   );
+}
+
+/** La unidad se agrega solo si la etiqueta aprobada no la trae ya, p. ej. «Altura total (m)». */
+function mostrarUnidad(campo: CampoFormulario): boolean {
+  const u = campo.unidad;
+  if (!u || u === "Sin unidad") return false;
+  return !campo.etiqueta.includes(`(${u}`) && !campo.etiqueta.includes(`(${u.split(" ")[0]}`);
+}
+
+/** Condición del Excel con los nombres técnicos de otros campos reemplazados por su etiqueta. */
+function condicionLegible(texto: string, etiquetaDe?: (id: string) => string | undefined): string {
+  if (!etiquetaDe) return texto;
+  return texto.replace(/[a-z]+(?:_[a-z0-9]+)+/g, (id) => {
+    return `«${etiquetaDe(id) ?? nombreLegible(id)}»`;
+  });
 }

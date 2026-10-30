@@ -35,6 +35,7 @@ import { Icon } from "../components/Icons";
 import {
   armarBody,
   cumple,
+  nombreLegible,
   ordenar,
   TIPOS_CON_FORMULARIO,
   valorInvalido,
@@ -413,6 +414,7 @@ export default function InspectionFormPage() {
                   referencia={referenciaArbol(ot, c.identificador)}
                   faltante={faltantes.get(c.identificador)}
                   projectId={ot.proyecto.id}
+                  etiquetaDe={(id) => etiquetaDe.get(id)}
                 />
               ))}
             </div>
@@ -463,7 +465,7 @@ export default function InspectionFormPage() {
         )}
       </section>
 
-      {calculo && <ResultadoCalculo calculo={calculo} finalizada={!!final} etiqueta={etiqueta} etiquetaCampo={(c) => etiquetaDe.get(c) ?? c} />}
+      {calculo && <ResultadoCalculo calculo={calculo} finalizada={!!final} etiqueta={etiqueta} etiquetaCampo={(c) => etiquetaDe.get(c) ?? (c === "fotografias_arbol" ? "Fotografías del árbol" : nombreLegible(c))} />}
 
       {calculo && calculo.puede_finalizar && !finalizada && (
         <section className="card card--pad sivu-insp__section">

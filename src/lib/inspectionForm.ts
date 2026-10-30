@@ -146,3 +146,9 @@ export function valorInvalido(campo: CampoFormulario, crudo: ValorCrudo | undefi
     ["decimal", "entero", "lista_decimal"].includes(campo.tipo_entrada ?? "") && convertir(campo, crudo) === undefined
   );
 }
+
+/** Nombre técnico sin etiqueta en el esquema → texto legible («fotografias_arbol» → «Fotografias arbol»). */
+export function nombreLegible(id: string): string {
+  const t = id.replace(/_/g, " ");
+  return t.charAt(0).toUpperCase() + t.slice(1);
+}
