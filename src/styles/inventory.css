@@ -405,6 +405,70 @@ section > .sivu-picker__state {
   background: var(--surface-sunken);
 }
 
+.sivu-treephotos__open {
+  display: block;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: zoom-in;
+}
+
+.sivu-treephotos__open:focus-visible {
+  outline: 2px solid var(--accent, currentColor);
+  outline-offset: 2px;
+  border-radius: var(--radius-md);
+}
+
+.sivu-photoviewer {
+  width: min(960px, calc(100vw - 32px));
+  max-height: calc(100vh - 32px);
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--surface, #fff);
+  color: inherit;
+}
+
+.sivu-photoviewer[open] {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  gap: 10px;
+}
+
+.sivu-photoviewer::backdrop {
+  background: rgb(12 20 16 / 0.6);
+}
+
+.sivu-photoviewer__head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+}
+
+.sivu-photoviewer__head span {
+  color: var(--text-muted);
+}
+
+.sivu-photoviewer__head .btn {
+  margin-left: auto;
+}
+
+.sivu-photoviewer img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  max-height: calc(100vh - 160px);
+  object-fit: contain;
+  border-radius: 10px;
+  background: var(--surface-sunken);
+}
+
+.sivu-photoviewer__nav {
+  display: flex;
+  justify-content: space-between;
+}
+
 .sivu-treephotos__grid span {
   font-family: var(--font-mono);
   font-size: 11.5px;
