@@ -58,7 +58,8 @@ export function OtGestion({ ot, role, onChanged }: { ot: OtListada; role: string
     setOk(null);
     try {
       await accion();
-      setOk(mensajeOk);
+      // Si el tablero recarga la OT, el aviso lo muestra el tablero (un solo mensaje).
+      if (!recargarOt) setOk(mensajeOk);
       setAbierto(null);
       setAnulando(null);
       setMotivo("");
