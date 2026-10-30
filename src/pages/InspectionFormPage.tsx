@@ -333,6 +333,22 @@ export default function InspectionFormPage() {
       setFinal(res);
       setConfirmando(false);
     } catch (err) {
+      // Si la respuesta se perdió pero el backend ya la finalizó (un segundo
+      // envío choca con «no está en Preguardado»), se muestra lo que quedó en B17.
+      const yaFinalizada = await listarInspeccionesDeOt(workOrderId)
+        .then((l) => l.some((i) => i.inspection_id === inspectionId && i.estado_registro === "finalizado"))
+        .catch(() => false);
+      if (yaFinalizada) {
+        setFinal({
+          finalizada: true,
+          fecha_proxima_inspeccion_sugerida: sugeridaInspeccion,
+          fecha_proximo_monitoreo_sugerida: sugeridaMonitoreo,
+          fecha_proxima_inspeccion: fechaInspeccion,
+          fecha_proximo_monitoreo: fechaMonitoreo,
+        });
+        setConfirmando(false);
+        return;
+      }
       setFinalError(
         err instanceof ApiError && err.status === 409
           ? "El borrador cambió desde el último cálculo. Vuelve a calcular antes de finalizar."
