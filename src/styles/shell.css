@@ -75,10 +75,10 @@
   align-items: center;
   gap: 16px;
   padding: 12px 20px 12px 24px;
-  /* Al desplazarse, el contenido pasa por detrás: fondo difuminado del color de la página. */
-  background: color-mix(in srgb, var(--bg) 72%, transparent);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
+  /* Fondo sólido del color de la página: con transparencia, el contenido se
+     asomaba detrás al desplazarse (en los navegadores que no aplican el difuminado). */
+  background: var(--bg);
+  box-shadow: 0 1px 0 var(--border);
 }
 
 /* Destinos con ancla (#miembros) no quedan tapados por la barra fija. */
