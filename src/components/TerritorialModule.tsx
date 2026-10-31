@@ -13,7 +13,8 @@ const ProjectMapView = lazy(() => import("./ProjectMapView"));
  * maqueta SIVU Lab, pantallas Riesgo Arbóreo e Infraestructura, CC-057):
  * mapa a pantalla completa bajo la barra, encabezado flotante con el
  * módulo y el lugar, y una tarjeta flotante con el resumen del módulo
- * (`card`). Solo consulta: las acciones de registro no viven aquí
+ * (`card`), que se puede minimizar para ver el mapa completo; en el
+ * teléfono ocupa la mitad inferior. Solo consulta: las acciones de registro no viven aquí
  * (CC-059, punto 6; CC-061).
  */
 export function TerritorialModule({
@@ -34,6 +35,7 @@ export function TerritorialModule({
   const apiKey = getArcgisApiKey();
   const [detail, setDetail] = useState<ProjectWithSector | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [minimizada, setMinimizada] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -84,7 +86,25 @@ export function TerritorialModule({
             )}
           </p>
         </header>
-        {!error && <section className="sivu-terr__card">{card}</section>}
+        {!error && (
+          <div className={`sivu-terr__dock ${minimizada ? "is-min" : ""}`}>
+            <button
+              type="button"
+              className="sivu-terr__toggle"
+              aria-expanded={!minimizada}
+              aria-controls="sivu-terr-card"
+              onClick={() => setMinimizada((m) => !m)}
+            >
+              {minimizada ? `Mostrar ${moduleLabel}` : "Minimizar"}
+              <Icon name="chevron-down" size={13} />
+            </button>
+            {!minimizada && (
+              <section id="sivu-terr-card" className="sivu-terr__card">
+                {card}
+              </section>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
