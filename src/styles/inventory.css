@@ -421,12 +421,16 @@ section > .sivu-picker__state {
 
 .sivu-photoviewer {
   width: min(960px, calc(100vw - 32px));
-  max-height: calc(100vh - 32px);
+  height: min(820px, calc(100dvh - 32px));
+  max-width: none;
+  max-height: none;
   padding: 12px;
   border: 1px solid var(--border);
-  border-radius: 14px;
+  border-radius: 18px;
   background: var(--surface, #fff);
   color: inherit;
+  overflow: hidden;
+  overscroll-behavior: contain;
 }
 
 .sivu-photoviewer[open] {
@@ -454,19 +458,86 @@ section > .sivu-picker__state {
   margin-left: auto;
 }
 
-.sivu-photoviewer img {
+/* Espacio fijo para la foto: su proporción no mueve los controles. */
+.sivu-photoviewer__stage {
+  min-height: 0;
+  border-radius: 12px;
+  background: var(--surface-sunken);
+  overflow: hidden;
+  /* El deslizamiento horizontal lo maneja el visor; el gesto vertical y el zoom quedan al navegador. */
+  touch-action: pan-y pinch-zoom;
+  user-select: none;
+}
+
+.sivu-photoviewer__stage img {
   display: block;
   width: 100%;
   height: 100%;
-  max-height: calc(100vh - 160px);
   object-fit: contain;
-  border-radius: 10px;
-  background: var(--surface-sunken);
+  animation: sivu-foto-in 0.2s ease-out;
+  -webkit-user-drag: none;
+}
+
+@keyframes sivu-foto-in {
+  from { opacity: 0.4; }
+  to { opacity: 1; }
 }
 
 .sivu-photoviewer__nav {
   display: flex;
+  align-items: center;
   justify-content: space-between;
+  gap: 8px;
+}
+
+.sivu-photoviewer__nav .btn {
+  min-width: 44px;
+  height: 44px;
+}
+
+.sivu-photoviewer__dots {
+  display: flex;
+  gap: 6px;
+}
+
+.sivu-photoviewer__dots i {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--border);
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.sivu-photoviewer__dots i.is-on {
+  background: var(--sivu-accent);
+  transform: scale(1.25);
+}
+
+/* Teléfono: el visor ocupa la pantalla y los botones quedan solo con flecha. */
+@media (max-width: 560px) {
+  .sivu-photoviewer {
+    width: 100vw;
+    height: 100dvh;
+    margin: 0;
+    padding: 12px 12px max(12px, env(safe-area-inset-bottom));
+    border: 0;
+    border-radius: 0;
+  }
+
+  .sivu-photoviewer__nav .btn span {
+    display: none;
+  }
+
+  .sivu-photoviewer__nav .btn {
+    width: 52px;
+    padding: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sivu-photoviewer__stage img {
+    animation: none;
+  }
 }
 
 .sivu-treephotos__grid span {
@@ -826,6 +897,62 @@ section > .sivu-picker__state {
 
 @media (prefers-reduced-motion: reduce) {
   .sivu-sheet {
+    animation: none;
+  }
+}
+
+/* Aviso flotante hacia la ficha del árbol seleccionado (pantallas angostas). */
+.sivu-inv__sheet-anchor {
+  scroll-margin-top: 12px;
+}
+
+.sivu-inv__goto {
+  display: none;
+}
+
+@media (max-width: 1100px) {
+  .sivu-inv__goto {
+    position: fixed;
+    left: 50%;
+    bottom: max(18px, env(safe-area-inset-bottom));
+    z-index: 30;
+    transform: translateX(-50%);
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    height: 46px;
+    padding: 0 18px;
+    border: 0;
+    border-radius: 999px;
+    background: var(--shell-active-bg);
+    color: var(--shell-active-fg);
+    box-shadow: 0 10px 28px -8px rgba(20, 35, 15, 0.55);
+    font: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    white-space: nowrap;
+    cursor: pointer;
+    animation: sivu-goto-in 0.25s ease-out;
+  }
+
+  .sivu-inv__goto svg {
+    transform: rotate(90deg);
+  }
+
+  .sivu-inv__goto-code {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    opacity: 0.8;
+  }
+}
+
+@keyframes sivu-goto-in {
+  from { opacity: 0; transform: translate(-50%, 10px); }
+  to { opacity: 1; transform: translate(-50%, 0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sivu-inv__goto {
     animation: none;
   }
 }

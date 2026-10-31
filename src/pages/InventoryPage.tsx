@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useMemo, useState } from "react";
+import { lazy, Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 import { getProjectWithSector } from "../api/projects";
 import { listarInventario, listarInventarioCompleto } from "../api/inventory";
@@ -162,6 +162,17 @@ export default function InventoryPage() {
         .map((a) => ({ id: a.id, lng: a.ubicacion!.lng, lat: a.ubicacion!.lat, title: a.tree_code })),
     [todos]
   );
+  // Con la tabla y la ficha apiladas (pantallas angostas), la ficha queda
+  // más abajo: un aviso flotante lleva a ella mientras no esté a la vista.
+  const fichaRef = useRef<HTMLDivElement>(null);
+  const [fichaVisible, setFichaVisible] = useState(true);
+  useEffect(() => {
+    const el = fichaRef.current;
+    if (!el || !selectedId) return;
+    const obs = new IntersectionObserver(([e]) => setFichaVisible(e.isIntersecting), { threshold: 0.15 });
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, [selectedId]);
   const selected = (todos ?? []).find((a) => a.id === selectedId) ?? (pagina?.data ?? []).find((a) => a.id === selectedId) ?? null;
 
   const project = detail?.proyecto;
@@ -368,6 +379,7 @@ export default function InventoryPage() {
 
           <aside className="sivu-inv__side">
             {selected && (
+              <div ref={fichaRef} className="sivu-inv__sheet-anchor">
               <TreeSheet
                 key={selected.id}
                 projectId={projectId}
@@ -375,6 +387,7 @@ export default function InventoryPage() {
                 cicloVida={ciclo(selected.estado_ciclo_vida)}
                 onClose={() => setSelectedId(null)}
               />
+              </div>
             )}
             <article className="sivu-panel">
               <div className="sivu-panel__head">
@@ -408,6 +421,17 @@ export default function InventoryPage() {
             </article>
           </aside>
         </div>
+      )}
+
+      {selected && !fichaVisible && (
+        <button
+          type="button"
+          className="sivu-inv__goto"
+          onClick={() => fichaRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })}
+        >
+          Ver resumen del árbol <span className="sivu-inv__goto-code">{selected.tree_code}</span>
+          <Icon name="arrow-right" size={15} />
+        </button>
       )}
 
       {creating && (

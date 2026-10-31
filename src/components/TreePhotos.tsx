@@ -138,11 +138,19 @@ function VisorFoto({
   const foto = fotos[indice];
   const hay = fotos.length > 1;
   const ir = (paso: number) => onCambiar((indice + paso + fotos.length) % fotos.length);
+  // Inicio del toque o del clic: para distinguir un deslizamiento de un toque
+  // y para cerrar solo si el gesto empezó y terminó fuera del visor.
+  const inicio = useRef<{ x: number; y: number; fuera: boolean } | null>(null);
 
   useEffect(() => {
     const d = ref.current;
     if (d && !d.open) d.showModal();
   }, []);
+
+  const fueraDelVisor = (x: number, y: number) => {
+    const r = ref.current?.getBoundingClientRect();
+    return !!r && (x < r.left || x > r.right || y < r.top || y > r.bottom);
+  };
 
   return (
     <dialog
@@ -150,7 +158,26 @@ function VisorFoto({
       className="sivu-photoviewer"
       aria-label={`${etiqueta(foto.vista)} del árbol`}
       onClose={onCerrar}
-      onClick={(e) => e.target === e.currentTarget && onCerrar()}
+      onPointerDown={(e) => {
+        inicio.current = { x: e.clientX, y: e.clientY, fuera: fueraDelVisor(e.clientX, e.clientY) };
+      }}
+      onPointerUp={(e) => {
+        const i = inicio.current;
+        inicio.current = null;
+        if (!i) return;
+        const dx = e.clientX - i.x;
+        const dy = e.clientY - i.y;
+        // Deslizar a los lados cambia de foto; nunca cierra.
+        if (hay && Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy) * 1.5) {
+          ir(dx < 0 ? 1 : -1);
+          return;
+        }
+        // Solo un toque que empieza y termina sobre el fondo, fuera del visor, lo cierra.
+        if (i.fuera && fueraDelVisor(e.clientX, e.clientY) && Math.abs(dx) < 10 && Math.abs(dy) < 10) onCerrar();
+      }}
+      onPointerCancel={() => {
+        inicio.current = null;
+      }}
       onKeyDown={(e) => {
         if (!hay) return;
         if (e.key === "ArrowLeft") ir(-1);
@@ -168,14 +195,21 @@ function VisorFoto({
           Cerrar
         </button>
       </div>
-      <img src={foto.url} alt={`${etiqueta(foto.vista)} del árbol`} />
+      <div className="sivu-photoviewer__stage">
+        <img key={foto.id} src={foto.url} alt={`${etiqueta(foto.vista)} del árbol`} draggable={false} />
+      </div>
       {hay && (
         <div className="sivu-photoviewer__nav">
-          <button type="button" className="btn btn-ghost btn-sm" onClick={() => ir(-1)}>
-            <Icon name="arrow-left" size={13} /> Anterior
+          <button type="button" className="btn btn-ghost" onClick={() => ir(-1)} aria-label="Foto anterior">
+            <Icon name="arrow-left" size={15} /> <span>Anterior</span>
           </button>
-          <button type="button" className="btn btn-ghost btn-sm" onClick={() => ir(1)}>
-            Siguiente <Icon name="arrow-right" size={13} />
+          <span className="sivu-photoviewer__dots" aria-hidden="true">
+            {fotos.map((f, i) => (
+              <i key={f.id} className={i === indice ? "is-on" : ""} />
+            ))}
+          </span>
+          <button type="button" className="btn btn-ghost" onClick={() => ir(1)} aria-label="Foto siguiente">
+            <span>Siguiente</span> <Icon name="arrow-right" size={15} />
           </button>
         </div>
       )}
