@@ -12,6 +12,7 @@ import type { Diagnostico } from "../types/diagnostico";
 import { fechaChile } from "../lib/dates";
 import type { ResumenProyecto } from "../types/resumen";
 import { BarRow } from "../components/BarRow";
+import type { ConteoCatalogo } from "../types/resumen";
 import { getClassificationTone } from "../components/ClassificationBadge";
 
 /**
@@ -27,6 +28,61 @@ import { getClassificationTone } from "../components/ClassificationBadge";
 function tonoBarra(etiqueta: string | null): string {
   const t = etiqueta ? getClassificationTone(etiqueta) : "neutral";
   return t === "neutral" ? "#A7B0AB" : `var(--classification-${t})`;
+}
+
+/** Color de cada estado de OT (valores de la maqueta SIVU Lab, `OT_COLOR`; CC-058). */
+const COLOR_ESTADO_OT: Record<string, string> = {
+  pendiente: "var(--ot-pendiente)",
+  programada: "var(--ot-programada)",
+  en_ejecucion: "var(--ot-en-ejecucion)",
+  completada: "var(--ot-completada)",
+  cancelada: "var(--ot-cancelada)",
+};
+
+const MESES = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"];
+
+/**
+ * Anillo de riesgo (maqueta: `Donut`). Dibuja los conteos que entrega B7,
+ * sin calcular nada: cada tramo es proporcional a su conteo. «Sin
+ * clasificación» va en blanco, como en la maqueta.
+ */
+function RiskDonut({ partes, total }: { partes: ConteoCatalogo[]; total: number }) {
+  const R = 70;
+  const C = 2 * Math.PI * R;
+  const suma = partes.reduce((a, p) => a + p.total, 0);
+  let acc = 0;
+  return (
+    <svg viewBox="0 0 180 180" className="sivu-donut" role="img" aria-label={`${total} árboles con diagnóstico, por nivel de riesgo`}>
+      <circle cx="90" cy="90" r={R} fill="none" className="sivu-donut__track" strokeWidth="22" />
+      {suma > 0 &&
+        partes.map((p) => {
+          const len = (p.total / suma) * C;
+          const el = (
+            <circle
+              key={p.codigo ?? "sin"}
+              cx="90"
+              cy="90"
+              r={R}
+              fill="none"
+              stroke={p.etiqueta ? tonoBarra(p.etiqueta) : "#FFFFFF"}
+              className={`sivu-donut__seg ${p.etiqueta ? "" : "sivu-donut__seg--white"}`}
+              strokeWidth="22"
+              strokeDasharray={`${Math.max(0, len - (partes.length > 1 ? 2 : 0))} ${C}`}
+              strokeDashoffset={-acc}
+              transform="rotate(-90 90 90)"
+            />
+          );
+          acc += len;
+          return el;
+        })}
+      <text x="90" y="88" textAnchor="middle" className="sivu-donut__num">
+        {total}
+      </text>
+      <text x="90" y="110" textAnchor="middle" className="sivu-donut__lbl">
+        con diagnóstico
+      </text>
+    </svg>
+  );
 }
 
 export default function ProjectDashboard() {
@@ -96,12 +152,13 @@ export default function ProjectDashboard() {
   const actual = resumen?.id === projectId ? resumen : null;
   const r = actual && "data" in actual ? actual.data : null;
   const errorResumen = actual && "error" in actual ? actual.error : null;
-  const kpis: { label: string; icon: IconName; value: number | undefined; sub: string }[] = [
+  // Íconos y tonos de la maqueta (`Kpi`): menta por defecto; el tono propio tiñe el ícono y su fondo.
+  const kpis: { label: string; icon: IconName; value: number | undefined; sub: string; tone?: string }[] = [
     { label: "Árboles registrados", icon: "leaf", value: r?.arboles_total, sub: "en el inventario" },
     { label: "Georreferenciados", icon: "pin", value: r?.georreferenciados, sub: r ? `${r.sin_georreferenciar} sin ubicación` : "" },
-    { label: "Con diagnóstico", icon: "check-square", value: r?.con_diagnostico, sub: "inspección finalizada" },
-    { label: "Sin evaluación", icon: "alert", value: r?.sin_evaluacion, sub: "aún no inspeccionados" },
-    { label: "Especies", icon: "list", value: r?.especies_distintas, sub: "distintas" },
+    { label: "Con diagnóstico", icon: "clipboard", value: r?.con_diagnostico, sub: "inspección finalizada" },
+    { label: "Sin evaluación", icon: "clock", value: r?.sin_evaluacion, sub: "aún no inspeccionados", tone: "var(--ot-pendiente)" },
+    { label: "Especies", icon: "sparkle", value: r?.especies_distintas, sub: "distintas" },
   ];
   const modules = NAV_GROUPS.flatMap((g) => g.modules).filter((m) => m.path !== "dashboard");
 
@@ -145,7 +202,11 @@ export default function ProjectDashboard() {
           <section className="sivu-kpis" aria-label="Indicadores principales">
             {kpis.map((k) => (
               <div key={k.label} className={`sivu-kpi ${r ? "" : "sivu-kpi--pending"}`}>
-                <span className="sivu-kpi__icon" aria-hidden="true">
+                <span
+                  className="sivu-kpi__icon"
+                  aria-hidden="true"
+                  style={k.tone ? { color: k.tone, background: `color-mix(in srgb, ${k.tone} 16%, transparent)` } : undefined}
+                >
                   <Icon name={k.icon} size={16} />
                 </span>
                 <span className="sivu-kpi__lbl">{k.label}</span>
@@ -154,8 +215,8 @@ export default function ProjectDashboard() {
               </div>
             ))}
             <div className="sivu-kpi sivu-kpi--pending" data-refs="B9">
-              <span className="sivu-kpi__icon" aria-hidden="true">
-                <Icon name="alert" size={16} />
+              <span className="sivu-kpi__icon sivu-kpi__icon--incid" aria-hidden="true">
+                <Icon name="inbox" size={16} />
               </span>
               <span className="sivu-kpi__lbl">Incidencias abiertas</span>
               <span className="sivu-kpi__val">Pendiente</span>
@@ -173,10 +234,23 @@ export default function ProjectDashboard() {
               </div>
               {r ? (
                 <>
-                  {r.por_riesgo.map((c) => (
-                    <BarRow key={c.codigo ?? "sin"} label={c.etiqueta ?? "Sin clasificación"} value={c.total} total={r.arboles_total} tone={tonoBarra(c.etiqueta)} />
-                  ))}
-                  <BarRow label="Sin evaluación" value={r.sin_evaluacion} total={r.arboles_total} tone="#A7B0AB" />
+                  <div className="sivu-risk-split">
+                    <RiskDonut partes={r.por_riesgo} total={r.con_diagnostico} />
+                    <ul className="sivu-risk-legend">
+                      {r.por_riesgo.map((c) => (
+                        <li key={c.codigo ?? "sin"}>
+                          <i style={{ background: c.etiqueta ? tonoBarra(c.etiqueta) : "#FFFFFF" }} />
+                          <span>{c.etiqueta ?? "Sin clasificación"}</span>
+                          <strong>{c.total}</strong>
+                        </li>
+                      ))}
+                      <li className="sivu-risk-legend__muted">
+                        <i className="sivu-risk-legend__none" />
+                        <span>Sin evaluación</span>
+                        <strong>{r.sin_evaluacion}</strong>
+                      </li>
+                    </ul>
+                  </div>
                   <p className="sivu-terr__note">Según el diagnóstico finalizado; pasa a vigente al completar la OT.</p>
                 </>
               ) : (
@@ -193,9 +267,14 @@ export default function ProjectDashboard() {
               </div>
               {r ? (
                 <>
-                  {r.por_ciclo_vida.map((c) => (
-                    <BarRow key={c.codigo ?? "sin"} label={c.etiqueta ?? c.codigo ?? "—"} value={c.total} total={r.arboles_total} />
-                  ))}
+                  <div className="sivu-lifecycle">
+                    {r.por_ciclo_vida.map((c) => (
+                      <div key={c.codigo ?? "sin"}>
+                        <strong>{c.total}</strong>
+                        <span>{c.etiqueta ?? c.codigo ?? "—"}</span>
+                      </div>
+                    ))}
+                  </div>
                   <h3 className="sivu-dash__sub">Especies más registradas</h3>
                   {r.especies_top.map((e) => (
                     <BarRow
@@ -217,14 +296,18 @@ export default function ProjectDashboard() {
                 <h2>Operación</h2>
               </div>
               {r && r.ot_por_estado.length > 0 && (
-                <ul className="sivu-dash__states">
-                  {r.ot_por_estado.map((c) => (
-                    <li key={c.codigo ?? "sin"}>
-                      <span>{c.etiqueta ?? c.codigo ?? "—"}</span>
-                      <strong>{c.total}</strong>
-                    </li>
-                  ))}
-                </ul>
+                <>
+                  <span className="sivu-panel__sub">Órdenes de trabajo por estado</span>
+                  <ul className="sivu-statelist">
+                    {r.ot_por_estado.map((c) => (
+                      <li key={c.codigo ?? "sin"}>
+                        <i style={{ background: COLOR_ESTADO_OT[c.codigo ?? ""] ?? "var(--ot-pendiente)" }} />
+                        <span>{c.etiqueta ?? c.codigo ?? "—"}</span>
+                        <strong>{c.total}</strong>
+                      </li>
+                    ))}
+                  </ul>
+                </>
               )}
               {r && r.ot_por_estado.length === 0 && <p className="sivu-state">El proyecto no tiene órdenes de trabajo.</p>}
               <PendingNotice what="las incidencias por estado" refs="B9" compact />
@@ -243,11 +326,14 @@ export default function ProjectDashboard() {
                 <ul className="sivu-dash__agenda">
                   {agendaActual.slice(0, 6).map((it) => (
                     <li key={`${it.d.tree_id}-${it.tipo}`}>
-                      <span className="sivu-dash__agenda-date">{fechaChile(it.fecha)}</span>
-                      <span>
+                      <span className="sivu-dash__agenda-date" title={fechaChile(it.fecha)}>
+                        <strong>{it.fecha.slice(8, 10)}</strong>
+                        <small>{MESES[Number(it.fecha.slice(5, 7)) - 1]}</small>
+                      </span>
+                      <span className="sivu-dash__agenda-text">
                         <strong>{it.tipo}</strong>
                         <small>
-                          {it.d.tree_code} · {it.d.nombre_comun ?? it.d.especie_cientifica ?? ""}
+                          {it.d.tree_code} · {it.d.nombre_comun ?? it.d.especie_cientifica ?? ""} · {it.fecha.slice(0, 4)}
                         </small>
                       </span>
                     </li>

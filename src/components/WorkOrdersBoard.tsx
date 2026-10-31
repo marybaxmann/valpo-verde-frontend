@@ -39,6 +39,18 @@ function titulo(ot: OtListada): string {
   return ot.subtipo ? `${ot.accion.etiqueta} · ${ot.subtipo.etiqueta}` : ot.accion.etiqueta;
 }
 
+/** Color del estado de la OT (maqueta SIVU Lab, `OT_COLOR`; tokens en global.css). */
+const ESTADOS_LEYENDA: { codigo: string; etiqueta: string }[] = [
+  { codigo: "pendiente", etiqueta: "Pendiente" },
+  { codigo: "programada", etiqueta: "Programada" },
+  { codigo: "en_ejecucion", etiqueta: "En ejecución" },
+  { codigo: "completada", etiqueta: "Completada" },
+  { codigo: "cancelada", etiqueta: "Cancelada" },
+];
+function colorEstado(codigo: string): string {
+  return `var(--ot-${codigo.replace(/_/g, "-")}, var(--ot-pendiente))`;
+}
+
 function arbolTexto(ot: OtListada): string {
   if (!ot.arbol) return "Sin árbol (Levantamiento)";
   const nombre = ot.arbol.nombre_comun ?? ot.arbol.especie_cientifica;
@@ -234,6 +246,14 @@ export function WorkOrdersBoard({
               <h2>
                 {MESES[mes.month]} <span>{mes.year}</span>
               </h2>
+              <ul className="sivu-mant__legend" aria-label="Colores por estado">
+                {ESTADOS_LEYENDA.filter((e) => incluirCerradas || (e.codigo !== "completada" && e.codigo !== "cancelada")).map((e) => (
+                  <li key={e.codigo}>
+                    <i style={{ background: colorEstado(e.codigo) }} />
+                    {e.etiqueta}
+                  </li>
+                ))}
+              </ul>
               <div className="sivu-mant__cal-nav">
                 <button type="button" className="sivu-topbar__icon-btn" onClick={() => moverMes(-1)} aria-label="Mes anterior">
                   <Icon name="arrow-left" size={15} />
@@ -268,11 +288,14 @@ export function WorkOrdersBoard({
                       <button
                         key={o.id}
                         type="button"
-                        className={`sivu-mant__evt ${o.id === selectedId ? "is-sel" : ""}`}
-                        title={`${titulo(o)} · ${o.estado.etiqueta}`}
+                        className={`sivu-mant__evt ${o.id === selectedId ? "is-sel" : ""} ${o.estado.codigo === "cancelada" ? "is-off" : ""}`}
+                        style={{ ["--c" as string]: colorEstado(o.estado.codigo) }}
+                        title={`${titulo(o)} · ${o.arbol?.tree_code ?? "sin árbol"} · ${o.estado.etiqueta}`}
                         onClick={() => setSelectedId(o.id)}
                       >
-                        {titulo(o)}
+                        <i aria-hidden="true" />
+                        <span>{o.arbol?.tree_code ?? titulo(o)}</span>
+                        {o.arbol && <small>{titulo(o)}</small>}
                       </button>
                     ))}
                 </div>
@@ -432,7 +455,9 @@ export function WorkOrdersBoard({
                           <strong>{titulo(o)}</strong>
                           <small>{showProject ? `${o.proyecto.nombre_proyecto ?? ""} · ${arbolTexto(o)}` : arbolTexto(o)}</small>
                         </span>
-                        <span className="sivu-mant__state">{o.estado.etiqueta}</span>
+                        <span className="sivu-mant__state" style={{ ["--c" as string]: colorEstado(o.estado.codigo) }}>
+                          {o.estado.etiqueta}
+                        </span>
                       </button>
                     </li>
                   ))}

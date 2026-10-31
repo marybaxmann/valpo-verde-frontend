@@ -9,6 +9,7 @@ import Graphic from "@arcgis/core/Graphic";
 import Polygon from "@arcgis/core/geometry/Polygon";
 import type { SectorGeoJson } from "../types/project";
 import Point from "@arcgis/core/geometry/Point";
+import * as reactiveUtils from "@arcgis/core/core/reactiveUtils";
 import "@arcgis/core/assets/esri/themes/light/main.css";
 import {
   DEFAULT_MAP_VIEW,
@@ -35,6 +36,10 @@ export interface MapPoint {
    * PR-016, tokens `--classification-*`); `neutral` = sin evaluación.
    */
   tone?: "critical" | "high" | "medium" | "low" | "neutral";
+  /** Nombre que acompaña al código en la etiqueta del seleccionado (p. ej. el nombre común). */
+  label?: string;
+  /** Dato del módulo en la etiqueta del seleccionado (p. ej. el nivel de riesgo). */
+  detail?: string;
 }
 
 /** `#rrggbb` con transparencia, para el halo del pin. */
@@ -85,6 +90,8 @@ export default function ProjectMapView({
   const onSelectRef = useRef(onSelect);
   const [status, setStatus] = useState<"loading" | "ready" | "error">("loading");
   const [basemap, setBasemap] = useState<BasemapId>(getPreferredBasemap);
+  // Posición en pantalla del punto seleccionado, para el halo y la etiqueta (maqueta: .halo, .callout).
+  const [marca, setMarca] = useState<{ x: number; y: number } | null>(null);
   const initialBasemap = useRef(basemap);
 
   useEffect(() => {
@@ -250,9 +257,46 @@ export default function ProjectMapView({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pointsKey, sectorKey, status]);
 
+  const seleccionado = (points ?? []).find((p) => p.id === selectedId) ?? null;
+  useEffect(() => {
+    const view = viewRef.current;
+    if (!view || status !== "ready" || !seleccionado) {
+      setMarca(null);
+      return;
+    }
+    const punto = new Point({ longitude: seleccionado.lng, latitude: seleccionado.lat });
+    const ubicar = () => {
+      const sp = view.toScreen(punto);
+      setMarca(sp ? { x: sp.x, y: sp.y } : null);
+    };
+    ubicar();
+    const h = reactiveUtils.watch(() => [view.extent, view.width, view.height], ubicar);
+    return () => h.remove();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [seleccionado?.id, seleccionado?.lng, seleccionado?.lat, status]);
+  const colorSel = seleccionado?.tone ? colorDeTono(seleccionado.tone) : "#3fb07e";
+
   return (
     <div className={className}>
       <div ref={containerRef} className="sivu-terr__map-canvas" />
+      {seleccionado && marca && (
+        <>
+          <div className="sivu-halo" style={{ left: marca.x, top: marca.y, ["--c" as string]: colorSel }} aria-hidden="true">
+            <span />
+            <span />
+          </div>
+          <div className="sivu-callout" style={{ left: marca.x, top: marca.y }}>
+            <span className="sivu-callout__code">{seleccionado.title}</span>
+            {seleccionado.label && <strong>{seleccionado.label}</strong>}
+            {seleccionado.detail && (
+              <span className="sivu-callout__lvl">
+                <i style={{ background: colorSel }} />
+                {seleccionado.detail}
+              </span>
+            )}
+          </div>
+        </>
+      )}
       {status === "ready" && (
         <BasemapSwitcher
           value={basemap}

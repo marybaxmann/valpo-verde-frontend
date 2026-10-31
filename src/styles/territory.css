@@ -431,3 +431,119 @@
 .sivu-diag__dot--high { background: var(--classification-high); }
 .sivu-diag__dot--medium { background: var(--classification-medium); }
 .sivu-diag__dot--low { background: var(--classification-low); }
+
+/* Árbol seleccionado en el mapa: halo que late y etiqueta con su línea
+   (maqueta SIVU Lab, styles.css: .halo, .callout; CC-058). */
+.sivu-halo {
+  position: absolute;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.sivu-halo span {
+  position: absolute;
+  left: -30px;
+  top: -30px;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(255, 255, 255, 0.9);
+  background: color-mix(in srgb, var(--c) 22%, transparent);
+  animation: sivu-pulse 2.6s ease-out infinite;
+}
+
+.sivu-halo span + span {
+  animation-delay: 1.3s;
+}
+
+.sivu-halo::after {
+  content: "";
+  position: absolute;
+  left: -10px;
+  top: -10px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--c);
+  border: 3px solid #fff;
+  box-shadow: 0 0 0 6px rgba(255, 255, 255, 0.18), 0 4px 14px rgba(0, 0, 0, 0.6);
+}
+
+@keyframes sivu-pulse {
+  0% { transform: scale(0.35); opacity: 1; }
+  100% { transform: scale(1.6); opacity: 0; }
+}
+
+.sivu-callout {
+  position: absolute;
+  z-index: 1;
+  transform: translate(-50%, calc(-100% - 46px));
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px 8px 10px;
+  border-radius: 14px;
+  background: var(--shell-glass-strong);
+  border: 1px solid var(--shell-line);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  box-shadow: var(--shell-float);
+  white-space: nowrap;
+  font-size: 13px;
+  color: var(--text);
+  pointer-events: none;
+  animation: sivu-callout-in 0.25s ease-out;
+}
+
+.sivu-callout::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: -34px;
+  width: 1px;
+  height: 34px;
+  background: linear-gradient(rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0.1));
+}
+
+.sivu-callout__code {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-muted);
+  padding: 3px 6px;
+  border-radius: 6px;
+  background: var(--shell-soft);
+}
+
+.sivu-callout strong {
+  font-weight: 600;
+}
+
+.sivu-callout__lvl {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-muted);
+  font-size: 12px;
+  padding-left: 10px;
+  border-left: 1px solid var(--shell-line);
+}
+
+.sivu-callout__lvl i {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+@keyframes sivu-callout-in {
+  from { opacity: 0; margin-top: 6px; }
+  to { opacity: 1; margin-top: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sivu-halo span,
+  .sivu-callout {
+    animation: none;
+  }
+}

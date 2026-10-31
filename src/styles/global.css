@@ -9,6 +9,13 @@
   --sivu-olive: #485635;
   --sivu-olive-2: #5f7146;
   --sivu-accent: #2f7a52;
+  /* Estados de OT (maqueta SIVU Lab, `OT_COLOR`; CC-058). */
+  --ot-pendiente: #C9D1CC;
+  --ot-programada: #7DB8E8;
+  --ot-en-ejecucion: #B79CF2;
+  --ot-completada: #8FD9B0;
+  --ot-cancelada: #6F7C75;
+  --incidencia: #B79CF2;
 
   --sivu-primary: var(--sivu-olive);
   --sivu-primary-dark: #34432a;

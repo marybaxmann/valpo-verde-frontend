@@ -303,7 +303,7 @@
 
 /* ---------- Pantallas medianas y pequeñas ---------- */
 
-@media (max-width: 1280px) {
+@media (max-width: 1180px) {
   .sivu-kpis { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .sivu-dash__risk,
   .sivu-dash__comp { grid-column: span 6; }
@@ -375,4 +375,227 @@
   font-size: 12px;
   font-weight: 600;
   color: var(--sivu-accent, #2f7a52);
+}
+
+/* ---------- Composición de la maqueta SIVU Lab (Dashboard.tsx, lab.css; CC-058) ---------- */
+
+.sivu-kpi__icon--incid {
+  color: var(--incidencia);
+  background: color-mix(in srgb, var(--incidencia) 16%, transparent);
+}
+
+.sivu-panel__sub {
+  display: block;
+  font-size: 11.5px;
+  color: var(--text-muted);
+  margin: 8px 0 6px;
+}
+
+/* Anillo de riesgo */
+.sivu-risk-split {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+}
+
+.sivu-donut {
+  width: 170px;
+  height: 170px;
+  flex: none;
+}
+
+.sivu-donut__track {
+  stroke: var(--shell-soft);
+}
+
+.sivu-donut__seg {
+  transition: stroke-dasharray 0.6s ease;
+}
+
+:root:not([data-theme="dark"]) .sivu-donut__seg--white {
+  stroke: #e7ebe3;
+}
+
+.sivu-donut__num {
+  fill: var(--text);
+  font-size: 34px;
+  font-weight: 300;
+  letter-spacing: -0.04em;
+}
+
+.sivu-donut__lbl {
+  fill: var(--text-muted);
+  font-size: 12px;
+}
+
+.sivu-risk-legend {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  font-size: 13px;
+  min-width: 0;
+}
+
+.sivu-risk-legend li {
+  display: grid;
+  grid-template-columns: 12px 1fr auto;
+  align-items: center;
+  gap: 10px;
+  color: var(--text-muted);
+}
+
+.sivu-risk-legend i {
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  box-shadow: 0 0 0 1.5px rgba(30, 45, 25, 0.2);
+}
+
+.sivu-risk-legend__none {
+  background: transparent;
+  border: 1.5px dashed var(--text-faint);
+  box-shadow: none !important;
+}
+
+.sivu-risk-legend strong {
+  color: var(--text);
+  font-weight: 600;
+  text-align: right;
+}
+
+.sivu-risk-legend__muted {
+  padding-top: 9px;
+  border-top: 1px solid var(--border);
+}
+
+/* Ciclo de vida en cifras */
+.sivu-lifecycle {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.sivu-lifecycle div {
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: var(--shell-soft);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.sivu-lifecycle strong {
+  font-size: 24px;
+  font-weight: 400;
+  letter-spacing: -0.03em;
+}
+
+.sivu-lifecycle span {
+  font-size: 11.5px;
+  color: var(--text-muted);
+}
+
+/* Estados con color */
+.sivu-statelist {
+  list-style: none;
+  margin: 0 0 10px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 12.5px;
+}
+
+.sivu-statelist li {
+  display: grid;
+  grid-template-columns: 10px 1fr auto;
+  align-items: center;
+  gap: 9px;
+  color: var(--text-muted);
+}
+
+.sivu-statelist i {
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+  box-shadow: 0 0 0 1px rgba(30, 45, 25, 0.2);
+}
+
+.sivu-statelist strong {
+  color: var(--text);
+  font-weight: 600;
+}
+
+/* Agenda con fecha en bloque */
+.sivu-dash__agenda li {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr);
+  background: none;
+  padding: 7px 0;
+  border-radius: 0;
+  border-top: 1px solid var(--border);
+}
+
+.sivu-dash__agenda li:first-child {
+  border-top: 0;
+  padding-top: 0;
+}
+
+.sivu-dash__agenda .sivu-dash__agenda-date {
+  min-width: 0;
+  height: 40px;
+  border-radius: 12px;
+  background: var(--shell-soft);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  font-family: inherit;
+  color: var(--text);
+}
+
+.sivu-dash__agenda-date strong {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.sivu-dash__agenda-date small {
+  margin-top: 2px;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+}
+
+.sivu-dash__agenda-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.sivu-dash__agenda-text strong {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.sivu-dash__agenda-text small {
+  font-size: 11.5px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+@media (max-width: 560px) {
+  .sivu-risk-split {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .sivu-donut {
+    align-self: center;
+  }
 }

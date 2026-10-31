@@ -68,6 +68,8 @@ export function DiagnosisModule({ vista }: { vista: Vista }) {
         lng: a.ubicacion!.lng,
         lat: a.ubicacion!.lat,
         title: a.tree_code,
+        label: a.nombre_comun ?? a.especie_cientifica ?? undefined,
+        detail: v?.etiqueta ?? "Evaluación pendiente",
         tone: v ? getClassificationTone(v.etiqueta) : ("neutral" as const),
       };
     });

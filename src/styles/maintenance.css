@@ -523,3 +523,114 @@
   display: grid;
   gap: 8px;
 }
+
+/* ---------- Paleta por estado de la maqueta SIVU Lab (lab.css: .evt, .cal__legend; CC-058) ---------- */
+
+.sivu-mant__cal-head {
+  flex-wrap: wrap;
+}
+
+.sivu-mant__legend {
+  list-style: none;
+  margin: 0 0 0 auto;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  font-size: 11.5px;
+  color: var(--text-muted);
+}
+
+.sivu-mant__legend li {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.sivu-mant__legend i {
+  width: 9px;
+  height: 9px;
+  border-radius: 3px;
+  box-shadow: 0 0 0 1px rgba(30, 45, 25, 0.2);
+}
+
+.sivu-mant__evt {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 22px;
+  padding: 2px 7px;
+  border-radius: 7px;
+  background: color-mix(in srgb, var(--c, var(--ot-pendiente)) 20%, transparent);
+  box-shadow: none;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.sivu-mant__evt:hover {
+  background: color-mix(in srgb, var(--c, var(--ot-pendiente)) 32%, transparent);
+}
+
+.sivu-mant__evt i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--c, var(--ot-pendiente));
+  flex: none;
+}
+
+.sivu-mant__evt span {
+  font-family: var(--font-mono);
+  font-weight: 600;
+  flex: none;
+}
+
+.sivu-mant__evt small {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--text-muted);
+  font-size: 10.5px;
+}
+
+.sivu-mant__evt.is-sel {
+  background: var(--c, var(--ot-pendiente));
+  color: #102018;
+  box-shadow: none;
+}
+
+.sivu-mant__evt.is-sel i {
+  background: #102018;
+}
+
+.sivu-mant__evt.is-sel small {
+  color: #102018;
+}
+
+.sivu-mant__evt.is-off {
+  opacity: 0.55;
+  text-decoration: line-through;
+}
+
+:root:not([data-theme="dark"]) .sivu-mant__evt i {
+  box-shadow: 0 0 0 1px rgba(30, 45, 25, 0.25);
+}
+
+.sivu-mant__state[style] {
+  color: var(--c);
+  background: color-mix(in srgb, var(--c) 16%, transparent);
+}
+
+:root:not([data-theme="dark"]) .sivu-mant__state[style] {
+  color: color-mix(in srgb, var(--c) 55%, #16200f);
+}
+
+.sivu-mant__day.is-today .sivu-mant__daynum {
+  align-self: flex-start;
+  padding: 1px 6px;
+  border-radius: 8px;
+  background: var(--sivu-accent);
+  color: var(--bg);
+  font-weight: 700;
+}
