@@ -669,3 +669,101 @@
   font-weight: 600;
   color: var(--text);
 }
+
+/* Pantalla angosta: en el calendario cada orden es un punto de su color y
+   las órdenes del mes se leen en la lista de abajo (pedido de la responsable:
+   en el teléfono solo se leía «A-»). */
+.sivu-mant__monthlist {
+  display: none;
+}
+
+@media (max-width: 700px) {
+  .sivu-mant__evt {
+    width: 10px;
+    min-height: 10px;
+    height: 10px;
+    padding: 0;
+    border-radius: 50%;
+    background: var(--c, var(--ot-pendiente));
+    box-shadow: 0 0 0 1px rgba(30, 45, 25, 0.2);
+  }
+
+  .sivu-mant__evt i,
+  .sivu-mant__evt span,
+  .sivu-mant__evt small {
+    display: none;
+  }
+
+  .sivu-mant__evt.is-sel {
+    box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--c, var(--ot-pendiente));
+  }
+
+  .sivu-mant__day {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-content: flex-start;
+    gap: 3px;
+  }
+
+  .sivu-mant__daynum {
+    flex: 0 0 100%;
+  }
+
+  .sivu-mant__monthlist {
+    list-style: none;
+    margin: 12px 0 0;
+    padding: 0;
+    display: grid;
+    gap: 6px;
+  }
+
+  .sivu-mant__monthlist button {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 48px;
+    padding: 6px 10px;
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--c, var(--ot-pendiente));
+    border-radius: 12px;
+    background: var(--surface);
+    color: var(--text);
+    text-align: left;
+    font: inherit;
+    cursor: pointer;
+  }
+
+  .sivu-mant__monthlist button.is-sel {
+    background: var(--surface-subtle);
+    border-color: var(--c, var(--ot-pendiente));
+  }
+
+  .sivu-mant__monthlist-day {
+    flex: none;
+    width: 30px;
+    font-size: 16px;
+    font-weight: 600;
+    text-align: center;
+  }
+
+  .sivu-mant__monthlist-text {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .sivu-mant__monthlist-text strong {
+    font-family: var(--font-mono);
+    font-size: 13px;
+  }
+
+  .sivu-mant__monthlist-text small {
+    font-size: 11.5px;
+    color: var(--text-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}

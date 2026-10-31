@@ -317,6 +317,36 @@ export function WorkOrdersBoard({
                 </div>
               ))}
             </div>
+            {/* Pantalla angosta: los días no alcanzan para el texto; las órdenes del mes van en lista. */}
+            {(() => {
+              const prefijo = `${mes.year}-${String(mes.month + 1).padStart(2, "0")}`;
+              const delMes = conFecha
+                .filter((o) => dia(o.fecha_accion_programada as string).startsWith(prefijo))
+                .sort((a, b) => (a.fecha_accion_programada as string).localeCompare(b.fecha_accion_programada as string));
+              return delMes.length > 0 ? (
+                <ul className="sivu-mant__monthlist" aria-label={`Órdenes de ${MESES[mes.month]}`}>
+                  {delMes.map((o) => (
+                    <li key={o.id}>
+                      <button
+                        type="button"
+                        className={o.id === selectedId ? "is-sel" : ""}
+                        style={{ ["--c" as string]: colorEstado(o.estado.codigo) }}
+                        onClick={() => setSelectedId(o.id)}
+                      >
+                        <span className="sivu-mant__monthlist-day">{Number(dia(o.fecha_accion_programada as string).slice(8))}</span>
+                        <span className="sivu-mant__monthlist-text">
+                          <strong>{o.arbol?.tree_code ?? o.codigo_ot ?? "—"}</strong>
+                          <small>{titulo(o)}</small>
+                        </span>
+                        <span className="sivu-mant__state" style={{ ["--c" as string]: colorEstado(o.estado.codigo) }}>
+                          {o.estado.etiqueta}
+                        </span>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              ) : null;
+            })()}
             {ots && conFecha.length === 0 && (
               <p className="sivu-mant__cal-empty">
                 Ninguna orden tiene fecha programada. La fecha la ingresa el responsable al programar la orden.
