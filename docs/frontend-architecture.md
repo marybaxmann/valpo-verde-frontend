@@ -163,13 +163,14 @@ email, nunca hardcodeado.
 
 ### UX-LOADER — Indicador de carga `SivuLoader` (demostración aislada)
 **Estado:** componente y demostración listos para evaluación; **aún no integrado** en ninguna pantalla. Rama `claude/ecstatic-fermat-ake8bm`.
-**Objetivo:** reemplazar, cuando la autora apruebe el resultado, los textos sueltos "Cargando…" por un indicador propio: una hoja que se desprende de una rama y flota sobre un paisaje del sur de Chile.
+**Objetivo:** reemplazar, cuando la autora apruebe el resultado, los textos sueltos "Cargando…" por un indicador propio: una hoja verde que flota llevada por el viento, como único elemento visual, sobre fondo limpio, con el texto de carga y una barra discreta debajo.
 **Archivos:** `src/components/SivuLoader.tsx`, `src/styles/sivu-loader.css`; demostración en `demo/sivu-loader.html` + `src/demo/` (con `npm run dev`, abrir `/demo/sivu-loader.html`; no es una ruta de la aplicación ni entra en el build).
 **Decisiones:**
-- SVG + CSS, sin dependencias. Lottie y Rive se descartaron: agregan un runtime (~60–250 KB) y un flujo de diseño externo (After Effects / editor Rive) sin aportar nada que esta animación necesite.
-- El paisaje son capas SVG estáticas; solo se animan `transform` y `opacity` de contenedores HTML (hilo del compositor), así la hoja sigue fluida aunque el hilo principal esté ocupado cargando.
-- Variantes `fullscreen` (sesión, perfil, cambio de pantalla) e `inline` (módulos, tarjetas, paneles). Texto configurable (`message`, por defecto "Preparando tu entorno verde…"), anunciado con `role="status"`.
-- Paleta propia del paisaje en variables `--sl-*`, con versión para modo oscuro; la paleta de clasificación de riesgo no se usa. Con `prefers-reduced-motion` la hoja queda en la rama y solo cambia su opacidad.
+- Sin paisajes ni escenarios (una primera versión con paisaje se descartó a pedido de la autora): la hoja es la única protagonista; solo la acompañan una sombra suave y dos trazos de viento muy tenues.
+- SVG + CSS, sin dependencias. Lottie y Rive se descartaron: agregan un runtime (~60–250 KB) y un flujo de diseño externo sin aportar nada que esta animación necesite.
+- Movimiento en cuatro contenedores anidados (avance lateral, flotación vertical, balanceo, giro 3D), cada uno con un período distinto y en ida y vuelta (`alternate`): el loop nunca se reinicia de golpe. Solo se animan `transform` y `opacity` (hilo del compositor).
+- Variantes `fullscreen` (fondo blanco cálido; sesión, perfil, cambio de pantalla) e `inline` (hoja pequeña, sin trazos de viento; módulos, tarjetas, paneles). Texto configurable (`message`, por defecto "Preparando tu entorno verde…"), anunciado con `role="status"`.
+- Colores de la paleta institucional, con versión para modo oscuro; la paleta de clasificación de riesgo no se usa. Con `prefers-reduced-motion` la hoja queda quieta y solo la barra cambia de opacidad.
 
 ---
 
