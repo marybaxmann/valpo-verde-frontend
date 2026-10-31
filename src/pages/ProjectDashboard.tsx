@@ -153,13 +153,13 @@ export default function ProjectDashboard() {
                 <span className="sivu-kpi__sub">{k.sub}</span>
               </div>
             ))}
-            <div className="sivu-kpi sivu-kpi--pending">
+            <div className="sivu-kpi sivu-kpi--pending" data-refs="B9">
               <span className="sivu-kpi__icon" aria-hidden="true">
                 <Icon name="alert" size={16} />
               </span>
               <span className="sivu-kpi__lbl">Incidencias abiertas</span>
               <span className="sivu-kpi__val">Pendiente</span>
-              <span className="sivu-kpi__sub">B9</span>
+              <span className="sivu-kpi__sub">en desarrollo</span>
             </div>
           </section>
 
