@@ -38,7 +38,6 @@ export default function MyOrdersPage() {
       subtitle="Órdenes de trabajo de las que eres responsable"
       load={(p) => listarMisOts({ ...p, project_id: projectId || undefined })}
       reloadKey={projectId || "todos"}
-      emptyOpen="No tienes órdenes de trabajo abiertas."
       emptyAll="No tienes órdenes de trabajo."
       showProject
       headerExtra={

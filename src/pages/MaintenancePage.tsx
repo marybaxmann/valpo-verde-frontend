@@ -17,7 +17,6 @@ export default function MaintenancePage() {
       subtitle="Órdenes de trabajo de mantenimiento del proyecto"
       load={(p) => listarOtsProyecto(projectId, { ...p, tipo_ot: "mantenimiento" })}
       reloadKey={projectId}
-      emptyOpen="No hay órdenes de mantenimiento abiertas."
       emptyAll="El proyecto no tiene órdenes de mantenimiento."
     />
   );

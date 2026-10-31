@@ -33,7 +33,6 @@ export default function InspectionOrdersPage() {
         }
         load={(p) => listarOtsProyecto(projectId, { ...p, tipo_ot: "inspeccion" })}
         reloadKey={`${projectId}|${version}`}
-        emptyOpen="No hay órdenes de inspección abiertas."
         emptyAll="El proyecto no tiene órdenes de inspección."
         headerExtra={
           isMunicipal ? (

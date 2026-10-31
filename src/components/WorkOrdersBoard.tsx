@@ -86,7 +86,6 @@ export function WorkOrdersBoard({
   subtitle,
   load,
   reloadKey,
-  emptyOpen,
   emptyAll,
   showProject = false,
   headerExtra,
@@ -96,7 +95,6 @@ export function WorkOrdersBoard({
   load: (params: { estado?: readonly string[]; limit: number; offset: number }) => Promise<ListadoOt>;
   /** Cambia cuando cambian los filtros externos (por ejemplo, el proyecto). */
   reloadKey: string;
-  emptyOpen: string;
   emptyAll: string;
   /** Mostrar el proyecto de cada OT (listados de varios proyectos, B4). */
   showProject?: boolean;
@@ -106,7 +104,6 @@ export function WorkOrdersBoard({
   const { profile } = useAuth();
   const [aviso, setAviso] = useState<string | null>(null);
   const hoy = hoyChile();
-  const [incluirCerradas, setIncluirCerradas] = useState(false);
   const [ots, setOts] = useState<OtListada[] | null>(null);
   const [total, setTotal] = useState(0);
   const [error, setError] = useState<string | null>(null);
@@ -118,7 +115,9 @@ export function WorkOrdersBoard({
   const [enviando, setEnviando] = useState(false);
   const [accionError, setAccionError] = useState<string | null>(null);
 
-  const estados = incluirCerradas ? [...ESTADOS_OT_ABIERTOS, ...ESTADOS_OT_CERRADOS] : undefined;
+  // El calendario muestra las órdenes en todos sus estados, cada una con su color
+  // (pedido de la responsable: separar abiertas y cerradas lo dejaba vacío).
+  const estados = [...ESTADOS_OT_ABIERTOS, ...ESTADOS_OT_CERRADOS];
   const [resumen, setResumen] = useState<{ key: string; totales: number[] } | null>(null);
 
   useEffect(() => {
@@ -149,9 +148,9 @@ export function WorkOrdersBoard({
     return () => {
       cancelled = true;
     };
-    // `estados` se deriva de `incluirCerradas`; `load` cambia con `reloadKey`.
+    // `load` cambia con `reloadKey`.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [reloadKey, incluirCerradas, version]);
+  }, [reloadKey, version]);
 
   function cargarMas() {
     if (!ots) return;
@@ -239,29 +238,9 @@ export function WorkOrdersBoard({
           )}
           {ots && !error && !resumen && (
             <span className="sivu-mant__total">
-              <strong>{total}</strong> {incluirCerradas ? "órdenes en total" : total === 1 ? "orden abierta" : "órdenes abiertas"}
+              <strong>{total}</strong> {total === 1 ? "orden" : "órdenes"}
             </span>
           )}
-          <div className="sivu-seg" role="radiogroup" aria-label="Estados de las órdenes">
-            <button
-              type="button"
-              role="radio"
-              aria-checked={!incluirCerradas}
-              className={`sivu-seg__opt ${!incluirCerradas ? "is-on" : ""}`}
-              onClick={() => setIncluirCerradas(false)}
-            >
-              Abiertas
-            </button>
-            <button
-              type="button"
-              role="radio"
-              aria-checked={incluirCerradas}
-              className={`sivu-seg__opt ${incluirCerradas ? "is-on" : ""}`}
-              onClick={() => setIncluirCerradas(true)}
-            >
-              Incluir completadas y canceladas
-            </button>
-          </div>
         </div>
       </header>
 
@@ -284,7 +263,7 @@ export function WorkOrdersBoard({
                 {MESES[mes.month]} <span>{mes.year}</span>
               </h2>
               <ul className="sivu-mant__legend" aria-label="Colores por estado">
-                {ESTADOS_LEYENDA.filter((e) => incluirCerradas || (e.codigo !== "completada" && e.codigo !== "cancelada")).map((e) => (
+                {ESTADOS_LEYENDA.map((e) => (
                   <li key={e.codigo}>
                     <i style={{ background: colorEstado(e.codigo) }} />
                     {e.etiqueta}
@@ -474,7 +453,7 @@ export function WorkOrdersBoard({
                 {ots && <span className="sivu-mant__count">{sinFecha.length}</span>}
               </div>
               {loading && <p className="sivu-mant__muted">Cargando…</p>}
-              {ots && ots.length === 0 && <p className="sivu-mant__muted">{incluirCerradas ? emptyAll : emptyOpen}</p>}
+              {ots && ots.length === 0 && <p className="sivu-mant__muted">{emptyAll}</p>}
               {ots && ots.length > 0 && sinFecha.length === 0 && (
                 <p className="sivu-mant__muted">Todas las órdenes están programadas en el calendario.</p>
               )}
