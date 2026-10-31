@@ -369,6 +369,7 @@ export default function InventoryPage() {
           <aside className="sivu-inv__side">
             {selected && (
               <TreeSheet
+                key={selected.id}
                 projectId={projectId}
                 arbol={selected}
                 cicloVida={ciclo(selected.estado_ciclo_vida)}
