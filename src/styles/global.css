@@ -2541,31 +2541,6 @@ table.dtable {
   }
 }
 
-/* ── Filtros segmentados (Inspección: todos / evaluados / sin evaluar) ──── */
-.sivu-seg {
-  display: flex;
-  gap: 4px;
-  padding: 8px 14px 4px;
-}
-
-.sivu-seg button {
-  flex: 1;
-  font-size: 11px;
-  font-weight: 600;
-  padding: 4px 6px;
-  border: 1px solid var(--border-default);
-  border-radius: var(--radius-sm);
-  background: var(--surface-primary);
-  color: var(--text-secondary);
-  cursor: pointer;
-}
-
-.sivu-seg button.active {
-  background: var(--sivu-primary-surface);
-  border-color: var(--sivu-primary-medium);
-  color: var(--sivu-primary-dark);
-}
-
 /* ── Flujo de proceso (Mantención / Incidencias) ─────────────────────────── */
 .sivu-flow {
   display: flex;
