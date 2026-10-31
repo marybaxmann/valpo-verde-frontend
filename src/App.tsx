@@ -7,6 +7,7 @@ import AdminLayout from "./layouts/AdminLayout";
 import UserLayout from "./layouts/UserLayout";
 import InspectorLayout from "./layouts/InspectorLayout";
 import type { KnownRole } from "./types/authProfile";
+import { SivuLoader } from "./components/SivuLoader";
 
 /**
  * Cada pantalla se descarga recién cuando se abre (carga diferida): el
@@ -115,12 +116,9 @@ const ROLES_SIN_INTERFAZ: Record<string, string> = {
   encargado_mantencion: "Encargado de mantención",
 };
 
-function LoadingScreen({ message = "Cargando sesión…" }: { message?: string }) {
-  return (
-    <div className="login-screen">
-      <p style={{ color: "var(--text-muted)" }}>{message}</p>
-    </div>
-  );
+/** Espera de la sesión y del perfil al entrar: la animación de carga a pantalla completa. */
+function LoadingScreen({ message }: { message?: string }) {
+  return <SivuLoader variant="fullscreen" message={message} />;
 }
 
 /** Estado controlado para profileError y para rol null/desconocido — nunca un shell operativo. */
@@ -158,7 +156,7 @@ function RootRoute() {
 
   if (loading) return <LoadingScreen />;
   if (!session) return <Login />;
-  if (profileLoading) return <LoadingScreen message="Cargando perfil…" />;
+  if (profileLoading) return <LoadingScreen />;
 
   if (profileError) {
     return (

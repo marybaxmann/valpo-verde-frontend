@@ -3,6 +3,7 @@ import { Outlet, useLocation } from "react-router-dom";
 import { AppTopBar } from "../components/AppTopBar";
 import { ModuleSearch } from "../components/ModuleSearch";
 import { CurrentProjectProvider } from "../hooks/useCurrentProject";
+import { SivuLoader } from "../components/SivuLoader";
 
 // Los módulos territoriales (con mapa) ocupan todo el espacio bajo la
 // barra; el resto usa el contenido centrado con márgenes.
@@ -48,7 +49,7 @@ export function RoleLayout({ basePath, roleLabel }: { basePath: "/admin" | "/usu
           workspace={basePath === "/inspector" ? { to: "/inspector/mis-ot", label: "Mis OT" } : undefined}
         />
         <main className={isWorkspace ? "content--workspace" : "content"}>
-          <Suspense fallback={<p style={{ color: "var(--text-muted)", padding: 24 }}>Cargando…</p>}>
+          <Suspense fallback={<SivuLoader message="Cargando…" />}>
             <Outlet />
           </Suspense>
         </main>
