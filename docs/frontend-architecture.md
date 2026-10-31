@@ -161,6 +161,16 @@ email, nunca hardcodeado.
 - Con puntos, el mapa se ajusta a su extensión. Sin ningún árbol con ubicación usa el encuadre visual por defecto de Valparaíso (centro `[-71.620, -33.045]`, zoom 13): no es una coordenada técnica, de levantamiento ni del proyecto.
 - El SDK (`InventoryMapView`) y la página se cargan de forma diferida. Sin `VITE_ARCGIS_API_KEY` no se carga el SDK y se muestra un error controlado; el resto de la aplicación funciona. Los recursos del SDK (estilos, workers) se cargan por defecto desde el CDN de ArcGIS.
 
+### UX-LOADER — Indicador de carga `SivuLoader` (demostración aislada)
+**Estado:** componente y demostración listos para evaluación; **aún no integrado** en ninguna pantalla. Rama `claude/ecstatic-fermat-ake8bm`.
+**Objetivo:** reemplazar, cuando la autora apruebe el resultado, los textos sueltos "Cargando…" por un indicador propio: una hoja que se desprende de una rama y flota sobre un paisaje del sur de Chile.
+**Archivos:** `src/components/SivuLoader.tsx`, `src/styles/sivu-loader.css`; demostración en `demo/sivu-loader.html` + `src/demo/` (con `npm run dev`, abrir `/demo/sivu-loader.html`; no es una ruta de la aplicación ni entra en el build).
+**Decisiones:**
+- SVG + CSS, sin dependencias. Lottie y Rive se descartaron: agregan un runtime (~60–250 KB) y un flujo de diseño externo (After Effects / editor Rive) sin aportar nada que esta animación necesite.
+- El paisaje son capas SVG estáticas; solo se animan `transform` y `opacity` de contenedores HTML (hilo del compositor), así la hoja sigue fluida aunque el hilo principal esté ocupado cargando.
+- Variantes `fullscreen` (sesión, perfil, cambio de pantalla) e `inline` (módulos, tarjetas, paneles). Texto configurable (`message`, por defecto "Preparando tu entorno verde…"), anunciado con `role="status"`.
+- Paleta propia del paisaje en variables `--sl-*`, con versión para modo oscuro; la paleta de clasificación de riesgo no se usa. Con `prefers-reduced-motion` la hoja queda en la rama y solo cambia su opacidad.
+
 ---
 
 ## 5. Limitaciones conocidas

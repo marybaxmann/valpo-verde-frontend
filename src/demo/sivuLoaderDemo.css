@@ -1,0 +1,83 @@
+/* Solo para la página de demostración de SivuLoader. */
+
+.loader-demo {
+  max-width: 1040px;
+  margin: 0 auto;
+  padding: 32px 24px 64px;
+  display: flex;
+  flex-direction: column;
+  gap: 36px;
+}
+
+.loader-demo__header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.loader-demo__header h1 {
+  font-size: 22px;
+}
+
+.loader-demo__header p,
+.loader-demo__note {
+  color: var(--text-secondary);
+  font-size: 13px;
+  margin-top: 4px;
+}
+
+.loader-demo h2 {
+  font-size: 15px;
+}
+
+.loader-demo__controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 10px;
+}
+
+.loader-demo__controls .field {
+  margin: 0;
+  min-width: 260px;
+}
+
+.loader-demo__frame {
+  margin-top: 14px;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.loader-demo__frame .sivu-loader--fullscreen {
+  min-height: 520px;
+}
+
+.loader-demo__grid {
+  margin-top: 14px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 300px;
+  gap: 16px;
+  align-items: start;
+}
+
+.loader-demo__card-head {
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--border-soft);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.loader-demo__overlay {
+  position: fixed;
+  inset: 0;
+  cursor: pointer;
+}
+
+@media (max-width: 720px) {
+  .loader-demo__grid {
+    grid-template-columns: 1fr;
+  }
+}
