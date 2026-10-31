@@ -28,6 +28,8 @@ export function DiagnosisModule({ vista }: { vista: Vista }) {
   const [error, setError] = useState<string | null>(null);
   const [elegido, setElegido] = useState<string | null>(null);
   const [leyenda, setLeyenda] = useState<CatalogoItem[] | null>(null);
+  // Niveles ocultos por «Filtros» (código del catálogo; "" = evaluación pendiente).
+  const [ocultos, setOcultos] = useState<ReadonlySet<string>>(new Set());
   // Conteos por nivel del resumen del proyecto (B7): los cuenta el backend.
   const [resumen, setResumen] = useState<ResumenProyecto | null>(null);
 
@@ -74,7 +76,9 @@ export function DiagnosisModule({ vista }: { vista: Vista }) {
   const valor = (d: Diagnostico | undefined) =>
     vista === "riesgo" ? d?.vigente?.resultado.clasificacion_riesgo : d?.vigente?.resultado.infraestructura?.clasificacion;
   const titulo = vista === "riesgo" ? "Riesgo Arbóreo" : "Infraestructura";
-  const points = (datos?.arboles ?? [])
+  const visible = (a: ArbolInventario) => !ocultos.has(valor(datos?.diag.get(a.id))?.codigo ?? "");
+  const arbolesVisibles = (datos?.arboles ?? []).filter(visible);
+  const points = arbolesVisibles
     .filter((a) => a.ubicacion)
     .map((a) => {
       const v = valor(datos?.diag.get(a.id));
@@ -98,6 +102,25 @@ export function DiagnosisModule({ vista }: { vista: Vista }) {
       points={points}
       selectedId={elegido}
       onSelect={setElegido}
+      registros={datos ? arbolesVisibles.length : undefined}
+      filtrosActivos={ocultos.size}
+      filtros={
+        leyenda && leyenda.length > 0 ? (
+          <FiltroNiveles
+            niveles={[...leyenda].sort((a, b) => a.orden - b.orden)}
+            ocultos={ocultos}
+            onChange={(codigo) =>
+              setOcultos((o) => {
+                const n = new Set(o);
+                if (n.has(codigo)) n.delete(codigo);
+                else n.add(codigo);
+                return n;
+              })
+            }
+            onTodos={() => setOcultos(new Set())}
+          />
+        ) : undefined
+      }
       card={
         <>
           <div className="sivu-panel__head">
@@ -179,7 +202,7 @@ export function DiagnosisModule({ vista }: { vista: Vista }) {
 
           {datos && !arbol && datos.arboles.length > 0 && (
             <ul className="sivu-diag__list" aria-label="Árboles del proyecto">
-              {datos.arboles.map((a) => {
+              {arbolesVisibles.map((a) => {
                 const v = valor(datos.diag.get(a.id));
                 return (
                   <li key={a.id}>
@@ -317,5 +340,39 @@ function RiesgoResumen({ resumen, leyenda }: { resumen: ResumenProyecto; leyenda
         </li>
       </ul>
     </>
+  );
+}
+
+/** Panel «Filtros»: muestra u oculta cada nivel en el mapa y en la lista (solo filtra lo que llegó de la API). */
+function FiltroNiveles({
+  niveles,
+  ocultos,
+  onChange,
+  onTodos,
+}: {
+  niveles: CatalogoItem[];
+  ocultos: ReadonlySet<string>;
+  onChange: (codigo: string) => void;
+  onTodos: () => void;
+}) {
+  const opciones = [...niveles.map((n) => ({ codigo: n.codigo, etiqueta: n.etiqueta })), { codigo: "", etiqueta: "Evaluación pendiente" }];
+  return (
+    <div role="group" aria-label="Niveles visibles">
+      <ul className="sivu-terr__chips">
+        {opciones.map((o) => (
+          <li key={o.codigo || "pendiente"}>
+            <button type="button" className={`sivu-lchip ${ocultos.has(o.codigo) ? "" : "is-on"}`} aria-pressed={!ocultos.has(o.codigo)} onClick={() => onChange(o.codigo)}>
+              <span className={`sivu-diag__dot sivu-diag__dot--${o.codigo ? getClassificationTone(o.etiqueta) : "neutral"}`} aria-hidden="true" />
+              {o.etiqueta}
+            </button>
+          </li>
+        ))}
+      </ul>
+      {ocultos.size > 0 && (
+        <button type="button" className="sivu-panel__link" onClick={onTodos}>
+          Mostrar todos
+        </button>
+      )}
+    </div>
   );
 }

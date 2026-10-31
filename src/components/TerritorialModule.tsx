@@ -23,6 +23,9 @@ export function TerritorialModule({
   points,
   selectedId,
   onSelect,
+  filtros,
+  filtrosActivos = 0,
+  registros,
 }: {
   moduleLabel: string;
   card: ReactNode;
@@ -30,12 +33,19 @@ export function TerritorialModule({
   points?: MapPoint[];
   selectedId?: string | null;
   onSelect?: (id: string) => void;
+  /** Contenido del panel «Filtros» (maqueta: `ListTools`); sin él no se muestra el botón. */
+  filtros?: ReactNode;
+  /** Filtros activos, para el número del botón. */
+  filtrosActivos?: number;
+  /** Registros de la lista, para «Lista · N registros». */
+  registros?: number;
 }) {
   const { projectId = "" } = useParams();
   const apiKey = getArcgisApiKey();
   const [detail, setDetail] = useState<ProjectWithSector | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [minimizada, setMinimizada] = useState(false);
+  const [verFiltros, setVerFiltros] = useState(false);
   const angosta = usePantallaAngosta();
   // Lo que tapan el encabezado y la tarjeta (territory.css): a la izquierda en computador, abajo en teléfono.
   const padding = angosta
@@ -94,16 +104,33 @@ export function TerritorialModule({
         </header>
         {!error && (
           <div className={`sivu-terr__dock ${minimizada ? "is-min" : ""}`}>
-            <button
-              type="button"
-              className="sivu-terr__toggle"
-              aria-expanded={!minimizada}
-              aria-controls="sivu-terr-card"
-              onClick={() => setMinimizada((m) => !m)}
-            >
-              {minimizada ? `Mostrar ${moduleLabel}` : "Minimizar"}
-              <Icon name="chevron-down" size={13} />
-            </button>
+            <div className="sivu-terr__tools">
+              {filtros && (
+                <button
+                  type="button"
+                  className={`sivu-terr__toggle ${verFiltros ? "is-on" : ""}`}
+                  aria-expanded={verFiltros}
+                  onClick={() => setVerFiltros((v) => !v)}
+                >
+                  <Icon name="filter" size={14} />
+                  Filtros
+                  {filtrosActivos > 0 && <span className="sivu-terr__badge">{filtrosActivos}</span>}
+                </button>
+              )}
+              <button
+                type="button"
+                className="sivu-terr__toggle"
+                aria-expanded={!minimizada}
+                aria-controls="sivu-terr-card"
+                onClick={() => setMinimizada((m) => !m)}
+              >
+                <Icon name="list" size={14} />
+                Lista
+                {registros !== undefined && <span className="sivu-terr__count">{registros} registros</span>}
+                <Icon name="chevron-down" size={13} />
+              </button>
+            </div>
+            {filtros && verFiltros && <div className="sivu-terr__filters">{filtros}</div>}
             {!minimizada && (
               <section id="sivu-terr-card" className="sivu-terr__card">
                 {card}

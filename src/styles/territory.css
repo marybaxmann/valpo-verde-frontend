@@ -141,15 +141,16 @@
   cursor: pointer;
 }
 
-.sivu-terr__toggle svg {
+.sivu-terr__toggle svg:last-child:not(:first-child) {
   transform: rotate(180deg);
+  transition: transform 0.2s ease;
 }
 
-.sivu-terr__dock.is-min .sivu-terr__toggle {
+.sivu-terr__dock.is-min .sivu-terr__tools {
   align-self: flex-start;
 }
 
-.sivu-terr__dock.is-min .sivu-terr__toggle svg {
+.sivu-terr__dock.is-min .sivu-terr__toggle[aria-controls] svg:last-child {
   transform: none;
 }
 
@@ -618,4 +619,81 @@
   .sivu-ov__hero {
     margin: 6px 0 10px;
   }
+}
+
+/* «Filtros» y «Lista» (maqueta SIVU Lab, MapChrome: ListTools, .dock__btn, .lchip; CC-058). */
+.sivu-terr__tools {
+  align-self: flex-end;
+  display: flex;
+  gap: 6px;
+}
+
+.sivu-terr__toggle.is-on {
+  background: var(--shell-active-bg);
+  color: var(--shell-active-fg);
+  border-color: transparent;
+}
+
+.sivu-terr__badge {
+  display: inline-grid;
+  place-items: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: var(--sivu-accent);
+  color: var(--bg);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.sivu-terr__count {
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
+.sivu-terr__toggle.is-on .sivu-terr__count {
+  color: inherit;
+}
+
+.sivu-terr__filters {
+  padding: 12px 14px;
+  border-radius: 18px;
+  border: 1px solid var(--shell-line);
+  background: var(--shell-glass-strong);
+  box-shadow: var(--shell-float);
+  backdrop-filter: blur(22px);
+  -webkit-backdrop-filter: blur(22px);
+  animation: sivu-callout-in 0.2s ease-out;
+}
+
+.sivu-terr__chips {
+  list-style: none;
+  margin: 0 0 6px;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.sivu-lchip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 30px;
+  padding: 0 11px;
+  border-radius: 999px;
+  border: 1px solid var(--shell-line);
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 12px;
+  cursor: pointer;
+  opacity: 0.6;
+  transition: background 0.15s ease, opacity 0.15s ease;
+}
+
+.sivu-lchip.is-on {
+  opacity: 1;
+  color: var(--text);
+  background: var(--shell-soft);
 }
