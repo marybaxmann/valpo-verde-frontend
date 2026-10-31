@@ -126,7 +126,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return { error: null };
       },
       signOut: async () => {
-        await supabase.auth.signOut();
+        // Solo este navegador (decisión de la responsable, 2026-10-30): con el alcance
+        // global, cambiar de cuenta en un equipo cerraba la sesión en todos los demás.
+        await supabase.auth.signOut({ scope: "local" });
       },
     }),
     [session, loading, profile, profileLoading, profileError, sessionUserId]
