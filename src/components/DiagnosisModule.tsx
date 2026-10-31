@@ -3,6 +3,8 @@ import { useParams } from "react-router-dom";
 import { listarDiagnosticos } from "../api/diagnosticos";
 import { listarInventarioCompleto } from "../api/inventory";
 import { obtenerCatalogos } from "../api/catalogs";
+import { obtenerResumen } from "../api/resumen";
+import type { ResumenProyecto } from "../types/resumen";
 import type { CatalogoItem } from "../types/catalogs";
 import { finalizadaYaVigente, type Componente, type Diagnostico, type ResultadoDiagnostico } from "../types/diagnostico";
 import type { ArbolInventario } from "../types/inventory";
@@ -26,6 +28,8 @@ export function DiagnosisModule({ vista }: { vista: Vista }) {
   const [error, setError] = useState<string | null>(null);
   const [elegido, setElegido] = useState<string | null>(null);
   const [leyenda, setLeyenda] = useState<CatalogoItem[] | null>(null);
+  // Conteos por nivel del resumen del proyecto (B7): los cuenta el backend.
+  const [resumen, setResumen] = useState<ResumenProyecto | null>(null);
 
   // Leyenda del mapa con las etiquetas del catálogo de la API (PR-021).
   useEffect(() => {
@@ -41,6 +45,17 @@ export function DiagnosisModule({ vista }: { vista: Vista }) {
       cancelled = true;
     };
   }, [vista]);
+
+  useEffect(() => {
+    if (vista !== "riesgo") return;
+    let cancelled = false;
+    obtenerResumen(projectId)
+      .then((r) => !cancelled && setResumen(r))
+      .catch(() => !cancelled && setResumen(null));
+    return () => {
+      cancelled = true;
+    };
+  }, [projectId, vista]);
 
   useEffect(() => {
     let cancelled = false;
@@ -89,7 +104,10 @@ export function DiagnosisModule({ vista }: { vista: Vista }) {
             <h2>{titulo}</h2>
             <span className="sivu-diag__tag">Evaluación vigente</span>
           </div>
-          {leyenda && leyenda.length > 0 && (
+          {vista === "riesgo" && resumen && leyenda && leyenda.length > 0 && (
+            <RiesgoResumen resumen={resumen} leyenda={leyenda} />
+          )}
+          {!(vista === "riesgo" && resumen) && leyenda && leyenda.length > 0 && (
             <ul className="sivu-diag__legend" aria-label="Leyenda del mapa">
               {[...leyenda]
                 .sort((a, b) => a.orden - b.orden)
@@ -242,6 +260,62 @@ function DetalleInfra({ r }: { r: ResultadoDiagnostico }) {
           <dd>{inf?.porcentaje != null ? `${inf.porcentaje.toLocaleString("es-CL", { maximumFractionDigits: 1 })} %` : "—"}</dd>
         </div>
       </dl>
+    </>
+  );
+}
+
+/**
+ * Cabecera de la tarjeta de Riesgo (maqueta SIVU Lab: `RiskBody`, .ov__hero,
+ * .stack, .legend; CC-058). Solo el diseño: las cifras son los conteos de B7
+ * por nivel, tal como llegan; el frontend no agrupa niveles ni calcula
+ * porcentajes.
+ */
+function RiesgoResumen({ resumen, leyenda }: { resumen: ResumenProyecto; leyenda: CatalogoItem[] }) {
+  const niveles = [...leyenda].sort((a, b) => a.orden - b.orden);
+  const total = (codigo: string | null) => resumen.por_riesgo.find((c) => c.codigo === codigo)?.total ?? 0;
+  const sinClasificacion = total(null);
+  const color = (etiqueta: string) => {
+    const t = getClassificationTone(etiqueta);
+    return t === "neutral" ? "#A7B0AB" : `var(--classification-${t})`;
+  };
+  return (
+    <>
+      <div className="sivu-ov__hero">
+        <span className="sivu-ov__num">{resumen.con_diagnostico}</span>
+        <span className="sivu-ov__lbl">
+          árboles evaluados
+          <br />
+          de {resumen.arboles_total} registrados
+        </span>
+      </div>
+      <div className="sivu-stack" role="img" aria-label="Árboles por nivel de riesgo">
+        {niveles.map((n) =>
+          total(n.codigo) > 0 ? <span key={n.codigo} style={{ flex: total(n.codigo), background: color(n.etiqueta) }} /> : null
+        )}
+        {sinClasificacion > 0 && <span style={{ flex: sinClasificacion, background: "#FFFFFF" }} />}
+        {resumen.sin_evaluacion > 0 && <span className="sivu-stack__none" style={{ flex: resumen.sin_evaluacion }} />}
+      </div>
+      <ul className="sivu-ov__legend" aria-label="Leyenda del mapa">
+        {niveles.map((n) => (
+          <li key={n.codigo}>
+            <span className={`sivu-diag__dot sivu-diag__dot--${getClassificationTone(n.etiqueta)}`} aria-hidden="true" />
+            <span>{n.etiqueta}</span>
+            <strong>{total(n.codigo)}</strong>
+          </li>
+        ))}
+        {sinClasificacion > 0 && (
+          <li>
+            <span className="sivu-diag__dot" aria-hidden="true" />
+            <span>Sin clasificación</span>
+            <strong>{sinClasificacion}</strong>
+          </li>
+        )}
+        <li>
+          <span className="sivu-diag__dot sivu-diag__dot--neutral" aria-hidden="true" />
+          <span>Evaluación pendiente</span>
+          <strong>{resumen.sin_evaluacion}</strong>
+        </li>
+      </ul>
     </>
   );
 }

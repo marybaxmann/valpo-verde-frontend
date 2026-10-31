@@ -547,3 +547,75 @@
     animation: none;
   }
 }
+
+/* Cabecera de la tarjeta de Riesgo (maqueta SIVU Lab, styles.css: .ov__hero, .stack, .legend; CC-058). */
+.sivu-ov__hero {
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+  margin: 12px 0 14px;
+}
+
+.sivu-ov__num {
+  font-size: 64px;
+  line-height: 0.85;
+  font-weight: 300;
+  letter-spacing: -0.05em;
+}
+
+.sivu-ov__lbl {
+  font-size: 13px;
+  line-height: 1.3;
+  color: var(--text-muted);
+  padding-bottom: 4px;
+}
+
+.sivu-stack {
+  display: flex;
+  height: 8px;
+  gap: 3px;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.sivu-stack span {
+  border-radius: 999px;
+  transition: flex-grow 0.5s ease;
+}
+
+.sivu-stack__none {
+  background: #A7B0AB;
+  opacity: 0.55;
+}
+
+.sivu-ov__legend {
+  list-style: none;
+  margin: 14px 0 6px;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px 18px;
+  font-size: 12.5px;
+}
+
+.sivu-ov__legend li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-muted);
+}
+
+.sivu-ov__legend strong {
+  margin-left: auto;
+  color: var(--text);
+  font-weight: 600;
+}
+
+@media (max-width: 860px) {
+  .sivu-ov__num {
+    font-size: 44px;
+  }
+  .sivu-ov__hero {
+    margin: 6px 0 10px;
+  }
+}
