@@ -157,7 +157,7 @@ export default function ProjectDashboard() {
     { label: "Árboles registrados", icon: "leaf", value: r?.arboles_total, sub: "en el inventario" },
     { label: "Georreferenciados", icon: "pin", value: r?.georreferenciados, sub: r ? `${r.sin_georreferenciar} sin ubicación` : "" },
     { label: "Con diagnóstico", icon: "clipboard", value: r?.con_diagnostico, sub: "inspección finalizada" },
-    { label: "Sin evaluación", icon: "clock", value: r?.sin_evaluacion, sub: "aún no inspeccionados", tone: "var(--ot-pendiente)" },
+    { label: "Sin evaluación", icon: "clock", value: r?.sin_evaluacion, sub: "aún no inspeccionados", tone: "var(--ot-programada)" },
     { label: "Especies", icon: "sparkle", value: r?.especies_distintas, sub: "distintas" },
   ];
   const modules = NAV_GROUPS.flatMap((g) => g.modules).filter((m) => m.path !== "dashboard");
@@ -202,11 +202,7 @@ export default function ProjectDashboard() {
           <section className="sivu-kpis" aria-label="Indicadores principales">
             {kpis.map((k) => (
               <div key={k.label} className={`sivu-kpi ${r ? "" : "sivu-kpi--pending"}`}>
-                <span
-                  className="sivu-kpi__icon"
-                  aria-hidden="true"
-                  style={k.tone ? { color: k.tone, background: `color-mix(in srgb, ${k.tone} 16%, transparent)` } : undefined}
-                >
+                <span className={`sivu-kpi__icon ${k.tone ? "sivu-kpi__icon--tono" : ""}`} aria-hidden="true" style={k.tone ? { ["--tono" as string]: k.tone } : undefined}>
                   <Icon name={k.icon} size={16} />
                 </span>
                 <span className="sivu-kpi__lbl">{k.label}</span>
@@ -215,7 +211,7 @@ export default function ProjectDashboard() {
               </div>
             ))}
             <div className="sivu-kpi sivu-kpi--pending" data-refs="B9">
-              <span className="sivu-kpi__icon sivu-kpi__icon--incid" aria-hidden="true">
+              <span className="sivu-kpi__icon sivu-kpi__icon--tono" aria-hidden="true" style={{ ["--tono" as string]: "var(--incidencia)" }}>
                 <Icon name="inbox" size={16} />
               </span>
               <span className="sivu-kpi__lbl">Incidencias abiertas</span>

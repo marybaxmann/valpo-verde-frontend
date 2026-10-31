@@ -379,9 +379,22 @@
 
 /* ---------- Composición de la maqueta SIVU Lab (Dashboard.tsx, lab.css; CC-058) ---------- */
 
-.sivu-kpi__icon--incid {
-  color: var(--incidencia);
-  background: color-mix(in srgb, var(--incidencia) 16%, transparent);
+/* Íconos con tono propio (maqueta: azul y violeta); los demás, el verde de la marca.
+   Va también sobre «pendiente», que no debe apagar el color. */
+.sivu-kpi__icon--tono,
+.sivu-kpi--pending .sivu-kpi__icon--tono {
+  color: var(--tono);
+  background: color-mix(in srgb, var(--tono) 18%, transparent);
+}
+
+/* Modo claro: el tono, más oscuro para leerse sobre su fondo (maqueta: theme-light). */
+:root:not([data-theme="dark"]) .sivu-kpi__icon--tono {
+  color: color-mix(in srgb, var(--tono) 62%, #16200f);
+  background: color-mix(in srgb, var(--tono) 24%, transparent);
+}
+
+:root:not([data-theme="dark"]) .sivu-kpi__icon:not(.sivu-kpi__icon--tono) {
+  background: rgba(47, 122, 82, 0.12);
 }
 
 .sivu-panel__sub {
