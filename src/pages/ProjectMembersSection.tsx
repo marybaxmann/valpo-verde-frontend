@@ -190,9 +190,9 @@ export default function ProjectMembersSection({ projectId }: { projectId: string
                 {adding ? "Agregando…" : "Agregar"}
               </button>
             </div>
-            <small className="hint">
-              Todavía no se puede elegir a la persona de una lista: el sistema no entrega el listado de usuarios
-              (pendiente B11). Usa el identificador de su cuenta.
+            <small className="hint" data-refs="B11">
+              Todavía no se puede elegir a la persona de una lista: el sistema no entrega el listado de usuarios.
+              Usa el identificador de su cuenta.
             </small>
           </div>
           {addError && (

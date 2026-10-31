@@ -65,6 +65,7 @@ export default function ProjectMapView({
   onSelect,
   className = "sivu-terr__map",
   sector = null,
+  padding,
 }: {
   apiKey: string;
   points?: MapPoint[];
@@ -73,6 +74,8 @@ export default function ProjectMapView({
   selectedId?: string | null;
   onSelect?: (id: string) => void;
   className?: string;
+  /** Espacio que tapan las tarjetas flotantes (px): el encuadre deja los árboles a la vista. */
+  padding?: { top?: number; right?: number; bottom?: number; left?: number };
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<ArcGISMap | null>(null);
@@ -226,12 +229,21 @@ export default function ProjectMapView({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sectorKey, status]);
 
+  const paddingKey = JSON.stringify(padding ?? {});
+  useEffect(() => {
+    const view = viewRef.current;
+    if (!view || status !== "ready") return;
+    view.padding = { top: 0, right: 0, bottom: 0, left: 0, ...padding };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [paddingKey, status]);
+
   // Encuadre: el sector y los puntos juntos; sin ninguno, el encuadre por defecto.
   useEffect(() => {
     const view = viewRef.current;
     const layer = layerRef.current;
     const sectorLayer = sectorLayerRef.current;
     if (!view || !layer || !sectorLayer || status !== "ready") return;
+    view.padding = { top: 0, right: 0, bottom: 0, left: 0, ...padding };
     const objetivo = [...sectorLayer.graphics.toArray(), ...layer.graphics.toArray()];
     if (!objetivo.length) return;
     view.goTo(objetivo, { animate: false }).catch(() => undefined);
