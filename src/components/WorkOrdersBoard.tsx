@@ -51,6 +51,18 @@ function colorEstado(codigo: string): string {
   return `var(--ot-${codigo.replace(/_/g, "-")}, var(--ot-pendiente))`;
 }
 
+/**
+ * Cifras del encabezado (maqueta SIVU Lab: `.stats` de Mantención). Cada una
+ * es el `total` que devuelve el backend al pedir ese estado: el navegador no
+ * cuenta. Sin «Vencidas»: no es un estado de CC-050.
+ */
+const ESTADOS_RESUMEN: { codigo: string; etiqueta: string }[] = [
+  { codigo: "pendiente", etiqueta: "pendientes" },
+  { codigo: "programada", etiqueta: "programadas" },
+  { codigo: "en_ejecucion", etiqueta: "en ejecución" },
+  { codigo: "completada", etiqueta: "completadas" },
+];
+
 function arbolTexto(ot: OtListada): string {
   if (!ot.arbol) return "Sin árbol (Levantamiento)";
   const nombre = ot.arbol.nombre_comun ?? ot.arbol.especie_cientifica;
@@ -107,6 +119,20 @@ export function WorkOrdersBoard({
   const [accionError, setAccionError] = useState<string | null>(null);
 
   const estados = incluirCerradas ? [...ESTADOS_OT_ABIERTOS, ...ESTADOS_OT_CERRADOS] : undefined;
+  const [resumen, setResumen] = useState<{ key: string; totales: number[] } | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    const key = `${reloadKey}:${version}`;
+    Promise.all(ESTADOS_RESUMEN.map((e) => load({ estado: [e.codigo], limit: 1, offset: 0 }).then((r) => r.total)))
+      .then((totales) => !cancelled && setResumen({ key, totales }))
+      .catch(() => !cancelled && setResumen(null));
+    return () => {
+      cancelled = true;
+    };
+    // `load` cambia con `reloadKey`.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [reloadKey, version]);
 
   useEffect(() => {
     let cancelled = false;
@@ -200,7 +226,18 @@ export function WorkOrdersBoard({
           </p>
         </div>
         <div className="sivu-mant__head-right">
-          {ots && !error && (
+          {resumen && !error && (
+            <div className="sivu-stats" aria-label="Órdenes por estado">
+              {ESTADOS_RESUMEN.map((e, i) => (
+                <span key={e.codigo} style={{ ["--c" as string]: colorEstado(e.codigo) }}>
+                  <i aria-hidden="true" />
+                  <strong>{resumen.totales[i]}</strong>
+                  {e.etiqueta}
+                </span>
+              ))}
+            </div>
+          )}
+          {ots && !error && !resumen && (
             <span className="sivu-mant__total">
               <strong>{total}</strong> {incluirCerradas ? "órdenes en total" : total === 1 ? "orden abierta" : "órdenes abiertas"}
             </span>

@@ -634,3 +634,38 @@
   color: var(--bg);
   font-weight: 700;
 }
+
+/* Cifras por estado en el encabezado (maqueta SIVU Lab, lab.css: .stats; CC-058). */
+.sivu-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.sivu-stats span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 40px;
+  padding: 0 14px;
+  border-radius: 999px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  font-size: 12px;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.sivu-stats i {
+  width: 8px;
+  height: 8px;
+  border-radius: 3px;
+  background: var(--c);
+  box-shadow: 0 0 0 1px rgba(30, 45, 25, 0.2);
+}
+
+.sivu-stats strong {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text);
+}
