@@ -308,3 +308,7 @@
   width: 100%;
   resize: vertical;
 }
+
+.sivu-insp-field__confirm {
+  justify-self: start;
+}

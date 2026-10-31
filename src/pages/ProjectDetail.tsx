@@ -186,7 +186,8 @@ export default function ProjectDetail() {
           </div>
           <div className="info-list__item">
             <span>Última actualización</span>
-            {fechaHoraChile(project.updated_at)}
+            {/* El nombre del sector se guarda en su propia tabla: cuenta el cambio más reciente de los dos. */}
+            {fechaHoraChile(sector && Date.parse(sector.updated_at) > Date.parse(project.updated_at) ? sector.updated_at : project.updated_at)}
           </div>
         </div>
         )}

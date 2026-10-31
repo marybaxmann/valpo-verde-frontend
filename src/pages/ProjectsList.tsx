@@ -14,7 +14,8 @@ import { basePathForRole } from "../lib/roles";
  * Listado real de GET /api/sivu/projects (Fase 7, Paso 2; antes F6 con la demo). Compartido entre /admin y
  * /usuario: el backend ya devuelve solo lo que corresponde a cada rol
  * (admin → todos; usuario_municipal → solo sus membresías) — este
- * componente no filtra nada por su cuenta, solo muestra lo que llega.
+ * componente no filtra por rol. Los proyectos cerrados se ocultan de la
+ * vista inicial y se muestran con «Ver proyectos cerrados».
  *
  * "Crear proyecto" se decide con `profile.role` real, no con la ruta
  * desde la que se montó este componente.
@@ -30,6 +31,9 @@ export default function ProjectsList() {
 
   const [showModal, setShowModal] = useState(false);
   const [creado, setCreado] = useState<string | null>(null);
+  const [verCerrados, setVerCerrados] = useState(false);
+  const cerrados = (projects ?? []).filter((p) => p.estado_proyecto === "cerrado").length;
+  const visibles = (projects ?? []).filter((p) => verCerrados || p.estado_proyecto !== "cerrado");
 
   function load() {
     setLoading(true);
@@ -91,7 +95,7 @@ export default function ProjectsList() {
 
       {!loading && !error && projects && projects.length > 0 && (
         <div className="sivu-project-grid">
-          {projects.map((p) => (
+          {visibles.map((p) => (
             <div key={p.id} className="card card--pad sivu-project-card">
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 10 }}>
                 <div style={{ minWidth: 0 }}>
@@ -127,6 +131,12 @@ export default function ProjectsList() {
             </div>
           ))}
         </div>
+      )}
+
+      {!loading && !error && cerrados > 0 && (
+        <button type="button" className="btn btn-ghost btn-sm" style={{ marginTop: 14 }} onClick={() => setVerCerrados((v) => !v)}>
+          {verCerrados ? "Ocultar proyectos cerrados" : `Ver proyectos cerrados (${cerrados})`}
+        </button>
       )}
 
       {showModal && (

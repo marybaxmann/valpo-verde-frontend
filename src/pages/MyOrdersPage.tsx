@@ -20,7 +20,8 @@ export default function MyOrdersPage() {
     let cancelled = false;
     listProjects()
       .then((data) => {
-        if (!cancelled) setProjects(data);
+        // Un proyecto cerrado no admite trabajo nuevo: no se ofrece en el filtro.
+        if (!cancelled) setProjects(data.filter((p) => p.estado_proyecto !== "cerrado"));
       })
       .catch(() => {
         // Sin la lista, el filtro no se muestra; B4 sigue funcionando sin él.

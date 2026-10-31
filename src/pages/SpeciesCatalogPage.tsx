@@ -32,6 +32,8 @@ export default function SpeciesCatalogPage() {
     listProjects()
       .then((data) => {
         if (cancelled) return;
+        // Un proyecto cerrado no admite cambios: no sirve para confirmar el permiso.
+        data = data.filter((p) => p.estado_proyecto !== "cerrado");
         setProjects(data);
         if (data.length > 0) setProjectId((actual) => actual || data[0].id);
       })

@@ -140,6 +140,12 @@ export function InspectionField({
       </div>
       {control}
       {referencia && <small className="sivu-insp-field__hint">Registrado en el árbol: {referencia}</small>}
+      {/* D-13, CC-053: la especie entra al catálogo solo si el Inspector la confirma en la inspección. */}
+      {referencia && campo.identificador === "especie_cientifica" && !valor && !disabled && (
+        <button type="button" className="btn btn-secondary btn-sm sivu-insp-field__confirm" onClick={() => onChange(referencia)}>
+          Confirmar «{referencia}»
+        </button>
+      )}
       {campo.condicion_texto && <small className="sivu-insp-field__hint">{condicionLegible(campo.condicion_texto, etiquetaDe)}</small>}
       {invalido && <small className="sivu-insp-field__error">No es un número válido.</small>}
       {faltante && <small className="sivu-insp-field__error">{faltante}</small>}
