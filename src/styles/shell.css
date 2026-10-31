@@ -516,7 +516,10 @@
 }
 
 @media (max-width: 900px) {
+  /* En varias filas ocupa casi un tercio del teléfono: se queda arriba en vez de seguir fija. */
   .sivu-topbar {
+    position: relative;
+    background: var(--bg);
     height: auto;
     flex-wrap: wrap;
     padding: 12px 16px;
