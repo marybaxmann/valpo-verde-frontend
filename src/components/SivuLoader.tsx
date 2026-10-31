@@ -2,19 +2,19 @@ import { useId } from "react";
 import "../styles/sivu-loader.css";
 
 /**
- * Indicador de carga de SIVU: ilustración botánica animada. Una hoja
- * semirrealista flota envuelta por dos estelas de viento (que pasan por
- * detrás y por delante de ella), acompañada por dos hojas pequeñas, con
- * su sombra en el suelo, el texto de carga y tres puntos.
+ * Indicador de carga de SIVU: escena botánica horizontal. Una hoja
+ * alargada flota en diagonal, llevada por dos corrientes de aire (estelas
+ * como pinceladas pálidas que se afinan y se desvanecen), con dos hojas
+ * pequeñas a su alrededor, una sombra difusa, el texto y tres puntos.
  *
  * Solo SVG + CSS, sin dependencias. Las ilustraciones son estáticas; el
  * movimiento vive en contenedores HTML (transform/opacity, hilo del
- * compositor) que oscilan de ida y vuelta: el loop no se reinicia de
- * golpe. Lo único que se anima dentro del SVG es el trazo de las estelas.
+ * compositor) que oscilan de ida y vuelta con períodos distintos: el loop
+ * es continuo y nunca se reinicia de golpe.
  *
  * - `fullscreen`: pantalla completa (sesión, perfil, cambio de pantalla).
  * - `inline`: espacios pequeños dentro de módulos, tarjetas y paneles
- *   (sin estelas ni hojas pequeñas).
+ *   (solo la hoja, su sombra y los puntos).
  *
  * Con `prefers-reduced-motion` la escena queda quieta y solo los puntos
  * cambian de opacidad; el texto sigue informando el estado.
@@ -34,34 +34,34 @@ export function SivuLoader({
   className?: string;
 }) {
   // Ids únicos por instancia: varios loaders en la misma página no
-  // comparten (ni pierden) sus degradados, filtros y recortes.
+  // comparten (ni pierden) sus degradados y filtros.
   const uid = "sl" + useId().replace(/[^a-zA-Z0-9_-]/g, "");
   const classes = ["sivu-loader", `sivu-loader--${variant}`, className].filter(Boolean).join(" ");
   return (
     <div className={classes} role="status" aria-live="polite" aria-busy="true">
       <div className="sivu-loader__stage" aria-hidden="true">
+        <div className="sivu-loader__breeze sivu-loader__breeze--left">
+          <BreezeLeft uid={uid} />
+        </div>
+        <div className="sivu-loader__breeze sivu-loader__breeze--right">
+          <BreezeRight uid={uid} />
+        </div>
         <span className="sivu-loader__shadow" />
-        <div className="sivu-loader__float-x">
-          <div className="sivu-loader__float-y">
-            <WindTrails uid={uid} half="back" />
-            <div className="sivu-loader__leaf-wrap">
-              <div className="sivu-loader__sway">
-                <div className="sivu-loader__tilt">
-                  <Leaf uid={uid} />
-                </div>
-              </div>
+        <div className="sivu-loader__leaf-x">
+          <div className="sivu-loader__leaf-y">
+            <div className="sivu-loader__leaf-sway">
+              <Leaf uid={uid} />
             </div>
-            <WindTrails uid={uid} half="front" />
           </div>
         </div>
         <div className="sivu-loader__mini sivu-loader__mini--a">
-          <div className="sivu-loader__mini-spin">
-            <MiniLeaf uid={uid} tone="a" />
+          <div className="sivu-loader__mini-sway">
+            <Leaf uid={uid} mini />
           </div>
         </div>
         <div className="sivu-loader__mini sivu-loader__mini--b">
-          <div className="sivu-loader__mini-spin">
-            <MiniLeaf uid={uid} tone="b" />
+          <div className="sivu-loader__mini-sway">
+            <Leaf uid={uid} mini />
           </div>
         </div>
       </div>
@@ -75,158 +75,106 @@ export function SivuLoader({
   );
 }
 
-/* ---------- Estelas de viento ----------
-   Cada estela es una elipse inclinada alrededor de la hoja. Se dibuja
-   dos veces con el mismo trazo animado: la mitad superior en una capa
-   detrás de la hoja y la inferior en una capa delante, así la estela la
-   envuelve. Cola fina + cabeza algo más marcada = trazo que se afina. */
+/* ---------- Estelas de viento (escena 600×300) ----------
+   Medialunas rellenas: gruesas al centro y afinadas en los extremos,
+   con un degradado que las desvanece hacia las puntas y un desenfoque
+   leve que las vuelve pincelada. Un trazo fino paralelo acompaña cada una. */
 
-const TRAILS = [
-  { key: "a", rx: 172, ry: 50, rotate: -16 },
-  { key: "b", rx: 150, ry: 66, rotate: 24 },
-] as const;
-
-function ellipsePath(rx: number, ry: number) {
-  return `M${-rx} 0 A${rx} ${ry} 0 1 0 ${rx} 0 A${rx} ${ry} 0 1 0 ${-rx} 0`;
-}
-
-function WindTrails({ uid, half }: { uid: string; half: "back" | "front" }) {
+function BreezeLeft({ uid }: { uid: string }) {
+  const g = `${uid}-breeze-l`;
   return (
-    <svg className={`sivu-loader__trails sivu-loader__trails--${half}`} viewBox="0 0 400 400" fill="none">
+    <svg viewBox="0 0 600 300" fill="none">
       <defs>
-        <clipPath id={`${uid}-clip-${half}`}>
-          {/* Coordenadas locales de cada elipse: y < 0 atrás, y > 0 adelante. */}
-          <rect x="-220" y={half === "back" ? -120 : 0} width="440" height="120" />
-        </clipPath>
-        <linearGradient id={`${uid}-trail`} x1="-180" y1="0" x2="180" y2="0" gradientUnits="userSpaceOnUse">
-          <stop offset="0" stopColor="var(--sl-trail-soft)" stopOpacity="0" />
-          <stop offset="0.3" stopColor="var(--sl-trail-soft)" />
-          <stop offset="0.7" stopColor="var(--sl-trail)" />
-          <stop offset="1" stopColor="var(--sl-trail)" stopOpacity="0.2" />
+        <linearGradient id={g} x1="330" y1="0" x2="140" y2="0" gradientUnits="userSpaceOnUse">
+          <stop offset="0" stopColor="var(--sl-breeze)" stopOpacity="0" />
+          <stop offset="0.55" stopColor="var(--sl-breeze)" stopOpacity="0.55" />
+          <stop offset="1" stopColor="var(--sl-breeze)" stopOpacity="0.85" />
         </linearGradient>
-      </defs>
-      {TRAILS.map((t) => (
-        <g key={t.key} transform={`translate(200 194) rotate(${t.rotate})`}>
-          <g clipPath={`url(#${uid}-clip-${half})`} className={`sivu-loader__trail sivu-loader__trail--${t.key}`}>
-            <path className="sivu-loader__trail-tail" d={ellipsePath(t.rx, t.ry)} pathLength={100} stroke={`url(#${uid}-trail)`} />
-            <path className="sivu-loader__trail-head" d={ellipsePath(t.rx, t.ry)} pathLength={100} stroke={`url(#${uid}-trail)`} />
-          </g>
-        </g>
-      ))}
-    </svg>
-  );
-}
-
-/* ---------- Hoja principal ----------
-   Lámina asimétrica con la punta curvada, plegada levemente sobre la
-   nervadura central: mitad iluminada, mitad en sombra, brillo difuso,
-   textura fina, borde y nervaduras secundarias que se curvan hacia la
-   punta. Coordenadas locales 200×320; pecíolo abajo. */
-
-const BLADE =
-  "M100 262 C52 248 30 190 34 140 C38 88 70 44 114 16 C142 52 168 100 166 152 C164 206 138 248 100 262 Z";
-const BLADE_SHADE_HALF = "M100 262 C96 200 98 120 114 16 C142 52 168 100 166 152 C164 206 138 248 100 262 Z";
-const MIDRIB = "M100 262 C96 200 98 120 114 16";
-
-/** [y en la nervadura, x en la nervadura, x borde izquierdo, x borde derecho] */
-const VEINS: Array<[number, number, number, number]> = [
-  [238, 98.6, 50, 150],
-  [210, 97.6, 40, 160],
-  [182, 97.2, 36, 165],
-  [154, 98, 37, 165],
-  [126, 99.6, 42, 160],
-  [98, 102, 52, 150],
-  [72, 105, 66, 137],
-];
-
-function veinPaths() {
-  return VEINS.map(([y, mx, lx, rx]) => {
-    const rise = 30;
-    const left = `M${mx} ${y} C${mx - 16} ${y - 4} ${lx + 18} ${y - rise * 0.55} ${lx + 6} ${y - rise}`;
-    const right = `M${mx} ${y} C${mx + 16} ${y - 4} ${rx - 18} ${y - rise * 0.55} ${rx - 6} ${y - rise}`;
-    return `${left} ${right}`;
-  }).join(" ");
-}
-
-const VEINS_D = veinPaths();
-
-function Leaf({ uid }: { uid: string }) {
-  const id = (name: string) => `${uid}-${name}`;
-  const url = (name: string) => `url(#${id(name)})`;
-  return (
-    <svg className="sivu-loader__leaf" viewBox="0 0 200 320">
-      <defs>
-        <linearGradient id={id("blade")} x1="0.12" y1="0.05" x2="0.88" y2="0.95">
-          <stop offset="0" stopColor="var(--sl-leaf-1)" />
-          <stop offset="0.34" stopColor="var(--sl-leaf-2)" />
-          <stop offset="0.68" stopColor="var(--sl-leaf-3)" />
-          <stop offset="1" stopColor="var(--sl-leaf-4)" />
-        </linearGradient>
-        <linearGradient id={id("fold")} x1="0" y1="0" x2="1" y2="0.2">
-          <stop offset="0" stopColor="#06281b" stopOpacity="0.04" />
-          <stop offset="1" stopColor="#06281b" stopOpacity="0.36" />
-        </linearGradient>
-        <radialGradient id={id("light")} cx="0.34" cy="0.36" r="0.55">
-          <stop offset="0" stopColor="#fffbe8" stopOpacity="0.5" />
-          <stop offset="0.6" stopColor="#fffbe8" stopOpacity="0.08" />
-          <stop offset="1" stopColor="#fffbe8" stopOpacity="0" />
-        </radialGradient>
-        <linearGradient id={id("rib")} x1="0" y1="1" x2="0" y2="0">
-          <stop offset="0" stopColor="var(--sl-vein)" stopOpacity="0.95" />
-          <stop offset="1" stopColor="var(--sl-vein)" stopOpacity="0.25" />
-        </linearGradient>
-        <linearGradient id={id("stem")} x1="0" y1="0" x2="1" y2="0">
-          <stop offset="0" stopColor="#6e9f4f" />
-          <stop offset="1" stopColor="#2e5f3c" />
-        </linearGradient>
-        <clipPath id={id("clip")}>
-          <path d={BLADE} />
-        </clipPath>
-        {/* Textura fina de la lámina (estática: se rasteriza una vez). */}
-        <filter id={id("grain")} x="0" y="0" width="100%" height="100%">
-          <feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="2" seed="7" result="noise" />
-          <feColorMatrix in="noise" type="matrix" values="0 0 0 0 0.05  0 0 0 0 0.2  0 0 0 0 0.1  0 0 0 0.55 -0.12" />
+        <filter id={`${g}-soft`} x="-10%" y="-10%" width="120%" height="120%">
+          <feGaussianBlur stdDeviation="1.4" />
         </filter>
       </defs>
-
-      {/* Pecíolo */}
-      <path d="M100 262 C99 280 96 296 90 310" stroke={url("stem")} strokeWidth="5" strokeLinecap="round" fill="none" />
-
-      <g clipPath={url("clip")}>
-        <path d={BLADE} fill={url("blade")} />
-        <path d={BLADE_SHADE_HALF} fill={url("fold")} />
-        <rect width="200" height="320" filter={url("grain")} opacity="0.5" />
-        <path d={BLADE} fill={url("light")} />
-        {/* Nervaduras secundarias: claro encima, sombra corrida debajo = relieve. */}
-        <path d={VEINS_D} transform="translate(0.8 1.2)" stroke="#06281b" strokeOpacity="0.18" strokeWidth="1.4" strokeLinecap="round" fill="none" />
-        <path d={VEINS_D} stroke="var(--sl-vein)" strokeOpacity="0.55" strokeWidth="1.1" strokeLinecap="round" fill="none" />
-        {/* Nervadura central */}
-        <path d={MIDRIB} transform="translate(1.4 1)" stroke="#06281b" strokeOpacity="0.22" strokeWidth="3.6" strokeLinecap="round" fill="none" />
-        <path d={MIDRIB} stroke={url("rib")} strokeWidth="3" strokeLinecap="round" fill="none" />
-      </g>
-
-      {/* Borde: oscuro en todo el contorno, luz en el lado iluminado. */}
-      <path d={BLADE} fill="none" stroke="var(--sl-leaf-4)" strokeOpacity="0.55" strokeWidth="1.3" />
-      <path d="M100 261 C53 247 31 190 35 140 C39 89 71 45 113 18" fill="none" stroke="#fffbe8" strokeOpacity="0.45" strokeWidth="1" />
+      <path
+        filter={`url(#${g}-soft)`}
+        fill={`url(#${g})`}
+        d="M292 98 C205 96 142 124 146 162 C150 198 232 214 336 204 C252 204 182 192 172 162 C164 132 214 106 292 98 Z"
+      />
+      <path d="M318 84 C210 80 124 116 130 162 C134 196 186 214 246 218" stroke={`url(#${g})`} strokeWidth="1.1" strokeLinecap="round" opacity="0.6" />
     </svg>
   );
 }
 
-/** Hoja pequeña de acompañamiento: misma forma, menos detalle. */
-function MiniLeaf({ uid, tone }: { uid: string; tone: "a" | "b" }) {
-  const gid = `${uid}-mini-${tone}`;
+function BreezeRight({ uid }: { uid: string }) {
+  const g = `${uid}-breeze-r`;
   return (
-    <svg className="sivu-loader__mini-leaf" viewBox="0 0 200 320">
+    <svg viewBox="0 0 600 300" fill="none">
       <defs>
-        <linearGradient id={gid} x1="0.1" y1="0.05" x2="0.9" y2="0.95">
-          <stop offset="0" stopColor={tone === "a" ? "var(--sl-leaf-1)" : "var(--sl-leaf-2)"} />
-          <stop offset="1" stopColor={tone === "a" ? "var(--sl-leaf-3)" : "var(--sl-leaf-4)"} />
+        <linearGradient id={g} x1="300" y1="50" x2="452" y2="160" gradientUnits="userSpaceOnUse">
+          <stop offset="0" stopColor="var(--sl-breeze)" stopOpacity="0" />
+          <stop offset="0.55" stopColor="var(--sl-breeze)" stopOpacity="0.75" />
+          <stop offset="1" stopColor="var(--sl-breeze)" stopOpacity="0" />
+        </linearGradient>
+        <filter id={`${g}-soft`} x="-10%" y="-10%" width="120%" height="120%">
+          <feGaussianBlur stdDeviation="1.2" />
+        </filter>
+      </defs>
+      <path
+        filter={`url(#${g}-soft)`}
+        fill={`url(#${g})`}
+        d="M300 50 C384 34 466 58 472 98 C476 124 460 142 436 154 C452 136 460 118 454 98 C446 72 384 54 300 50 Z"
+      />
+      <path d="M352 30 C430 30 488 60 488 100 C488 122 474 138 458 148" stroke={`url(#${g})`} strokeWidth="1" strokeLinecap="round" opacity="0.55" />
+    </svg>
+  );
+}
+
+/* ---------- Hoja ----------
+   Coordenadas locales 320×140: pecíolo a la izquierda, punta a la derecha.
+   Lámina lanceolada con la nervadura levemente curvada hacia arriba;
+   mitad superior iluminada, inferior en sombra suave. */
+
+const BLADE =
+  "M30 80 C58 46 126 24 200 28 C244 30 280 30 304 34 C276 60 234 92 162 104 C100 114 52 104 30 80 Z";
+const LOWER_HALF = "M30 80 C110 83 210 72 304 34 C276 60 234 92 162 104 C100 114 52 104 30 80 Z";
+const MIDRIB = "M30 80 C110 83 210 72 304 34";
+const VEINS =
+  "M72 80 C88 70 100 58 116 50 M112 80 C128 68 142 56 160 46 M152 78 C168 66 184 54 204 44 M194 74 C210 62 228 52 246 44 M236 66 C250 56 266 48 280 42 " +
+  "M80 81 C94 90 108 96 124 99 M120 81 C136 88 152 92 168 93 M162 78 C178 84 194 86 210 85 M204 72 C218 76 232 76 246 73 M244 62 C256 64 268 62 278 58";
+
+function Leaf({ uid, mini = false }: { uid: string; mini?: boolean }) {
+  const id = (name: string) => `${uid}-${mini ? "m" : "l"}-${name}`;
+  const url = (name: string) => `url(#${id(name)})`;
+  return (
+    // La hoja pequeña se dibuja más ancha (estirada en alto): a ese tamaño,
+    // la proporción de la principal se leería como una astilla.
+    <svg className="sivu-loader__leaf" viewBox="0 0 320 140" preserveAspectRatio={mini ? "none" : undefined}>
+      <defs>
+        <linearGradient id={id("blade")} x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0" stopColor="var(--sl-leaf-3)" />
+          <stop offset="0.45" stopColor="var(--sl-leaf-2)" />
+          <stop offset="1" stopColor="var(--sl-leaf-1)" />
+        </linearGradient>
+        <linearGradient id={id("shade")} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stopColor="var(--sl-leaf-4)" stopOpacity="0.15" />
+          <stop offset="1" stopColor="var(--sl-leaf-4)" stopOpacity="0.6" />
+        </linearGradient>
+        <radialGradient id={id("light")} cx="0.55" cy="0.3" r="0.5">
+          <stop offset="0" stopColor="#fbfde9" stopOpacity="0.45" />
+          <stop offset="1" stopColor="#fbfde9" stopOpacity="0" />
+        </radialGradient>
+        <linearGradient id={id("rib")} x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0" stopColor="var(--sl-vein)" stopOpacity="0.9" />
+          <stop offset="1" stopColor="var(--sl-vein)" stopOpacity="0.2" />
         </linearGradient>
       </defs>
-      <path d="M100 262 C99 280 96 296 90 310" stroke="var(--sl-leaf-4)" strokeWidth="8" strokeLinecap="round" fill="none" />
-      <path d={BLADE} fill={`url(#${gid})`} />
-      <path d={BLADE_SHADE_HALF} fill="#06281b" fillOpacity="0.16" />
-      <path d={MIDRIB} stroke="var(--sl-vein)" strokeOpacity="0.7" strokeWidth="6" strokeLinecap="round" fill="none" />
+      <path d="M31 80 C22 83 12 89 3 99" stroke="var(--sl-leaf-4)" strokeWidth={mini ? 6 : 3} strokeLinecap="round" fill="none" />
+      <path d={BLADE} fill={url("blade")} />
+      <path d={LOWER_HALF} fill={url("shade")} />
+      <path d={BLADE} fill={url("light")} />
+      {!mini && <path d={VEINS} stroke="var(--sl-vein)" strokeOpacity="0.32" strokeWidth="0.9" strokeLinecap="round" fill="none" />}
+      <path d={MIDRIB} stroke={url("rib")} strokeWidth={mini ? 5 : 2.2} strokeLinecap="round" fill="none" />
+      {/* Borde de luz en el canto superior. */}
+      {!mini && <path d="M32 79 C59 47 126 25 200 29 C244 31 280 31 302 35" stroke="#fbfde9" strokeOpacity="0.4" strokeWidth="1" fill="none" />}
     </svg>
   );
 }
