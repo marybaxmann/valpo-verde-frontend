@@ -16,6 +16,29 @@ import "./styles/inspection.css";
 import "./styles/species.css";
 
 /**
+ * Tras un despliegue nuevo, una pestaña abierta pide módulos de la versión
+ * anterior, que ya no existen: se recarga una vez para tomar la nueva
+ * (como máximo una vez por minuto, para no entrar en un ciclo).
+ */
+window.addEventListener("vite:preloadError", (event) => {
+  const clave = "sivu-recarga-por-version";
+  let ultima = 0;
+  try {
+    ultima = Number(sessionStorage.getItem(clave) ?? 0);
+  } catch {
+    // Sin sessionStorage se recarga igual.
+  }
+  if (Date.now() - ultima < 60_000) return;
+  event.preventDefault();
+  try {
+    sessionStorage.setItem(clave, String(Date.now()));
+  } catch {
+    // Ídem.
+  }
+  window.location.reload();
+});
+
+/**
  * react-router-dom se inicializa aquí (desde F0). Desde F5, App.tsx
  * define el árbol de rutas protegido por sesión + rol real.
  */
