@@ -270,6 +270,12 @@ export default function ProjectMapView({
       setMarca(sp ? { x: sp.x, y: sp.y } : null);
     };
     ubicar();
+    // Si el árbol elegido queda cerca de un borde, su etiqueta se cortaría: se centra.
+    const sp = view.toScreen(punto);
+    const margen = 140;
+    if (sp && (sp.x < margen || sp.x > view.width - margen || sp.y < margen || sp.y > view.height - 40)) {
+      view.goTo({ center: punto }, { duration: 400 }).catch(() => undefined);
+    }
     const h = reactiveUtils.watch(() => [view.extent, view.width, view.height], ubicar);
     return () => h.remove();
     // eslint-disable-next-line react-hooks/exhaustive-deps

@@ -174,32 +174,87 @@
   color: var(--text-muted);
 }
 
+/* Teléfono y tableta angosta: la página se desplaza. Arriba el lugar, luego
+   el mapa con un alto acotado (queda bajo la barra superior) y, debajo y no
+   encima, Filtros, Lista y el listado. Con el listado minimizado el mapa
+   gana alto; abierto, se lee completo desplazando la página. */
 @media (max-width: 860px) {
-  /* Teléfono: el lugar arriba, la tarjeta en la mitad inferior y el mapa visible entre ambos;
-     abajo queda libre el selector de capas. */
-  .sivu-terr__overlay {
-    left: 12px;
-    bottom: 60px;
-    width: calc(100% - 24px);
+  .sivu-shell--workspace {
+    height: auto;
+    min-height: 100dvh;
+    overflow: visible;
   }
+
+  .sivu-shell .content--workspace,
+  .content--workspace {
+    display: block;
+    height: auto;
+    overflow: visible;
+  }
+
+  .sivu-terr {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    flex: none;
+    overflow: visible;
+    padding: 4px 12px 20px;
+  }
+
+  .sivu-terr__overlay {
+    display: contents;
+  }
+
   .sivu-terr__place {
+    order: 0;
+    align-self: stretch;
     padding: 8px 12px 10px;
   }
+
   .sivu-terr__title {
     margin-top: 6px;
     font-size: 20px;
   }
-  .sivu-terr__dock {
-    margin-top: auto;
-    max-height: 50%;
+
+  .sivu-terr__map {
+    order: 1;
+    position: relative;
+    inset: auto;
+    height: max(280px, 42dvh);
+    border-radius: 18px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    transition: height 0.25s ease;
   }
+
+  .sivu-terr.is-min .sivu-terr__map {
+    height: max(360px, calc(100dvh - 400px));
+  }
+
+  .sivu-terr__dock {
+    order: 2;
+    margin-top: 0;
+    max-height: none;
+  }
+
+  .sivu-terr__card {
+    overflow: visible;
+  }
+
   .sivu-terr__card .sivu-diag__list {
     max-height: none;
   }
+
   .sivu-terr .sivu-basemaps {
     top: auto;
-    bottom: 14px;
-    right: 12px;
+    bottom: 10px;
+    right: 10px;
+  }
+}
+
+@media (max-width: 860px) and (prefers-reduced-motion: reduce) {
+  .sivu-terr__map {
+    transition: none;
   }
 }
 

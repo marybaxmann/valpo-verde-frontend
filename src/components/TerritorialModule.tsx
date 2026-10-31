@@ -47,10 +47,9 @@ export function TerritorialModule({
   const [minimizada, setMinimizada] = useState(false);
   const [verFiltros, setVerFiltros] = useState(false);
   const angosta = usePantallaAngosta();
-  // Lo que tapan el encabezado y la tarjeta (territory.css): a la izquierda en computador, abajo en teléfono.
-  const padding = angosta
-    ? { top: 130, bottom: minimizada ? 70 : Math.round(window.innerHeight * 0.4) }
-    : { left: minimizada ? 0 : 400 };
+  // Lo que tapa la tarjeta en computador (territory.css).
+  // En pantalla angosta nada tapa el mapa (la tarjeta va debajo).
+  const padding = angosta ? {} : { left: minimizada ? 0 : 400 };
 
   useEffect(() => {
     let cancelled = false;
@@ -70,7 +69,7 @@ export function TerritorialModule({
   }, [projectId]);
 
   return (
-    <div className="sivu-terr">
+    <div className={`sivu-terr ${minimizada ? "is-min" : ""}`}>
       {apiKey ? (
         <Suspense fallback={<div className="sivu-terr__map sivu-terr__map--loading">Cargando mapa…</div>}>
           <ProjectMapView
