@@ -1,7 +1,7 @@
 /* ==================================================
-   SivuLoader — hojas llevadas por una brisa suave
-   Escena 1267×783 (proporción de la ilustración de referencia); cada
-   pieza se ubica en % de ella (ver SivuLoader.tsx).
+   SivuLoader — ilustración de referencia animada
+   Capas de imagen transparentes (src/assets/sivu-loader/) ubicadas en %
+   de la escena (ver SivuLoader.tsx).
    Las capas oscilan de ida y vuelta (alternate) con períodos distintos:
    movimiento continuo, sin reinicios ni giros bruscos.
    ================================================== */
@@ -10,14 +10,6 @@
   --sl-size: 170px;
   --sl-bg: #f8f7f1; /* blanco marfil */
   --sl-glow: #fdfdf8;
-  --sl-leaf-1: #93c75a; /* borde iluminado */
-  --sl-leaf-2: #6eae3e;
-  --sl-leaf-3: #4a9230;
-  --sl-leaf-4: #2c6c23; /* sombra */
-  --sl-vein: #d9efaa;
-  --sl-breeze: #c6d6b9; /* salvia muy pálido */
-  --sl-breeze-line: #b3c8a3;
-  --sl-shadow: rgba(112, 146, 88, 0.42);
   --sl-text: #2b4a33;
   --sl-dot-1: #3f7d3a;
   --sl-dot-2: #a9bfa2;
@@ -32,16 +24,21 @@
   animation: sivuLoaderIn 0.45s ease 0.12s both;
 }
 
+/* Modo oscuro: las capas se recortaron sobre marfil. Las estelas pasan
+   a salvia claro (se conserva su transparencia) y la sombra a negro. */
+:root[data-theme="dark"] .sivu-loader__breeze .sivu-loader__img {
+  filter: brightness(0) invert(0.78) sepia(0.35) hue-rotate(40deg);
+  opacity: 0.55;
+}
+
+:root[data-theme="dark"] .sivu-loader__shadow .sivu-loader__img {
+  filter: brightness(0);
+  opacity: 0.7;
+}
+
 :root[data-theme="dark"] .sivu-loader {
   --sl-bg: var(--surface-background);
   --sl-glow: #16211b;
-  --sl-leaf-1: #a7d36b;
-  --sl-leaf-2: #82c04c;
-  --sl-leaf-3: #55a338;
-  --sl-leaf-4: #2f7428;
-  --sl-breeze: #3c5244;
-  --sl-breeze-line: #4f6b58;
-  --sl-shadow: rgba(0, 0, 0, 0.55);
   --sl-text: var(--text-primary);
   --sl-dot-1: #7fbf6a;
   --sl-dot-2: #4f6b55;
@@ -125,27 +122,24 @@
 .sivu-loader__stage {
   position: relative;
   width: var(--sl-size);
-  aspect-ratio: 1267 / 783;
 }
 
-.sivu-loader__breeze {
+/* Cada capa: posición y ancho en % de la escena (inline, desde el
+   recuadro de la referencia); el alto lo da la propia imagen. */
+.sivu-loader__layer {
   position: absolute;
-  inset: 0;
-  /* Giran alrededor del centro de la hoja principal. */
-  transform-origin: 53% 49%;
 }
 
-.sivu-loader__breeze svg,
-.sivu-loader__art {
+.sivu-loader__img {
   display: block;
   width: 100%;
   height: auto;
-  overflow: visible;
+  user-select: none;
+  pointer-events: none;
 }
 
-.sivu-loader__breeze svg {
-  height: 100%;
-}
+/* Las corrientes giran alrededor del centro de la hoja principal
+   (transform-origin inline). */
 
 .sivu-loader__breeze--left {
   animation: sivuLoaderBreezeLeft 7.6s ease-in-out infinite alternate;
@@ -153,10 +147,6 @@
 
 .sivu-loader__breeze--right {
   animation: sivuLoaderBreezeRight 9.2s ease-in-out -3s infinite alternate;
-}
-
-.sivu-loader__piece {
-  position: absolute;
 }
 
 .sivu-loader__leaf-x {
@@ -168,16 +158,13 @@
 }
 
 .sivu-loader__leaf-sway {
-  transform-origin: 55% 60%;
+  transform-origin: 50% 50%;
   animation: sivuLoaderLeafSway 3.9s ease-in-out infinite alternate;
 }
 
 /* Sombra: comparte período y curva con sivuLoaderLeafY.
    Hoja arriba → sombra más angosta y tenue. */
 .sivu-loader__shadow {
-  position: absolute;
-  border-radius: 50%;
-  background: radial-gradient(closest-side, var(--sl-shadow), transparent);
   animation: sivuLoaderShadow 4.8s ease-in-out infinite alternate;
 }
 
