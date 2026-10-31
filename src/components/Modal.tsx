@@ -1,4 +1,5 @@
 import React from "react";
+import { Icon } from "./Icons";
 
 export function Modal({
   title,
@@ -13,11 +14,11 @@ export function Modal({
 }) {
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div className="modal" onClick={(e) => e.stopPropagation()}>
+      <div className="modal" role="dialog" aria-modal="true" aria-label={title} onClick={(e) => e.stopPropagation()}>
         <div className="modal__header">
           <h3>{title}</h3>
-          <button className="btn btn-ghost btn-sm" onClick={onClose} aria-label="Cerrar">
-            ✕
+          <button type="button" className="btn btn-ghost btn-sm" onClick={onClose} aria-label="Cerrar">
+            <Icon name="close" size={16} />
           </button>
         </div>
         <div className="modal__body">{children}</div>

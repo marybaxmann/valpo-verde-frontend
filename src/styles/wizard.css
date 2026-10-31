@@ -1,0 +1,217 @@
+/* ==================================================
+   Diálogos de creación («wizards»): un solo criterio de proporciones.
+   El contenedor tiene un radio moderado y todo lo que va dentro —campos,
+   listas de opciones, mapas, avisos— usa el mismo radio interior, más
+   chico, para que las esquinas queden concéntricas. Se importa al final
+   para mandar sobre los estilos de cada módulo solo dentro de `.modal`.
+   Afecta a NewInspectionOrderModal, NewTreeModal y NewProjectModal.
+   ================================================== */
+
+:root {
+  --wizard-radius: 18px;
+  --wizard-inner-radius: 12px;
+  --wizard-pad: 20px;
+  --wizard-control-h: 42px;
+}
+
+/* Contenedor: encabezado y pie fijos; solo el cuerpo se desplaza. */
+.modal {
+  display: flex;
+  flex-direction: column;
+  max-height: min(90vh, 90dvh);
+  overflow: hidden;
+  border-radius: var(--wizard-radius);
+}
+
+.modal__header {
+  flex: none;
+  gap: 12px;
+  padding: 16px var(--wizard-pad);
+}
+
+.modal__header h3 {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.modal__header .btn {
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  flex: none;
+}
+
+.modal__body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: var(--wizard-pad);
+  overscroll-behavior: contain;
+}
+
+.modal__footer {
+  flex: none;
+  padding: 14px var(--wizard-pad);
+}
+
+/* Campos: misma altura y mismo radio. */
+.modal .field {
+  margin-bottom: 16px;
+}
+
+.modal .field input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
+.modal .field select {
+  min-height: var(--wizard-control-h);
+  border-radius: var(--wizard-inner-radius);
+}
+
+.modal .field textarea {
+  border-radius: var(--wizard-inner-radius);
+}
+
+/* Listas de opciones y bloques interiores: el mismo radio que los campos. */
+.modal :is(
+    .sivu-newot__trees button,
+    .sivu-newtree__suggest,
+    .sivu-newtree__error,
+    .sivu-picker,
+    .sivu-picker__state,
+    .sivu-newproject__list li,
+    .sivu-newproject__preview,
+    .sivu-state
+  ) {
+  border-radius: var(--wizard-inner-radius);
+}
+
+.modal .sivu-newtree__suggest button {
+  border-radius: calc(var(--wizard-inner-radius) - 4px);
+}
+
+/* Opciones de una lista (p. ej. el árbol de la orden): alto y alineación de un campo. */
+.modal .sivu-newot__trees {
+  gap: 6px;
+  max-height: 220px;
+  padding-right: 2px;
+}
+
+.modal .sivu-newot__trees button {
+  display: flex;
+  align-items: center;
+  min-height: var(--wizard-control-h);
+  padding: 8px 12px;
+  line-height: 1.3;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.modal .sivu-newot__trees button:hover {
+  background: var(--surface-subtle);
+}
+
+.modal .sivu-newot__trees button.is-on {
+  box-shadow: inset 3px 0 0 var(--sivu-accent);
+}
+
+/* Teléfono: hoja desde abajo, a todo el ancho, con los botones a la mano. */
+@media (max-width: 560px) {
+  .modal-overlay {
+    align-items: flex-end;
+    padding: 0;
+  }
+
+  .modal,
+  .modal:has(.sivu-newtree),
+  .modal:has(.sivu-newproject__preview) {
+    max-width: none;
+    width: 100%;
+    max-height: 92dvh;
+    border-radius: var(--wizard-radius) var(--wizard-radius) 0 0;
+    border-bottom: 0;
+    animation: sivu-wizard-up 0.22s ease-out;
+  }
+
+  .modal__header,
+  .modal__body,
+  .modal__footer {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  .modal__footer {
+    padding-bottom: max(14px, env(safe-area-inset-bottom));
+  }
+
+  .modal__footer .btn {
+    flex: 1;
+  }
+}
+
+@keyframes sivu-wizard-up {
+  from { transform: translateY(24px); opacity: 0; }
+  to { transform: none; opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .modal {
+    animation: none;
+  }
+}
+
+/* ==================================================
+   Formularios dentro del detalle de una orden (Mantención e Inspección:
+   programar, completar, cancelar, reasignar, anular). Mismo criterio que
+   los diálogos: campos de igual alto y radio interior.
+   ================================================== */
+
+.sivu-mant__action-row input,
+.sivu-otg__form textarea,
+.sivu-otg__form select {
+  min-height: 40px;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--wizard-inner-radius);
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+}
+
+.sivu-mant__action-row input {
+  height: 40px;
+}
+
+.sivu-otg__form textarea {
+  min-height: 72px;
+  resize: vertical;
+}
+
+.sivu-mant__action-row input:focus,
+.sivu-otg__form textarea:focus,
+.sivu-otg__form select:focus {
+  outline: none;
+  border-color: var(--sivu-primary-medium);
+  box-shadow: 0 0 0 3px var(--green-100);
+}
+
+.sivu-otg__form {
+  padding: 12px;
+  border-radius: var(--wizard-inner-radius);
+  background: var(--surface-subtle);
+  border: 1px solid var(--border);
+}
+
+.sivu-otg__insp {
+  border-radius: var(--wizard-inner-radius);
+  padding: 10px 12px;
+}
+
+.sivu-mant__action-row {
+  flex-wrap: wrap;
+}
+
+@media (max-width: 560px) {
+  .sivu-mant__action-row > * {
+    flex: 1 1 auto;
+  }
+}

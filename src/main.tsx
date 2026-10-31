@@ -14,6 +14,7 @@ import "./styles/maintenance.css";
 import "./styles/project.css";
 import "./styles/inspection.css";
 import "./styles/species.css";
+import "./styles/wizard.css";
 
 /**
  * Tras un despliegue nuevo, una pestaña abierta pide módulos de la versión
