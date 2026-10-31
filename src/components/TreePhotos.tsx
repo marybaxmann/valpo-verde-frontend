@@ -17,7 +17,16 @@ import { TreeDiagnosis } from "./TreeDiagnosis";
  * y de corta duración: se abren tal cual, no se guardan. Al pinchar una
  * foto se abre en un visor sobre el módulo, sin salir de la ficha.
  */
-export function TreePhotos({ projectId, treeId }: { projectId: string; treeId: string }) {
+export function TreePhotos({
+  projectId,
+  treeId,
+  conDiagnostico = true,
+}: {
+  projectId: string;
+  treeId: string;
+  /** Sin el diagnóstico encima, cuando la ficha ya lo muestra en otra pestaña. */
+  conDiagnostico?: boolean;
+}) {
   const [estado, setEstado] = useState<
     { treeId: string; diag: Diagnostico | null; fotos: FotoInspeccion[] } | { treeId: string; error: string } | null
   >(null);
@@ -59,7 +68,7 @@ export function TreePhotos({ projectId, treeId }: { projectId: string; treeId: s
 
   return (
     <>
-    {actual && "diag" in actual && actual.diag && <TreeDiagnosis d={actual.diag} />}
+    {conDiagnostico && actual && "diag" in actual && actual.diag && <TreeDiagnosis d={actual.diag} />}
     <section className="sivu-treephotos" aria-label="Fotografías del árbol">
       <h3>Fotografías</h3>
       {!actual && <p className="sivu-state">Cargando fotografías…</p>}

@@ -11,7 +11,7 @@ import type { EvaluacionVigente } from "../types/diagnostico";
 import { ClassificationBadge } from "../components/ClassificationBadge";
 import { Icon } from "../components/Icons";
 import { PendingNotice } from "../components/PendingNotice";
-import { TreePhotos } from "../components/TreePhotos";
+import { TreeSheet } from "../components/TreeSheet";
 import { NewTreeModal } from "../components/NewTreeModal";
 import { useAuth } from "../hooks/useAuth";
 import { ESTADO_PROYECTO_LABEL } from "../lib/projects";
@@ -368,35 +368,12 @@ export default function InventoryPage() {
 
           <aside className="sivu-inv__side">
             {selected && (
-              <article className="sivu-panel">
-                <div className="sivu-panel__head">
-                  <h2>{selected.tree_code}</h2>
-                  <button type="button" className="sivu-panel__link" onClick={() => setSelectedId(null)}>
-                    Cerrar
-                  </button>
-                </div>
-                <dl className="sivu-mant__dl">
-                  <dt>Especie</dt>
-                  <dd>{selected.especie_cientifica ?? "—"}</dd>
-                  <dt>Nombre común</dt>
-                  <dd>{selected.nombre_comun ?? "—"}</dd>
-                  <dt>Ciclo de vida</dt>
-                  <dd>{ciclo(selected.estado_ciclo_vida)}</dd>
-                  <dt>Sector</dt>
-                  <dd>{selected.sector ?? "—"}</dd>
-                  <dt>Ubicación</dt>
-                  <dd>{selected.ubicacion_descriptiva ?? "—"}</dd>
-                  <dt>UTM 19S</dt>
-                  <dd>
-                    {selected.utm_este !== null && selected.utm_norte !== null
-                      ? `${selected.utm_este} / ${selected.utm_norte}`
-                      : "—"}
-                  </dd>
-                  <dt>Registro</dt>
-                  <dd>{fechaChile(selected.fecha_registro)}</dd>
-                </dl>
-                <TreePhotos projectId={projectId} treeId={selected.id} />
-              </article>
+              <TreeSheet
+                projectId={projectId}
+                arbol={selected}
+                cicloVida={ciclo(selected.estado_ciclo_vida)}
+                onClose={() => setSelectedId(null)}
+              />
             )}
             <article className="sivu-panel">
               <div className="sivu-panel__head">

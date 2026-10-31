@@ -14,7 +14,7 @@ function color(c: CodigoEtiqueta | null | undefined): string {
  * que entregó el backend para ese componente; el frontend no compara ni
  * elige el «más desfavorable».
  */
-function TreeGlyph({ r }: { r: ResultadoDiagnostico | null }) {
+export function TreeGlyph({ r }: { r: ResultadoDiagnostico | null }) {
   const comp = r?.componentes;
   const copa = color(comp?.copa_ramas?.clasificacion);
   const tronco = color(comp?.tronco?.clasificacion);
