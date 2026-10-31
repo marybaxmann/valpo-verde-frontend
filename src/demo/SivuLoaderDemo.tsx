@@ -71,8 +71,8 @@ export default function SivuLoaderDemo() {
       <section>
         <h2>Movimiento reducido</h2>
         <p className="loader-demo__note">
-          Con <code>prefers-reduced-motion: reduce</code> (sistema operativo o DevTools → Rendering) la hoja queda quieta y
-          solo la barra cambia de opacidad.
+          Con <code>prefers-reduced-motion: reduce</code> (sistema operativo o DevTools → Rendering) la escena queda quieta y
+          solo los puntos cambian de opacidad.
         </p>
       </section>
     </main>

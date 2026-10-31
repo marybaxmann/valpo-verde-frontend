@@ -162,15 +162,14 @@ email, nunca hardcodeado.
 - El SDK (`InventoryMapView`) y la página se cargan de forma diferida. Sin `VITE_ARCGIS_API_KEY` no se carga el SDK y se muestra un error controlado; el resto de la aplicación funciona. Los recursos del SDK (estilos, workers) se cargan por defecto desde el CDN de ArcGIS.
 
 ### UX-LOADER — Indicador de carga `SivuLoader` (demostración aislada)
-**Estado:** componente y demostración listos para evaluación; **aún no integrado** en ninguna pantalla. Rama `claude/ecstatic-fermat-ake8bm`.
-**Objetivo:** reemplazar, cuando la autora apruebe el resultado, los textos sueltos "Cargando…" por un indicador propio: una hoja verde que flota llevada por el viento, como único elemento visual, sobre fondo limpio, con el texto de carga y una barra discreta debajo.
+**Estado:** componente y demostración listos para evaluación; **aún no integrado** en ninguna pantalla (sesión, perfil y navegación siguen con sus textos "Cargando…"). Rama `claude/ecstatic-fermat-ake8bm`.
+**Objetivo:** indicador de carga propio de SIVU: ilustración botánica animada, sobre fondo marfil cálido (`#F8F7F1`) sin tarjeta ni borde.
 **Archivos:** `src/components/SivuLoader.tsx`, `src/styles/sivu-loader.css`; demostración en `demo/sivu-loader.html` + `src/demo/` (con `npm run dev`, abrir `/demo/sivu-loader.html`; no es una ruta de la aplicación ni entra en el build).
+**Composición:** hoja grande semirrealista (lámina asimétrica plegada sobre la nervadura, degradado de cuatro verdes, mitad en sombra, brillo difuso, textura fina con `feTurbulence`, nervaduras con relieve, borde iluminado); dos estelas de viento elípticas que pasan por detrás y por delante de la hoja (la misma elipse en dos capas, recortada en dos mitades); dos hojas pequeñas con vuelo propio; sombra difusa sincronizada con la flotación; texto en verde oscuro y tres puntos (verde, verde medio, salvia) animados en secuencia. Iteraciones previas (paisaje; hoja plana con barra) descartadas por la autora.
 **Decisiones:**
-- Sin paisajes ni escenarios (una primera versión con paisaje se descartó a pedido de la autora): la hoja es la única protagonista; solo la acompañan una sombra suave y dos trazos de viento muy tenues.
-- SVG + CSS, sin dependencias. Lottie y Rive se descartaron: agregan un runtime (~60–250 KB) y un flujo de diseño externo sin aportar nada que esta animación necesite.
-- Movimiento en cuatro contenedores anidados (avance lateral, flotación vertical, balanceo, giro 3D), cada uno con un período distinto y en ida y vuelta (`alternate`): el loop nunca se reinicia de golpe. Solo se animan `transform` y `opacity` (hilo del compositor).
-- Variantes `fullscreen` (fondo blanco cálido; sesión, perfil, cambio de pantalla) e `inline` (hoja pequeña, sin trazos de viento; módulos, tarjetas, paneles). Texto configurable (`message`, por defecto "Preparando tu entorno verde…"), anunciado con `role="status"`.
-- Colores de la paleta institucional, con versión para modo oscuro; la paleta de clasificación de riesgo no se usa. Con `prefers-reduced-motion` la hoja queda quieta y solo la barra cambia de opacidad.
+- SVG + CSS, sin dependencias (Lottie/Rive descartados: runtime extra sin ventaja aquí). Las ilustraciones son estáticas; el movimiento vive en contenedores HTML (`transform`/`opacity`, hilo del compositor) que oscilan de ida y vuelta con períodos distintos: el loop no se reinicia de golpe. Dentro del SVG solo se anima el trazo de las estelas.
+- Todo se dimensiona en % del escenario (`--sl-size`, `clamp(230px, 44vmin, 360px)` en pantalla completa): responsive sin cortes.
+- Variantes `fullscreen` e `inline` (esta sin estelas ni hojas pequeñas). Texto configurable (`message`, por defecto "Preparando tu entorno verde…"), anunciado con `role="status"`. Versión para modo oscuro; la paleta de riesgo no se usa. Con `prefers-reduced-motion` la escena queda quieta y solo los puntos cambian de opacidad.
 
 ---
 

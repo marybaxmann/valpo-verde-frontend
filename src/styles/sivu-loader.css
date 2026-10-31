@@ -1,18 +1,25 @@
 /* ==================================================
-   SivuLoader — hoja llevada por el viento
-   Solo se animan transform, opacity y el trazo del viento.
-   Cada capa oscila de ida y vuelta (alternate): el loop no se reinicia.
+   SivuLoader — ilustración botánica animada
+   Todo se dimensiona en % del escenario (--sl-size): escala sin cortes.
+   Las capas oscilan de ida y vuelta (alternate) con períodos distintos:
+   el loop es continuo y no se ve repetitivo.
    ================================================== */
 
 .sivu-loader {
-  --sl-bg: #f7f5ef; /* blanco cálido */
-  --sl-leaf: 72px; /* ancho de la hoja */
-  --sl-leaf-light: var(--sivu-primary-light);
-  --sl-leaf-mid: #3f936f;
-  --sl-leaf-dark: #176b4d;
-  --sl-leaf-vein: rgba(240, 247, 240, 0.72);
-  --sl-shadow: rgba(23, 107, 77, 0.3);
-  --sl-wind: rgba(63, 147, 111, 0.4);
+  --sl-size: 104px;
+  --sl-bg: #f8f7f1; /* marfil cálido */
+  --sl-leaf-1: #c3e08f;
+  --sl-leaf-2: #74b866;
+  --sl-leaf-3: #2f8a57;
+  --sl-leaf-4: #17543a;
+  --sl-vein: #f3f8e6;
+  --sl-trail: #3f936f;
+  --sl-trail-soft: #9db8a4;
+  --sl-shadow: rgba(30, 72, 48, 0.26);
+  --sl-text: var(--sivu-primary-dark);
+  --sl-dot-1: var(--sivu-primary);
+  --sl-dot-2: var(--sivu-primary-medium);
+  --sl-dot-3: #9db8a4; /* salvia */
 
   display: flex;
   flex-direction: column;
@@ -25,17 +32,20 @@
 
 :root[data-theme="dark"] .sivu-loader {
   --sl-bg: var(--surface-background);
-  --sl-leaf-light: #9bcb76;
-  --sl-leaf-mid: #4fb386;
-  --sl-leaf-dark: #23855e;
-  --sl-leaf-vein: rgba(227, 239, 229, 0.6);
-  --sl-shadow: rgba(0, 0, 0, 0.45);
-  --sl-wind: rgba(143, 211, 174, 0.32);
+  --sl-leaf-1: #b7dc86;
+  --sl-leaf-2: #6cc07a;
+  --sl-leaf-3: #2f9a63;
+  --sl-leaf-4: #1b6544;
+  --sl-trail: #8fd3ae;
+  --sl-trail-soft: #4f7a64;
+  --sl-shadow: rgba(0, 0, 0, 0.5);
+  --sl-dot-3: #5f7f6c;
 }
 
 /* ---------- Variantes ---------- */
 
 .sivu-loader--fullscreen {
+  --sl-size: clamp(230px, 44vmin, 360px);
   min-height: 100vh;
   min-height: 100dvh;
   padding: 24px;
@@ -44,13 +54,12 @@
 }
 
 .sivu-loader--fullscreen .sivu-loader__message {
-  font-size: 14px;
+  font-size: 15px;
 }
 
 .sivu-loader--inline {
-  --sl-leaf: 34px;
   width: 100%;
-  padding: 20px 16px;
+  padding: 18px 16px;
   gap: 8px;
 }
 
@@ -58,93 +67,75 @@
   font-size: 12.5px;
 }
 
-.sivu-loader--inline .sivu-loader__bar {
-  width: 56px;
+/* En espacios pequeños, solo la hoja, su sombra y los puntos. */
+.sivu-loader--inline .sivu-loader__trails,
+.sivu-loader--inline .sivu-loader__mini {
+  display: none;
 }
 
-/* ---------- Texto e indicador ---------- */
+.sivu-loader--inline .sivu-loader__dots i {
+  width: 5px;
+  height: 5px;
+}
+
+/* ---------- Texto y puntos ---------- */
 
 .sivu-loader__message {
-  color: var(--text-secondary);
+  color: var(--sl-text);
   font-weight: 500;
   letter-spacing: 0.01em;
 }
 
-.sivu-loader__bar {
-  position: relative;
+.sivu-loader__dots {
+  display: inline-flex;
+  gap: 7px;
+  height: 12px;
+  align-items: center;
+}
+
+.sivu-loader__dots i {
   display: block;
-  width: 88px;
-  height: 2px;
-  border-radius: 2px;
-  overflow: hidden;
-  background: var(--border-default);
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--sl-dot-1);
+  animation: sivuLoaderDot 1.35s ease-in-out infinite;
 }
 
-.sivu-loader__bar::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  width: 36%;
-  border-radius: inherit;
-  background: var(--sivu-primary);
-  /* Entra y sale fuera de la pista: el reinicio nunca se ve. */
-  animation: sivuLoaderBar 1.9s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+.sivu-loader__dots i:nth-child(2) {
+  background: var(--sl-dot-2);
+  animation-delay: 0.18s;
 }
 
-/* ---------- Escenario de la hoja ---------- */
+.sivu-loader__dots i:nth-child(3) {
+  background: var(--sl-dot-3);
+  animation-delay: 0.36s;
+}
+
+/* ---------- Escenario ---------- */
 
 .sivu-loader__stage {
   position: relative;
-  width: calc(var(--sl-leaf) * 2.3);
-  height: calc(var(--sl-leaf) * 2.2);
+  width: var(--sl-size);
+  height: calc(var(--sl-size) * 0.86);
 }
 
-.sivu-loader__drift-x {
+.sivu-loader__float-x {
   position: absolute;
-  left: 50%;
-  top: 44%;
-  width: var(--sl-leaf);
-  margin-left: calc(var(--sl-leaf) / -2);
-  margin-top: calc(var(--sl-leaf) * -0.75);
-  animation: sivuLoaderDriftX 6.8s ease-in-out infinite alternate;
-}
-
-.sivu-loader__drift-y {
-  animation: sivuLoaderDriftY 4.4s ease-in-out infinite alternate;
-}
-
-.sivu-loader__sway {
-  transform-origin: 50% 55%;
-  animation: sivuLoaderSway 3.4s ease-in-out infinite alternate;
-}
-
-.sivu-loader__turn {
-  transform-origin: 50% 50%;
-  animation: sivuLoaderTurn 5.6s ease-in-out infinite alternate;
-}
-
-.sivu-loader__leaf {
-  display: block;
+  left: 0;
+  top: 0;
   width: 100%;
-  aspect-ratio: 64 / 96;
-  overflow: visible;
+  aspect-ratio: 1;
+  animation: sivuLoaderFloatX 7.2s ease-in-out infinite alternate;
 }
 
-/* Sombra en el suelo: se achica y aclara cuando la hoja sube.
-   Comparte período y curva con sivuLoaderDriftY. */
-.sivu-loader__shadow {
+.sivu-loader__float-y {
   position: absolute;
-  left: 50%;
-  bottom: 4%;
-  width: calc(var(--sl-leaf) * 0.9);
-  height: calc(var(--sl-leaf) * 0.14);
-  margin-left: calc(var(--sl-leaf) * -0.45);
-  border-radius: 50%;
-  background: radial-gradient(closest-side, var(--sl-shadow), transparent);
-  animation: sivuLoaderShadow 4.4s ease-in-out infinite alternate;
+  inset: 0;
+  animation: sivuLoaderFloatY 4.6s ease-in-out infinite alternate;
 }
 
-.sivu-loader__wind {
+.sivu-loader__trails {
   position: absolute;
   inset: 0;
   width: 100%;
@@ -152,24 +143,102 @@
   overflow: visible;
 }
 
-.sivu-loader__gust {
-  stroke: var(--sl-wind);
-  stroke-width: 1;
+.sivu-loader__leaf-wrap {
+  position: absolute;
+  left: 30%;
+  top: 17%;
+  width: 40%;
+}
+
+.sivu-loader__sway {
+  transform-origin: 50% 48%;
+  animation: sivuLoaderSway 3.8s ease-in-out infinite alternate;
+}
+
+.sivu-loader__tilt {
+  transform-origin: 50% 45%;
+  animation: sivuLoaderTilt 5.4s ease-in-out infinite alternate;
+}
+
+.sivu-loader__leaf,
+.sivu-loader__mini-leaf {
+  display: block;
+  width: 100%;
+  aspect-ratio: 200 / 320;
+  overflow: visible;
+}
+
+.sivu-loader__leaf {
+  filter: drop-shadow(0 4px 6px rgba(23, 70, 45, 0.12));
+}
+
+/* Sombra en el suelo: comparte período y curva con sivuLoaderFloatY.
+   Hoja arriba → sombra más chica y tenue. */
+.sivu-loader__shadow {
+  position: absolute;
+  left: 26%;
+  bottom: 0;
+  width: 48%;
+  height: 9%;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, var(--sl-shadow), transparent);
+  animation: sivuLoaderShadow 4.6s ease-in-out infinite alternate;
+}
+
+/* Estelas: cola fina y cabeza más marcada recorren la misma elipse. */
+.sivu-loader__trail-tail,
+.sivu-loader__trail-head {
   stroke-linecap: round;
-  stroke-dasharray: 30 100;
-  vector-effect: non-scaling-stroke;
-  opacity: 0;
-  animation: sivuLoaderGust 4.4s ease-in-out infinite;
+  animation: sivuLoaderTrailTail 4.2s linear infinite;
 }
 
-.sivu-loader__gust--b {
-  animation-duration: 5.2s;
-  animation-delay: -2.4s;
+.sivu-loader__trail-tail {
+  stroke-width: 1.5;
+  stroke-dasharray: 40 60;
+  opacity: 0.55;
 }
 
-/* En espacios pequeños el viento sobra. */
-.sivu-loader--inline .sivu-loader__wind {
-  display: none;
+.sivu-loader__trail-head {
+  stroke-width: 2.8;
+  stroke-dasharray: 9 91;
+  opacity: 0.75;
+  animation-name: sivuLoaderTrailHead;
+}
+
+.sivu-loader__trail--b .sivu-loader__trail-tail,
+.sivu-loader__trail--b .sivu-loader__trail-head {
+  animation-duration: 5.8s;
+  animation-delay: -2.1s;
+}
+
+/* Hojas pequeñas: cada una con su propio vuelo y aleteo. */
+.sivu-loader__mini {
+  position: absolute;
+}
+
+.sivu-loader__mini--a {
+  width: 9%;
+  left: 78%;
+  top: 14%;
+  animation: sivuLoaderMiniA 6.4s ease-in-out infinite alternate;
+}
+
+.sivu-loader__mini--b {
+  width: 7%;
+  left: 13%;
+  top: 62%;
+  opacity: 0.85;
+  filter: blur(0.4px);
+  animation: sivuLoaderMiniB 7.8s ease-in-out -3s infinite alternate;
+}
+
+.sivu-loader__mini-spin {
+  animation: sivuLoaderFlutter 2.7s ease-in-out infinite alternate;
+}
+
+.sivu-loader__mini--b .sivu-loader__mini-spin {
+  animation-duration: 3.4s;
+  animation-delay: -1.2s;
 }
 
 /* ---------- Keyframes ---------- */
@@ -183,46 +252,46 @@
   }
 }
 
-@keyframes sivuLoaderDriftX {
+@keyframes sivuLoaderFloatX {
   from {
-    transform: translateX(-20%);
+    transform: translateX(-3%);
   }
   to {
-    transform: translateX(20%);
+    transform: translateX(3%);
   }
 }
 
-@keyframes sivuLoaderDriftY {
+@keyframes sivuLoaderFloatY {
   from {
-    transform: translateY(-9%);
+    transform: translateY(-4.5%);
   }
   to {
-    transform: translateY(7%);
+    transform: translateY(3%);
   }
 }
 
 @keyframes sivuLoaderSway {
   from {
-    transform: rotate(8deg);
+    transform: rotate(14deg);
   }
   to {
-    transform: rotate(42deg);
+    transform: rotate(30deg);
   }
 }
 
-@keyframes sivuLoaderTurn {
+@keyframes sivuLoaderTilt {
   from {
-    transform: perspective(300px) rotateY(-36deg) rotateX(8deg);
+    transform: perspective(700px) rotateY(-18deg) rotateX(7deg);
   }
   to {
-    transform: perspective(300px) rotateY(30deg) rotateX(-10deg);
+    transform: perspective(700px) rotateY(16deg) rotateX(-6deg);
   }
 }
 
 @keyframes sivuLoaderShadow {
   from {
-    transform: scaleX(0.72);
-    opacity: 0.5;
+    transform: scaleX(0.76);
+    opacity: 0.55;
   }
   to {
     transform: scaleX(1);
@@ -230,29 +299,62 @@
   }
 }
 
-@keyframes sivuLoaderGust {
-  0% {
-    stroke-dashoffset: 30;
-    opacity: 0;
+@keyframes sivuLoaderTrailTail {
+  from {
+    stroke-dashoffset: 0;
   }
-  30% {
-    opacity: 1;
-  }
-  70% {
-    opacity: 1;
-  }
-  100% {
+  to {
     stroke-dashoffset: -100;
-    opacity: 0;
   }
 }
 
-@keyframes sivuLoaderBar {
+/* La cabeza va en el extremo delantero de la cola (40 − 9 = 31). */
+@keyframes sivuLoaderTrailHead {
   from {
-    transform: translateX(-110%);
+    stroke-dashoffset: -31;
   }
   to {
-    transform: translateX(290%);
+    stroke-dashoffset: -131;
+  }
+}
+
+@keyframes sivuLoaderMiniA {
+  from {
+    transform: translate(0, 0) rotate(-28deg);
+  }
+  to {
+    transform: translate(-60%, 90%) rotate(18deg);
+  }
+}
+
+@keyframes sivuLoaderMiniB {
+  from {
+    transform: translate(0, 0) rotate(40deg);
+  }
+  to {
+    transform: translate(80%, -110%) rotate(-10deg);
+  }
+}
+
+@keyframes sivuLoaderFlutter {
+  from {
+    transform: perspective(200px) rotateY(-50deg) rotateX(10deg);
+  }
+  to {
+    transform: perspective(200px) rotateY(45deg) rotateX(-12deg);
+  }
+}
+
+@keyframes sivuLoaderDot {
+  0%,
+  70%,
+  100% {
+    opacity: 0.35;
+    transform: translateY(0) scale(0.85);
+  }
+  35% {
+    opacity: 1;
+    transform: translateY(-3px) scale(1);
   }
 }
 
@@ -266,7 +368,7 @@
 }
 
 /* ---------- Movimiento reducido ----------
-   La hoja queda quieta (inclinada); solo la barra respira. */
+   Escena quieta (sin estelas en movimiento); solo los puntos respiran. */
 @media (prefers-reduced-motion: reduce) {
   .sivu-loader,
   .sivu-loader *,
@@ -276,15 +378,22 @@
   }
 
   .sivu-loader__sway {
-    transform: rotate(24deg);
+    transform: rotate(22deg);
   }
 
-  .sivu-loader__gust {
+  .sivu-loader__trail-head {
     display: none;
   }
 
-  .sivu-loader__bar::after {
-    width: 100%;
+  .sivu-loader__dots i {
     animation: sivuLoaderBreathe 1.6s ease-in-out infinite alternate !important;
+  }
+
+  .sivu-loader__dots i:nth-child(2) {
+    animation-delay: 0.3s !important;
+  }
+
+  .sivu-loader__dots i:nth-child(3) {
+    animation-delay: 0.6s !important;
   }
 }
