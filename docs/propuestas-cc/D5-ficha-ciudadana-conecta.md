@@ -4,7 +4,7 @@
 
 ## Qué ya está construido (frontend, sin cambios de backend)
 
-- Ruta pública **`/arbol/:qrToken`**, sin iniciar sesión (`src/pages/ArbolPublicoPage.tsx`). Pide la ficha a `GET /api/public/arboles/:qrToken`; mientras no exista, muestra «Esta ficha está en preparación».
+- Ruta pública **`/arbol/:qrToken`**, sin iniciar sesión (`src/pages/ArbolPublicoPage.tsx`). Pide la ficha a `GET /api/public/conecta/arboles/:qrToken`; mientras no exista, muestra «Esta ficha está en preparación».
 - Experiencia en cuatro secciones (`src/components/conecta/ExperienciaArbol.tsx`): ¿Quién soy?, ¿Qué aporto a Valparaíso?, ¿Cómo es mi vida?, ¿Cómo puedes cuidarme?, con el acceso destacado «Reportar un problema».
 - Cada dato distingue **«Este árbol»** (el ejemplar) de **«Su especie»** (catálogo). Lo que no está autorizado o no tiene fuente aparece como «Próximamente», sin valores.
 - Formulario de reporte (`ReporteCiudadano.tsx`) con los campos de PR-022 (nombre, RUT con dígito verificador, tipo, descripción y al menos una foto); sin datos de contacto. Envío deshabilitado hasta tener el endpoint y el catálogo de tipos.
@@ -26,8 +26,8 @@
 
 ## Dependencias de backend (no se tocaron)
 
-1. **Ficha pública por `qr_token`** (`GET /api/public/arboles/:qrToken`), con la forma de `src/types/fichaPublica.ts`, y lo que el CC amplíe. Detalle de seguridad en `valpo-verde-backend/docs/plan/conecta-62-backend.md`.
-2. **Formulario público** (`POST /api/public/arboles/:qrToken/reportes`, multipart), que devuelve el código de seguimiento una sola vez.
+1. **Ficha pública por `qr_token`** (`GET /api/public/conecta/arboles/:qrToken`), con la forma de `src/types/fichaPublica.ts`, y lo que el CC amplíe. Detalle de seguridad en `valpo-verde-backend/docs/plan/conecta-62-backend.md`.
+2. **Formulario público** (`POST /api/public/conecta/arboles/:qrToken/reportes`, multipart), que devuelve el código de seguimiento una sola vez.
 3. **Catálogos públicos con etiqueta:** tipo de incidencia (D-180), origen biogeográfico, persistencia del follaje y tipo de hoja. Hoy no existen en la API (B20); el frontend no puede escribirlos.
 4. **`qr_token` de cada árbol** para el Usuario municipal (placas imprimibles); B1 no lo entrega.
 5. Si se aprueba la ampliación: medición vigente (B2), foto principal publicable, indicadores por árbol (B19) e historial de mantenciones (#61).
