@@ -23,7 +23,7 @@ export function AppTopBar({
   onOpenSearch,
   workspace,
 }: {
-  basePath: "/admin" | "/usuario" | "/inspector";
+  basePath: "/admin" | "/usuario" | "/inspector" | "/mantencion";
   roleLabel: string;
   onOpenSearch: () => void;
   /** Espacio de trabajo propio del rol (Inspector: «Mis OT», CC-064 k). */

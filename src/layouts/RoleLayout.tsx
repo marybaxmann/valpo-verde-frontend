@@ -16,7 +16,7 @@ const WORKSPACE_SUFFIXES = ["/inspeccion", "/infraestructura"];
  * Fuera de un proyecto la barra solo ofrece el logotipo, el tema y la
  * cuenta. Mismas rutas y mismos guards que antes (App.tsx).
  */
-export function RoleLayout({ basePath, roleLabel }: { basePath: "/admin" | "/usuario" | "/inspector"; roleLabel: string }) {
+export function RoleLayout({ basePath, roleLabel }: { basePath: "/admin" | "/usuario" | "/inspector" | "/mantencion"; roleLabel: string }) {
   const location = useLocation();
   const [searchOpen, setSearchOpen] = useState(false);
 
@@ -46,7 +46,7 @@ export function RoleLayout({ basePath, roleLabel }: { basePath: "/admin" | "/usu
           basePath={basePath}
           roleLabel={roleLabel}
           onOpenSearch={() => setSearchOpen(true)}
-          workspace={basePath === "/inspector" ? { to: "/inspector/mis-ot", label: "Mis OT" } : undefined}
+          workspace={basePath === "/inspector" || basePath === "/mantencion" ? { to: `${basePath}/mis-ot`, label: "Mis OT" } : undefined}
         />
         <main className={isWorkspace ? "content--workspace" : "content"}>
           <Suspense fallback={<SivuLoader message="Cargando…" />}>

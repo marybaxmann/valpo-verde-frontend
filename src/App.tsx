@@ -6,6 +6,7 @@ import { SivuLogo } from "./components/SivuLogo";
 import AdminLayout from "./layouts/AdminLayout";
 import UserLayout from "./layouts/UserLayout";
 import InspectorLayout from "./layouts/InspectorLayout";
+import EncargadoLayout from "./layouts/EncargadoLayout";
 import type { KnownRole } from "./types/authProfile";
 import { SivuLoader } from "./components/SivuLoader";
 
@@ -31,6 +32,7 @@ const InspectionOrdersPage = lazy(() => import("./pages/InspectionOrdersPage"));
 const MyOrdersPage = lazy(() => import("./pages/MyOrdersPage"));
 const InspectionFormPage = lazy(() => import("./pages/InspectionFormPage"));
 const SpeciesCatalogPage = lazy(() => import("./pages/SpeciesCatalogPage"));
+const RevisionesPage = lazy(() => import("./pages/RevisionesPage"));
 
 // Inventario (Fase 7): tabla protagonista; ruta /mapa sin cambios (CC-059).
 function InventoryRoute() {
@@ -110,6 +112,16 @@ export default function App() {
           <Route path="mis-ot" element={<MyOrdersPage />} />
           <Route path="ot/:workOrderId/inspeccion" element={<InspectionFormPage />} />
           <Route path="especies" element={<SpeciesCatalogPage />} />
+          <Route path="revisiones" element={<RevisionesPage />} />
+          {projectRoutes()}
+        </Route>
+      </Route>
+
+      {/* Encargado de mantención (#61; CC-064 c): entra a «Mis OT»; consulta los módulos en solo lectura. */}
+      <Route element={<RequireRole role="encargado_mantencion" />}>
+        <Route path="/mantencion" element={<EncargadoLayout />}>
+          <Route index element={<Navigate to="mis-ot" replace />} />
+          <Route path="mis-ot" element={<MyOrdersPage />} />
           {projectRoutes()}
         </Route>
       </Route>
@@ -120,11 +132,9 @@ export default function App() {
 }
 
 /** Etiquetas de interfaz de PR-019 v1.2 y PR-020 v1.1, por identificador (CC-032). */
-const ROLES_SIN_INTERFAZ: Record<string, string> = {
-  // El Inspector tiene interfaz desde CC-064 (ruta /inspector). El Encargado
-  // de mantención la tendrá con el #61 (CC-064 c).
-  encargado_mantencion: "Encargado de mantención",
-};
+// El Inspector tiene interfaz desde CC-064 (ruta /inspector) y el Encargado
+// de mantención desde el #61 (ruta /mantencion). Hoy no queda ninguno.
+const ROLES_SIN_INTERFAZ: Record<string, string> = {};
 
 /** Espera de la sesión y del perfil al entrar: la animación de carga a pantalla completa. */
 function LoadingScreen({ message }: { message?: string }) {
@@ -180,6 +190,7 @@ function RootRoute() {
   if (profile?.role === "admin") return <Navigate to="/admin" replace />;
   if (profile?.role === "usuario_municipal") return <Navigate to="/usuario" replace />;
   if (profile?.role === "inspector") return <Navigate to="/inspector" replace />;
+  if (profile?.role === "encargado_mantencion") return <Navigate to="/mantencion" replace />;
 
   // CC-059, punto 5: roles vigentes (CC-026, CC-032) que todavía no tienen
   // interfaz. Un mensaje que nombra el rol; nunca un shell de otro rol.

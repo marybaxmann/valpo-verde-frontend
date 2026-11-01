@@ -767,3 +767,159 @@
     text-overflow: ellipsis;
   }
 }
+
+/* ---------- Mantenimiento (#61): ejecuciones, fotos y revisiones ---------- */
+
+.sivu-otm__revisor {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  font-size: 12.5px;
+  color: var(--text-muted);
+}
+
+.sivu-otm__revisor strong {
+  color: var(--text);
+}
+
+.sivu-otm__badge {
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.sivu-otm__ej.is-pendiente_revision .sivu-otm__badge {
+  background: #fdf1d8;
+  border-color: #e9c46a;
+  color: #7a5a12;
+}
+
+.sivu-otm__ej.is-aprobado .sivu-otm__badge {
+  background: #e3f1e6;
+  border-color: #8cc29b;
+  color: #23603a;
+}
+
+.sivu-otm__ej.is-rechazado .sivu-otm__badge {
+  background: #f8e3df;
+  border-color: #e0a397;
+  color: #8a2f1f;
+}
+
+.sivu-otm__rev {
+  color: var(--text-muted);
+}
+
+.sivu-otm__fotos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 4px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sivu-otm__fotos a,
+.sivu-otm__fotos li {
+  position: relative;
+  display: block;
+  width: 64px;
+  height: 64px;
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--surface);
+}
+
+.sivu-otm__fotos img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.sivu-otm__fotos--edit li {
+  width: 76px;
+  height: 76px;
+}
+
+.sivu-otm__fotos--edit button {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 22px;
+  height: 22px;
+  border: 0;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  background: rgba(20, 28, 16, 0.65);
+  color: #fff;
+  cursor: pointer;
+}
+
+.sivu-otm__add {
+  justify-self: start;
+  cursor: pointer;
+}
+
+.sivu-otm__add.is-disabled {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.sivu-otm__label {
+  font-weight: 600;
+}
+
+.sivu-otm__choice {
+  display: flex;
+  gap: 16px;
+}
+
+.sivu-otm__choice label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.sivu-rev {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 16px;
+  align-items: start;
+  margin-top: 12px;
+}
+
+@media (max-width: 860px) {
+  .sivu-rev {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.field .field__label {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.sivu-newot__check,
+.field label.sivu-newot__check {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text);
+  cursor: pointer;
+}
+
+.sivu-newot__check input {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  accent-color: var(--olive, #485635);
+}

@@ -4,17 +4,21 @@ import { listarMisOts } from "../api/workOrders";
 import { listProjects } from "../api/projects";
 import type { Project } from "../types/project";
 import { WorkOrdersBoard } from "../components/WorkOrdersBoard";
+import { useAuth } from "../hooks/useAuth";
 
 /**
- * «Mis OT» del Inspector (CC-064 d, k, n): pantalla de entrada con las OT
+ * «Mis OT» del Inspector (CC-064 d, k, n) y del Encargado de mantención
+ * (#61; CC-064 c): pantalla de entrada con las OT
  * de las que es el responsable actual, de todos sus proyectos, desde B4
  * (GET /api/sivu/work-orders/mine; CC-065), con filtro por proyecto y por
- * estado. Las acciones (programar, iniciar, trabajar) son las que el
- * backend habilita en cada OT.
+ * estado. Las acciones (programar, iniciar, trabajar o registrar la
+ * ejecución) son las que el backend habilita en cada OT.
  */
 export default function MyOrdersPage() {
   const [projects, setProjects] = useState<Project[] | null>(null);
   const [projectId, setProjectId] = useState("");
+  const { profile } = useAuth();
+  const esInspector = profile?.role === "inspector";
 
   useEffect(() => {
     let cancelled = false;
@@ -52,9 +56,16 @@ export default function MyOrdersPage() {
                 </option>
               ))}
             </select>
-            <Link to="/inspector/especies" className="btn btn-ghost btn-sm">
-              Catálogo de especies
-            </Link>
+            {esInspector && (
+              <>
+                <Link to="/inspector/revisiones" className="btn btn-ghost btn-sm">
+                  Revisiones de mantenimiento
+                </Link>
+                <Link to="/inspector/especies" className="btn btn-ghost btn-sm">
+                  Catálogo de especies
+                </Link>
+              </>
+            )}
           </div>
         ) : undefined
       }

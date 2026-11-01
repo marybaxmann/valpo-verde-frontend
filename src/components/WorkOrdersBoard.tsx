@@ -8,6 +8,7 @@ import { getArcgisApiKey } from "../lib/arcgis";
 import { TIPOS_CON_FORMULARIO } from "../lib/inspectionForm";
 import { useAuth } from "../hooks/useAuth";
 import { OtGestion } from "./OtGestion";
+import { OtMantenimiento } from "./OtMantenimiento";
 import { fechaChile, hoyChile } from "../lib/dates";
 import type { MapPoint } from "./ProjectMapView";
 
@@ -401,7 +402,10 @@ export function WorkOrdersBoard({
                   {selected.requiere_revision_inspector !== null && (
                     <>
                       <dt>Revisión del Inspector</dt>
-                      <dd>{selected.requiere_revision_inspector ? "Requerida" : "No requerida"}</dd>
+                      <dd>
+                        {selected.requiere_revision_inspector ? "Requerida" : "No requerida"}
+                        {selected.inspector_revisor?.nombre && <small>{selected.inspector_revisor.nombre}</small>}
+                      </dd>
                     </>
                   )}
                 </dl>
@@ -457,6 +461,18 @@ export function WorkOrdersBoard({
                       />
                     )}
                   </div>
+                )}
+                {selected.tipo_ot.codigo === "mantenimiento" && (
+                  <OtMantenimiento
+                    key={selected.id}
+                    ot={selected}
+                    role={profile?.role ?? null}
+                    userId={profile?.id ?? null}
+                    onChanged={(mensaje) => {
+                      setAviso(`${selected.codigo_ot ?? "Orden"}: ${mensaje}`);
+                      setVersion((v) => v + 1);
+                    }}
+                  />
                 )}
                 {selected.tipo_ot.codigo === "inspeccion" && (
                   <OtGestion

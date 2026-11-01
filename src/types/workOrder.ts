@@ -33,6 +33,8 @@ export interface OtListada {
     ubicacion: { lng: number; lat: number } | null;
   } | null;
   requiere_revision_inspector: boolean | null;
+  /** Inspector revisor de una OT de Mantenimiento con revisión (#61); null en las demás. */
+  inspector_revisor?: { id: string; nombre: string | null } | null;
   responsable: { id: string; nombre: string | null; fuera_del_proyecto?: true } | null;
   /** Acciones que el backend habilita a quien consulta (CC-065, punto 5). */
   acciones: string[];
