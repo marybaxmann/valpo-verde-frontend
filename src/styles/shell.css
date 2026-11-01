@@ -579,7 +579,7 @@
   }
 }
 
-/* Espacio de trabajo propio del rol (Inspector: «Mis OT», CC-064) */
+/* Píldora de la barra superior (estilo de espacio de trabajo) */
 .sivu-topbar__workspace {
   display: inline-flex;
   align-items: center;

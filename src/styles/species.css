@@ -141,7 +141,7 @@
   gap: 6px;
 }
 
-/* Enlace al catálogo junto al filtro de «Mis OT». */
+/* Enlaces del Inspector sobre el tablero de OT. */
 .sivu-mant__filter {
   flex-wrap: wrap;
 }

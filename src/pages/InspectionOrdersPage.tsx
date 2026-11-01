@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import { listarOtsProyecto } from "../api/workOrders";
 import { WorkOrdersBoard } from "../components/WorkOrdersBoard";
 import { NewInspectionOrderModal } from "../components/NewInspectionOrderModal";
@@ -52,6 +52,12 @@ export default function InspectionOrdersPage() {
               >
                 <Icon name="plus" size={14} /> Nueva orden de inspección
               </button>
+            </div>
+          ) : profile?.role === "inspector" ? (
+            <div className="sivu-mant__filter">
+              <Link to="/inspector/especies" className="btn btn-ghost btn-sm">
+                Catálogo de especies
+              </Link>
             </div>
           ) : undefined
         }

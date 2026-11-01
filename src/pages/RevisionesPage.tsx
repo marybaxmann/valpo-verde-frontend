@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { listarRevisiones } from "../api/mantenimiento";
 import type { OtEnRevision } from "../types/mantenimiento";
 import { OtMantenimiento } from "../components/OtMantenimiento";
@@ -14,6 +14,7 @@ import { fechaChile } from "../lib/dates";
  * que tienen una ejecución esperando su revisión.
  */
 export default function RevisionesPage() {
+  const navigate = useNavigate();
   const { profile } = useAuth();
   const [soloPendientes, setSoloPendientes] = useState(true);
   const [ots, setOts] = useState<OtEnRevision[] | null>(null);
@@ -40,9 +41,9 @@ export default function RevisionesPage() {
 
   return (
     <div className="sivu-dash">
-      <Link to="/inspector/mis-ot" className="sivu-insp__back">
-        <Icon name="arrow-left" size={14} /> Mis OT
-      </Link>
+      <button type="button" className="sivu-insp__back sivu-insp__back--btn" onClick={() => navigate(-1)}>
+        <Icon name="arrow-left" size={14} /> Volver
+      </button>
       <header className="sivu-phead">
         <div>
           <h1 className="sivu-phead__title">Revisiones de mantenimiento</h1>

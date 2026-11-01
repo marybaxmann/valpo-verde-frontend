@@ -46,7 +46,6 @@ export function RoleLayout({ basePath, roleLabel }: { basePath: "/admin" | "/usu
           basePath={basePath}
           roleLabel={roleLabel}
           onOpenSearch={() => setSearchOpen(true)}
-          workspace={basePath === "/inspector" || basePath === "/mantencion" ? { to: `${basePath}/mis-ot`, label: "Mis OT" } : undefined}
         />
         <main className={isWorkspace ? "content--workspace" : "content"}>
           <Suspense fallback={<SivuLoader message="Cargando…" />}>

@@ -410,8 +410,8 @@ export default function InspectionFormPage() {
   if (errorCarga) {
     return (
       <div className="sivu-insp">
-        <Link to="/inspector/mis-ot" className="sivu-insp__back">
-          <Icon name="arrow-left" size={14} /> Mis OT
+        <Link to="/inspector/projects" className="sivu-insp__back">
+          <Icon name="arrow-left" size={14} /> Mis proyectos
         </Link>
         <p className="sivu-state sivu-state--error" role="alert">
           <Icon name="alert" size={13} /> {errorCarga}
@@ -427,8 +427,8 @@ export default function InspectionFormPage() {
 
   return (
     <div className="sivu-insp">
-      <Link to="/inspector/mis-ot" className="sivu-insp__back">
-        <Icon name="arrow-left" size={14} /> Mis OT
+      <Link to={`/inspector/projects/${ot.proyecto.id}/ot-inspeccion`} className="sivu-insp__back">
+        <Icon name="arrow-left" size={14} /> Inspección
       </Link>
       <header className="page-header">
         <div>

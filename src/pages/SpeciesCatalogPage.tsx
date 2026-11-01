@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { listProjects } from "../api/projects";
 import { buscarEspeciesCatalogo, completarEspecie, renombrarEspecie } from "../api/species";
 import { ApiError } from "../api/client";
@@ -17,6 +17,7 @@ import { PendingNotice } from "../components/PendingNotice";
  * no se editan: la API no entrega su catálogo con etiquetas (B20, PR-021).
  */
 export default function SpeciesCatalogPage() {
+  const navigate = useNavigate();
   const [projects, setProjects] = useState<Project[] | null>(null);
   const [projectsError, setProjectsError] = useState<string | null>(null);
   const [projectId, setProjectId] = useState("");
@@ -79,9 +80,9 @@ export default function SpeciesCatalogPage() {
 
   return (
     <div className="sivu-species">
-      <Link to="/inspector/mis-ot" className="sivu-insp__back">
-        <Icon name="arrow-left" size={14} /> Mis OT
-      </Link>
+      <button type="button" className="sivu-insp__back sivu-insp__back--btn" onClick={() => navigate(-1)}>
+        <Icon name="arrow-left" size={14} /> Volver
+      </button>
       <header className="page-header">
         <div>
           <h1>Catálogo de especies</h1>

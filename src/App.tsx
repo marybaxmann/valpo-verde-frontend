@@ -29,7 +29,6 @@ const InventoryPage = lazy(() => import("./pages/InventoryPage"));
 const RiskPage = lazy(() => import("./pages/RiskPage"));
 const InfrastructurePage = lazy(() => import("./pages/InfrastructurePage"));
 const InspectionOrdersPage = lazy(() => import("./pages/InspectionOrdersPage"));
-const MyOrdersPage = lazy(() => import("./pages/MyOrdersPage"));
 const InspectionFormPage = lazy(() => import("./pages/InspectionFormPage"));
 const SpeciesCatalogPage = lazy(() => import("./pages/SpeciesCatalogPage"));
 const RevisionesPage = lazy(() => import("./pages/RevisionesPage"));
@@ -52,7 +51,7 @@ function InventoryRoute() {
  *
  * Rutas: "/" (resuelve destino) y, por rol, "/admin", "/usuario" e
  * "/inspector" (CC-064), cada uno con las mismas rutas de proyecto
- * (`projectRoutes`); el Inspector entra a "/inspector/mis-ot".
+ * (`projectRoutes`); el Inspector y el Encargado eligen proyecto y entran a su módulo.
  */
 /**
  * Rutas de proyecto, iguales para todos los roles con interfaz: cada
@@ -105,11 +104,10 @@ export default function App() {
         </Route>
       </Route>
 
-      {/* Inspector (CC-064): entra a «Mis OT»; consulta los módulos en solo lectura. */}
+      {/* Inspector: elige proyecto y entra a Inspección; consulta el resto en solo lectura. */}
       <Route element={<RequireRole role="inspector" />}>
         <Route path="/inspector" element={<InspectorLayout />}>
-          <Route index element={<Navigate to="mis-ot" replace />} />
-          <Route path="mis-ot" element={<MyOrdersPage />} />
+          <Route index element={<Navigate to="projects" replace />} />
           <Route path="ot/:workOrderId/inspeccion" element={<InspectionFormPage />} />
           <Route path="especies" element={<SpeciesCatalogPage />} />
           <Route path="revisiones" element={<RevisionesPage />} />
@@ -117,11 +115,10 @@ export default function App() {
         </Route>
       </Route>
 
-      {/* Encargado de mantención (#61; CC-064 c): entra a «Mis OT»; consulta los módulos en solo lectura. */}
+      {/* Encargado de mantención (#61): elige proyecto y entra a Mantención; consulta el resto en solo lectura. */}
       <Route element={<RequireRole role="encargado_mantencion" />}>
         <Route path="/mantencion" element={<EncargadoLayout />}>
-          <Route index element={<Navigate to="mis-ot" replace />} />
-          <Route path="mis-ot" element={<MyOrdersPage />} />
+          <Route index element={<Navigate to="projects" replace />} />
           {projectRoutes()}
         </Route>
       </Route>

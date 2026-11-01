@@ -5,7 +5,7 @@ import { SivuLogo } from "./SivuLogo";
 import { useAuth } from "../hooks/useAuth";
 import { useCurrentProject } from "../hooks/useCurrentProject";
 import { useTheme } from "../hooks/useTheme";
-import { ROLES_SOLO_LECTURA, findActiveModule, navGroupsForRole, type NavGroup } from "../lib/navigation";
+import { ROLES_SOLO_LECTURA, findActiveModule, moduloPrincipal, navGroupsForRole, type NavGroup } from "../lib/navigation";
 
 type Menu = NavGroup["id"] | "proyecto" | "cuenta" | null;
 
@@ -21,13 +21,10 @@ export function AppTopBar({
   basePath,
   roleLabel,
   onOpenSearch,
-  workspace,
 }: {
   basePath: "/admin" | "/usuario" | "/inspector" | "/mantencion";
   roleLabel: string;
   onOpenSearch: () => void;
-  /** Espacio de trabajo propio del rol (Inspector: «Mis OT», CC-064 k). */
-  workspace?: { to: string; label: string };
 }) {
   const { profile, signOut } = useAuth();
   const { projectId, project, projectError } = useCurrentProject();
@@ -46,7 +43,9 @@ export function AppTopBar({
     : "";
   const active = findActiveModule(subpath);
   const isAdmin = profile?.role === "admin";
-  const soloLectura = ROLES_SOLO_LECTURA.includes(profile?.role ?? "");
+  // En su módulo principal trabaja; en el resto del proyecto solo consulta.
+  const soloLectura =
+    ROLES_SOLO_LECTURA.includes(profile?.role ?? "") && active?.module.path !== moduloPrincipal(profile?.role);
   const groups = navGroupsForRole(profile?.role);
   const userName = profile?.nombre ?? profile?.email ?? roleLabel;
 
@@ -73,33 +72,12 @@ export function AppTopBar({
     <header className="sivu-topbar" ref={barRef}>
       <div className="sivu-topbar__left">
         <Link
-          to={projectBase ? `${projectBase}/dashboard` : workspace?.to ?? projectsPath}
+          to={projectBase ? `${projectBase}/${moduloPrincipal(profile?.role)}` : projectsPath}
           className="sivu-topbar__brand"
           aria-label={projectBase ? "SIVU · ir al Dashboard" : "SIVU · mis proyectos"}
         >
           <SivuLogo height={28} />
         </Link>
-
-        {workspace && (
-          <Link
-            to={workspace.to}
-            className={`sivu-topbar__workspace ${location.pathname.startsWith(workspace.to) ? "is-active" : ""}`}
-          >
-            <Icon name="check" size={14} />
-            {workspace.label}
-          </Link>
-        )}
-
-        {/* Desde «Mis OT», el Inspector y el Encargado pasan a los módulos de sus proyectos. */}
-        {workspace && !projectBase && (
-          <Link
-            to={projectsPath}
-            className={`sivu-topbar__workspace ${location.pathname.startsWith(projectsPath) ? "is-active" : ""}`}
-          >
-            <Icon name="leaf" size={14} />
-            Proyectos
-          </Link>
-        )}
 
         {projectBase && (
           <div className="sivu-topbar__menu-wrap">

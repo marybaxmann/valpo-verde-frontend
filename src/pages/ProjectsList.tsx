@@ -9,6 +9,7 @@ import { NewProjectModal } from "../components/NewProjectModal";
 import { ESTADO_PROYECTO_LABEL } from "../lib/projects";
 import { fechaHoraChile } from "../lib/dates";
 import { basePathForRole } from "../lib/roles";
+import { moduloPrincipal } from "../lib/navigation";
 
 /**
  * Listado real de GET /api/sivu/projects (Fase 7, Paso 2; antes F6 con la demo). Compartido entre /admin y
@@ -112,7 +113,7 @@ export default function ProjectsList() {
               <div style={{ display: "flex", gap: 8, marginTop: "auto" }}>
                 <Link
                   className="btn btn-primary"
-                  to={`${basePath}/projects/${p.id}/dashboard`}
+                  to={`${basePath}/projects/${p.id}/${moduloPrincipal(profile?.role)}`}
                   style={{ flex: 1, justifyContent: "center", gap: 6 }}
                 >
                   <Icon name="leaf" size={14} />

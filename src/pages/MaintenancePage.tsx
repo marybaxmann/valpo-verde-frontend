@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import { listarOtsProyecto } from "../api/workOrders";
 import { WorkOrdersBoard } from "../components/WorkOrdersBoard";
 import { NewMaintenanceOrderModal } from "../components/NewMaintenanceOrderModal";
@@ -30,7 +30,13 @@ export default function MaintenancePage() {
         reloadKey={`${projectId}|${version}`}
         emptyAll="El proyecto no tiene órdenes de mantenimiento."
         headerExtra={
-          isMunicipal ? (
+          profile?.role === "inspector" ? (
+            <div className="sivu-mant__filter">
+              <Link to="/inspector/revisiones" className="btn btn-ghost btn-sm">
+                Revisiones de mantenimiento
+              </Link>
+            </div>
+          ) : isMunicipal ? (
             <div className="sivu-mant__filter">
               {creada && (
                 <span className="sivu-state sivu-state--ok" role="status">

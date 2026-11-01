@@ -312,3 +312,12 @@
 .sivu-insp-field__confirm {
   justify-self: start;
 }
+
+.sivu-insp__back--btn {
+  border: 0;
+  background: none;
+  padding: 0;
+  cursor: pointer;
+  font: inherit;
+  font-size: 13px;
+}

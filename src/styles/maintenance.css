@@ -376,7 +376,7 @@
   align-self: flex-start;
 }
 
-/* Filtro por proyecto («Mis OT», CC-064 k) */
+/* Barra de acciones sobre el tablero de OT */
 .sivu-mant__filter {
   display: flex;
   align-items: center;

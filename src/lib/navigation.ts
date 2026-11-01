@@ -85,8 +85,16 @@ export function navGroupsForRole(role: string | null | undefined): NavGroup[] {
 }
 
 /**
- * Roles cuyo espacio propio son sus OT (CC-064): entran a «Mis OT» y
- * consultan los módulos del proyecto en solo lectura. Las acciones de
- * registro las decide cada pantalla por rol y, sobre todo, el backend.
+ * Roles que trabajan en un solo módulo (decisión de la responsable,
+ * 2026-11-01, que reemplaza «Mis OT» de CC-064 k/n/o): eligen proyecto,
+ * entran a su módulo principal y consultan el resto en solo lectura. Las
+ * acciones de registro las decide cada pantalla por rol y el backend.
  */
 export const ROLES_SOLO_LECTURA: readonly string[] = ["inspector", "encargado_mantencion"];
+
+/** Módulo donde entra cada rol al abrir un proyecto (`path` de NAV_GROUPS). */
+export function moduloPrincipal(role: string | null | undefined): string {
+  if (role === "inspector") return "ot-inspeccion";
+  if (role === "encargado_mantencion") return "mantencion";
+  return "dashboard";
+}
