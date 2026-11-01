@@ -6,7 +6,8 @@ import { rutValido } from "../../lib/rut";
  * Formulario «Reportar un problema» (PR-022 v1.0 y v2.0; CC-036, CC-062):
  * nombre, RUT con dígito verificador, tipo, descripción y al menos una
  * fotografía; sin ningún dato de contacto. El árbol va identificado por el
- * QR. Validar el RUT aquí solo ayuda a quien escribe: quien decide es el
+ * QR. El reporte llega al municipio como incidencia de la comunidad, en el
+ * módulo Incidencias. Validar el RUT aquí solo ayuda a quien escribe: quien decide es el
  * backend.
  *
  * Dependencias que hoy faltan (no se simulan): el endpoint público del
@@ -46,7 +47,7 @@ export function ReporteCiudadano({
           <div>
             <h2>Reportar un problema</h2>
             <p>
-              <Icon name="pin" size={13} /> {nombreArbol} · identificado por su QR
+              <Icon name="pin" size={13} /> {nombreArbol} · identificado por su QR. Tu reporte llega al equipo municipal como incidencia.
             </p>
           </div>
           <button type="button" className="vvc-icon-btn" onClick={onCerrar} aria-label="Cerrar">

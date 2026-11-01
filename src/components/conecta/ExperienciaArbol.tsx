@@ -9,7 +9,10 @@ import { ReporteCiudadano } from "./ReporteCiudadano";
 
 /**
  * Valpo Verde Conecta: la identidad digital de un árbol para quien escanea
- * su placa QR (CC-062, PR-022). Cuatro secciones pensadas para el teléfono.
+ * su placa QR (CC-062, PR-022). Portada con saludo y cuatro tarjetas que
+ * abren cada sección (¿Quién soy?, ¿Qué aporto?, ¿Cómo es mi vida?, ¿Cómo
+ * cuidarme?), y el acceso a «Reportar un problema», que llega al equipo
+ * municipal como incidencia de la comunidad (módulo Incidencias).
  *
  * Reglas que sigue:
  * - Solo muestra lo que llega en la ficha pública; distingue lo propio del
@@ -22,11 +25,41 @@ import { ReporteCiudadano } from "./ReporteCiudadano";
 
 type Seccion = "quien" | "aporto" | "vida" | "cuidarme";
 
-const SECCIONES: { id: Seccion; titulo: string; icono: IconName }[] = [
-  { id: "quien", titulo: "¿Quién soy?", icono: "leaf" },
-  { id: "aporto", titulo: "¿Qué aporto?", icono: "sparkle" },
-  { id: "vida", titulo: "¿Cómo es mi vida?", icono: "calendar" },
-  { id: "cuidarme", titulo: "¿Cómo cuidarme?", icono: "user" },
+const SECCIONES: {
+  id: Seccion;
+  titulo: string;
+  tarjeta: string;
+  bajada: string;
+  icono: IconName;
+}[] = [
+  {
+    id: "quien",
+    titulo: "¿Quién soy?",
+    tarjeta: "Quién soy",
+    bajada: "Mi especie y mi familia",
+    icono: "leaf",
+  },
+  {
+    id: "aporto",
+    titulo: "¿Qué aporto a Valparaíso?",
+    tarjeta: "Mis beneficios",
+    bajada: "Lo que aporto",
+    icono: "sun",
+  },
+  {
+    id: "vida",
+    titulo: "¿Cómo es mi vida?",
+    tarjeta: "Mi historia",
+    bajada: "Mi año y mi vida",
+    icono: "calendar",
+  },
+  {
+    id: "cuidarme",
+    titulo: "¿Cómo puedes cuidarme?",
+    tarjeta: "Cómo cuidarme",
+    bajada: "Consejos sencillos",
+    icono: "user",
+  },
 ];
 
 export function ExperienciaArbol({
@@ -41,9 +74,11 @@ export function ExperienciaArbol({
 }) {
   const [reportando, setReportando] = useState(false);
   const esp = ficha.especie;
-  const nombre = ficha.nombre_comun ?? ficha.especie_cientifica ?? "Árbol de Valparaíso";
+  const nombre =
+    ficha.nombre_comun ?? ficha.especie_cientifica ?? "Árbol de Valparaíso";
 
-  const ir = (id: Seccion) => document.getElementById(`vvc-${id}`)?.scrollIntoView({ behavior: "smooth", block: "start" });
+  const [abierta, setAbierta] = useState<Seccion | null>(null);
+  const seccion = SECCIONES.find((x) => x.id === abierta) ?? null;
 
   return (
     <div className="vvc">
@@ -52,112 +87,253 @@ export function ExperienciaArbol({
         <span className="vvc-top__brand">Valpo Verde Conecta</span>
       </header>
 
-      <section className="vvc-hero" aria-label={nombre}>
-        <div className="vvc-hero__art" aria-hidden="true">
+      <main className="vvc-home">
+        <div className="vvc-photo-hero" aria-hidden="true">
           <img className="vvc-hero__leaf" src={hoja} alt="" />
-          <img className="vvc-hero__mini vvc-hero__mini--a" src={hojaChicaA} alt="" />
-          <img className="vvc-hero__mini vvc-hero__mini--b" src={hojaChicaB} alt="" />
+          <img
+            className="vvc-hero__mini vvc-hero__mini--a"
+            src={hojaChicaA}
+            alt=""
+          />
+          <img
+            className="vvc-hero__mini vvc-hero__mini--b"
+            src={hojaChicaB}
+            alt=""
+          />
+          <span className="vvc-photo-hero__chip">
+            <Icon name="camera" size={13} /> Mi foto, próximamente
+          </span>
         </div>
-        <p className="vvc-hero__hola">Hola, soy</p>
-        <h1 className="vvc-hero__name">{nombre}</h1>
-        {ficha.especie_cientifica && ficha.nombre_comun && <p className="vvc-hero__sci">{ficha.especie_cientifica}</p>}
+
+        <h1 className="vvc-hero__name">¡Hola, soy {nombre}!</h1>
+        {ficha.especie_cientifica && ficha.nombre_comun && (
+          <p className="vvc-hero__sci">{ficha.especie_cientifica}</p>
+        )}
         {ficha.ubicacion_descriptiva && (
           <p className="vvc-hero__place">
             <Icon name="pin" size={15} /> {ficha.ubicacion_descriptiva}
           </p>
         )}
-      </section>
+        <p className="vvc-intro">
+          Soy parte del arbolado urbano de Valparaíso. Descubre quién soy, lo
+          que aporto a la ciudad y cómo puedes cuidarme.
+        </p>
 
-      <nav className="vvc-nav" aria-label="Secciones">
-        {SECCIONES.map((s) => (
-          <button key={s.id} type="button" className="vvc-nav__item" onClick={() => ir(s.id)}>
-            <Icon name={s.icono} size={16} />
-            <span>{s.titulo}</span>
-          </button>
-        ))}
-      </nav>
-
-      <main className="vvc-body">
-        <Bloque id="quien" titulo="¿Quién soy?" bajada="Mi nombre, mi familia y de dónde vengo.">
-          <div className="vvc-grid">
-            <Dato ambito="arbol" etiqueta="Nombre común" valor={ficha.nombre_comun} />
-            <Dato ambito="arbol" etiqueta="Nombre científico" valor={ficha.especie_cientifica} cursiva />
-            <Dato ambito="especie" etiqueta="Género" valor={esp?.genero ?? null} cursiva />
-            <Dato ambito="especie" etiqueta="Familia" valor={esp?.familia ?? null} />
-            <Dato ambito="especie" etiqueta="Origen" valor={esp?.origen_biogeografico?.etiqueta ?? null} ancho />
-          </div>
-          <Proximamente
-            icono="camera"
-            titulo="Mis fotografías"
-            texto="Aquí verás fotos de este árbol. Su publicación aún no está autorizada en la ficha ciudadana."
-          />
-          <Proximamente icono="ruler" titulo="Mi edad y mi altura" texto="Datos de este árbol que se mostrarán cuando su publicación esté definida." />
-          <Proximamente icono="sparkle" titulo="Curiosidades de mi especie" texto="Contenido sobre la especie, preparado y revisado por el equipo de SIVU." />
-        </Bloque>
-
-        <Bloque id="aporto" titulo="¿Qué aporto a Valparaíso?" bajada="Lo que hago por la ciudad, explicado en simple.">
-          <div className="vvc-benefits">
-            <Beneficio icono="sun" titulo="Sombra" texto="La superficie que cubre mi copa y el alivio que da en días de calor." />
-            <Beneficio icono="leaf" titulo="Carbono" texto="El carbono que guardo en mi madera y el que capturo cada año." />
-            <Beneficio icono="eye" titulo="Aire" texto="Los contaminantes que mis hojas ayudan a retener." />
-            <Beneficio icono="layers" titulo="Agua" texto="La lluvia que retengo y que no escurre por la calle." />
-          </div>
-          <p className="vvc-note">
-            <Icon name="clock" size={14} /> Cada cifra aparecerá aquí cuando su método de cálculo esté validado en SIVU. No mostramos estimaciones sin respaldo.
-          </p>
-        </Bloque>
-
-        <Bloque id="vida" titulo="¿Cómo es mi vida?" bajada="Cómo cambio con las estaciones y lo que he vivido.">
-          <div className="vvc-grid">
-            <Dato ambito="especie" etiqueta="Mi follaje" valor={esp?.persistencia_follaje?.etiqueta ?? null} />
-            <Dato ambito="especie" etiqueta="Mis hojas" valor={esp?.tipo_hoja?.etiqueta ?? null} />
-          </div>
-          <Proximamente icono="calendar" titulo="Mi año" texto="Cuándo florezco, cuándo cambian mis hojas y qué pasa conmigo en cada estación." />
-          <Proximamente icono="clock" titulo="Mi historia" texto="Los cuidados que he recibido y fotos de cómo he cambiado con los años." />
-        </Bloque>
-
-        <Bloque id="cuidarme" titulo="¿Cómo puedes cuidarme?" bajada="Pequeños gestos que me ayudan a vivir mejor.">
-          <Proximamente icono="leaf" titulo="Consejos de cuidado" texto="Recomendaciones simples para cuidarme en la vereda y en la plaza." />
-          <div className="vvc-report">
-            <span className="vvc-report__icon">
-              <Icon name="alert" size={22} />
-            </span>
-            <div>
-              <h3>¿Me ves en problemas?</h3>
-              <p>Si ves una rama rota, raíces levantadas o algo que te preocupe, avísale al municipio. Yo quedo identificado automáticamente.</p>
-            </div>
-            <button type="button" className="vvc-btn" onClick={() => setReportando(true)}>
-              Reportar un problema
+        <div className="vvc-tiles">
+          {SECCIONES.map((x) => (
+            <button
+              key={x.id}
+              type="button"
+              className="vvc-tile"
+              onClick={() => setAbierta(x.id)}
+            >
+              <Icon name={x.icono} size={20} />
+              <strong>{x.tarjeta}</strong>
+              <span>{x.bajada}</span>
             </button>
-          </div>
-        </Bloque>
+          ))}
+        </div>
+
+        <ReportarCard onReportar={() => setReportando(true)} />
 
         <footer className="vvc-foot">
-          <p>Información del inventario de arbolado urbano de Valparaíso · SIVU</p>
-          <p className="vvc-foot__keys">
-            <span className="vvc-tag vvc-tag--arbol">Este árbol</span> datos de este ejemplar ·{" "}
-            <span className="vvc-tag vvc-tag--especie">Su especie</span> datos generales de su especie
+          <p>
+            Información del inventario de arbolado urbano de Valparaíso · SIVU
           </p>
         </footer>
       </main>
 
-      {!reportando && (
-        <div className="vvc-fab">
-          <button type="button" className="vvc-btn vvc-btn--fab" onClick={() => setReportando(true)}>
-            <Icon name="alert" size={18} /> Reportar un problema
-          </button>
-        </div>
+      {seccion && (
+        <section className="vvc-panel" aria-labelledby="vvc-panel-t">
+          <header className="vvc-panel__head">
+            <button
+              type="button"
+              className="vvc-icon-btn"
+              onClick={() => setAbierta(null)}
+              aria-label="Volver"
+            >
+              <Icon name="arrow-left" size={18} />
+            </button>
+            <h2 id="vvc-panel-t">{seccion.titulo}</h2>
+          </header>
+          <div className="vvc-body">
+            {abierta === "quien" && (
+              <Bloque
+                id="quien"
+                titulo="¿Quién soy?"
+                bajada="Mi nombre, mi familia y de dónde vengo."
+              >
+                <div className="vvc-grid">
+                  <Dato
+                    ambito="arbol"
+                    etiqueta="Nombre común"
+                    valor={ficha.nombre_comun}
+                  />
+                  <Dato
+                    ambito="arbol"
+                    etiqueta="Nombre científico"
+                    valor={ficha.especie_cientifica}
+                    cursiva
+                  />
+                  <Dato
+                    ambito="especie"
+                    etiqueta="Género"
+                    valor={esp?.genero ?? null}
+                    cursiva
+                  />
+                  <Dato
+                    ambito="especie"
+                    etiqueta="Familia"
+                    valor={esp?.familia ?? null}
+                  />
+                  <Dato
+                    ambito="especie"
+                    etiqueta="Origen"
+                    valor={esp?.origen_biogeografico?.etiqueta ?? null}
+                    ancho
+                  />
+                </div>
+                <Proximamente
+                  icono="camera"
+                  titulo="Mis fotografías"
+                  texto="Aquí verás fotos de este árbol. Su publicación aún no está autorizada en la ficha ciudadana."
+                />
+                <Proximamente
+                  icono="ruler"
+                  titulo="Mi edad y mi altura"
+                  texto="Datos de este árbol que se mostrarán cuando su publicación esté definida."
+                />
+                <Proximamente
+                  icono="sparkle"
+                  titulo="Curiosidades de mi especie"
+                  texto="Contenido sobre la especie, preparado y revisado por el equipo de SIVU."
+                />
+              </Bloque>
+            )}
+
+            {abierta === "aporto" && (
+              <Bloque
+                id="aporto"
+                titulo="¿Qué aporto a Valparaíso?"
+                bajada="Lo que hago por la ciudad, explicado en simple."
+              >
+                <div className="vvc-benefits">
+                  <Beneficio
+                    icono="sun"
+                    titulo="Sombra"
+                    texto="La superficie que cubre mi copa y el alivio que da en días de calor."
+                  />
+                  <Beneficio
+                    icono="leaf"
+                    titulo="Carbono"
+                    texto="El carbono que guardo en mi madera y el que capturo cada año."
+                  />
+                  <Beneficio
+                    icono="eye"
+                    titulo="Aire"
+                    texto="Los contaminantes que mis hojas ayudan a retener."
+                  />
+                  <Beneficio
+                    icono="layers"
+                    titulo="Agua"
+                    texto="La lluvia que retengo y que no escurre por la calle."
+                  />
+                </div>
+                <p className="vvc-note">
+                  <Icon name="clock" size={14} /> Cada cifra aparecerá aquí
+                  cuando su método de cálculo esté validado en SIVU. No
+                  mostramos estimaciones sin respaldo.
+                </p>
+              </Bloque>
+            )}
+
+            {abierta === "vida" && (
+              <Bloque
+                id="vida"
+                titulo="¿Cómo es mi vida?"
+                bajada="Cómo cambio con las estaciones y lo que he vivido."
+              >
+                <div className="vvc-grid">
+                  <Dato
+                    ambito="especie"
+                    etiqueta="Mi follaje"
+                    valor={esp?.persistencia_follaje?.etiqueta ?? null}
+                  />
+                  <Dato
+                    ambito="especie"
+                    etiqueta="Mis hojas"
+                    valor={esp?.tipo_hoja?.etiqueta ?? null}
+                  />
+                </div>
+                <Proximamente
+                  icono="calendar"
+                  titulo="Mi año"
+                  texto="Cuándo florezco, cuándo cambian mis hojas y qué pasa conmigo en cada estación."
+                />
+                <Proximamente
+                  icono="clock"
+                  titulo="Mi historia"
+                  texto="Los cuidados que he recibido y fotos de cómo he cambiado con los años."
+                />
+              </Bloque>
+            )}
+
+            {abierta === "cuidarme" && (
+              <Bloque
+                id="cuidarme"
+                titulo="¿Cómo puedes cuidarme?"
+                bajada="Pequeños gestos que me ayudan a vivir mejor."
+              >
+                <Proximamente
+                  icono="leaf"
+                  titulo="Consejos de cuidado"
+                  texto="Recomendaciones simples para cuidarme en la vereda y en la plaza."
+                />
+                <ReportarCard onReportar={() => setReportando(true)} />
+              </Bloque>
+            )}
+
+            <footer className="vvc-foot">
+              <p>
+                Información del inventario de arbolado urbano de Valparaíso ·
+                SIVU
+              </p>
+              <p className="vvc-foot__keys">
+                <span className="vvc-tag vvc-tag--arbol">Este árbol</span> datos
+                de este ejemplar ·{" "}
+                <span className="vvc-tag vvc-tag--especie">Su especie</span>{" "}
+                datos generales de su especie
+              </p>
+            </footer>
+          </div>
+        </section>
       )}
 
-      {reportando && <ReporteCiudadano nombreArbol={nombre} qrToken={qrToken} vistaPrevia={vistaPrevia} onCerrar={() => setReportando(false)} />}
+      {reportando && (
+        <ReporteCiudadano
+          nombreArbol={nombre}
+          qrToken={qrToken}
+          vistaPrevia={vistaPrevia}
+          onCerrar={() => setReportando(false)}
+        />
+      )}
     </div>
   );
 }
 
-function Bloque({ id, titulo, bajada, children }: { id: Seccion; titulo: string; bajada: string; children: ReactNode }) {
+function Bloque({
+  id,
+  titulo,
+  bajada,
+  children,
+}: {
+  id: Seccion;
+  titulo: string;
+  bajada: string;
+  children: ReactNode;
+}) {
   return (
-    <section id={`vvc-${id}`} className="vvc-block" aria-labelledby={`vvc-${id}-t`}>
-      <h2 id={`vvc-${id}-t`}>{titulo}</h2>
+    <section id={`vvc-${id}`} className="vvc-block" aria-label={titulo}>
       <p className="vvc-block__sub">{bajada}</p>
       {children}
     </section>
@@ -180,14 +356,28 @@ function Dato({
 }) {
   return (
     <div className={`vvc-dato ${ancho ? "vvc-dato--ancho" : ""}`}>
-      <span className={`vvc-tag vvc-tag--${ambito}`}>{ambito === "arbol" ? "Este árbol" : "Su especie"}</span>
+      <span className={`vvc-tag vvc-tag--${ambito}`}>
+        {ambito === "arbol" ? "Este árbol" : "Su especie"}
+      </span>
       <span className="vvc-dato__k">{etiqueta}</span>
-      {valor ? <strong className={cursiva ? "vvc-it" : ""}>{valor}</strong> : <span className="vvc-dato__vacio">Aún sin registrar</span>}
+      {valor ? (
+        <strong className={cursiva ? "vvc-it" : ""}>{valor}</strong>
+      ) : (
+        <span className="vvc-dato__vacio">Aún sin registrar</span>
+      )}
     </div>
   );
 }
 
-function Proximamente({ icono, titulo, texto }: { icono: IconName; titulo: string; texto: string }) {
+function Proximamente({
+  icono,
+  titulo,
+  texto,
+}: {
+  icono: IconName;
+  titulo: string;
+  texto: string;
+}) {
   return (
     <div className="vvc-soon">
       <span className="vvc-soon__icon">
@@ -202,7 +392,15 @@ function Proximamente({ icono, titulo, texto }: { icono: IconName; titulo: strin
   );
 }
 
-function Beneficio({ icono, titulo, texto }: { icono: IconName; titulo: string; texto: string }) {
+function Beneficio({
+  icono,
+  titulo,
+  texto,
+}: {
+  icono: IconName;
+  titulo: string;
+  texto: string;
+}) {
   return (
     <div className="vvc-benefit">
       <span className="vvc-benefit__icon">
@@ -211,6 +409,27 @@ function Beneficio({ icono, titulo, texto }: { icono: IconName; titulo: string; 
       <strong>{titulo}</strong>
       <p>{texto}</p>
       <span className="vvc-soon__tag">Próximamente</span>
+    </div>
+  );
+}
+
+/** Acceso destacado al formulario: el reporte llega al municipio como incidencia de la comunidad. */
+function ReportarCard({ onReportar }: { onReportar: () => void }) {
+  return (
+    <div className="vvc-report">
+      <span className="vvc-report__icon">
+        <Icon name="alert" size={20} />
+      </span>
+      <div>
+        <h3>¿Viste algún problema con este árbol?</h3>
+        <p>
+          Ayuda a cuidar el arbolado urbano informando una incidencia al
+          municipio. El árbol queda identificado por su código QR.
+        </p>
+      </div>
+      <button type="button" className="vvc-btn" onClick={onReportar}>
+        Reportar un problema
+      </button>
     </div>
   );
 }
