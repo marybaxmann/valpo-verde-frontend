@@ -402,10 +402,7 @@ export function WorkOrdersBoard({
                   {selected.requiere_revision_inspector !== null && (
                     <>
                       <dt>Revisión del Inspector</dt>
-                      <dd>
-                        {selected.requiere_revision_inspector ? "Requerida" : "No requerida"}
-                        {selected.inspector_revisor?.nombre && <small>{selected.inspector_revisor.nombre}</small>}
-                      </dd>
+                      <dd>{selected.requiere_revision_inspector ? "Requerida" : "No requerida"}</dd>
                     </>
                   )}
                 </dl>
