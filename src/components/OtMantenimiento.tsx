@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { cancelarOt, listarAsignables, type MiembroAsignable } from "../api/workOrders";
+import { listarAsignables, type MiembroAsignable } from "../api/workOrders";
 import { cambiarRevisor, listarEjecuciones, revisarEjecucion } from "../api/mantenimiento";
 import type { OtListada } from "../types/workOrder";
 import type { EjecucionMantenimiento } from "../types/mantenimiento";
@@ -12,8 +12,9 @@ import { fechaChile, hoyChile } from "../lib/dates";
  * contrato §5 bis): el historial de ejecuciones con sus fotos, para todos;
  * registrar la ejecución, para el Encargado responsable (cuando el backend
  * habilita `registrar_ejecucion`); aprobar o rechazar, para el Inspector
- * revisor asignado; cancelar y cambiar el revisor, para el Usuario
- * municipal. Qué está permitido lo decide el backend: aquí solo se ofrece
+ * revisor asignado; cambiar el revisor, para el Usuario municipal.
+ * Cancelar no se ofrece: la API todavía no cierra OT de Mantenimiento
+ * (responde 422 en POST …/cancelar). Qué está permitido lo decide el backend: aquí solo se ofrece
  * cada acción donde tiene sentido y se muestra su respuesta.
  */
 export function OtMantenimiento({
@@ -32,8 +33,7 @@ export function OtMantenimiento({
   const [version, setVersion] = useState(0);
 
   const [registrando, setRegistrando] = useState(false);
-  const [abierto, setAbierto] = useState<"cancelar" | "revisor" | "revisar" | null>(null);
-  const [motivo, setMotivo] = useState("");
+  const [abierto, setAbierto] = useState<"revisor" | "revisar" | null>(null);
   const [inspectores, setInspectores] = useState<MiembroAsignable[] | null>(null);
   const [nuevoRevisor, setNuevoRevisor] = useState("");
   const [decision, setDecision] = useState<"aprobado" | "rechazado" | "">("");
@@ -75,7 +75,6 @@ export function OtMantenimiento({
     try {
       await accion();
       setAbierto(null);
-      setMotivo("");
       setVersion((v) => v + 1);
       onChanged(mensajeOk);
     } catch (e) {
@@ -225,39 +224,13 @@ export function OtMantenimiento({
         </div>
       )}
 
-      {municipal && abiertaOt && (
+      {municipal && abiertaOt && ot.requiere_revision_inspector && (
         <div className="sivu-otg__actions">
           {abierto === null && (
             <div className="sivu-mant__action-row">
-              {ot.requiere_revision_inspector && (
-                <button type="button" className="btn btn-secondary btn-sm" onClick={() => setAbierto("revisor")} disabled={enviando}>
-                  Cambiar revisor
-                </button>
-              )}
-              <button type="button" className="btn btn-ghost btn-sm" onClick={() => (setAbierto("cancelar"), setMotivo(""))} disabled={enviando}>
-                Cancelar la orden
+              <button type="button" className="btn btn-secondary btn-sm" onClick={() => setAbierto("revisor")} disabled={enviando}>
+                Cambiar revisor
               </button>
-            </div>
-          )}
-
-          {abierto === "cancelar" && (
-            <div className="sivu-otg__form">
-              <label htmlFor="otm-motivo-cancelacion">Motivo de la cancelación</label>
-              <textarea id="otm-motivo-cancelacion" rows={2} value={motivo} onChange={(e) => setMotivo(e.target.value)} disabled={enviando} />
-              <p className="sivu-otg__warn">Una orden cancelada no se puede reabrir: si hace falta, se crea una nueva.</p>
-              <div className="sivu-mant__action-row">
-                <button type="button" className="btn btn-secondary btn-sm" onClick={() => setAbierto(null)} disabled={enviando}>
-                  Volver
-                </button>
-                <button
-                  type="button"
-                  className="btn btn-primary btn-sm"
-                  disabled={enviando || !motivo.trim()}
-                  onClick={() => enviar(() => cancelarOt(ot.id, motivo.trim()), "Orden cancelada.")}
-                >
-                  {enviando ? "Cancelando…" : "Cancelar la orden"}
-                </button>
-              </div>
             </div>
           )}
 
