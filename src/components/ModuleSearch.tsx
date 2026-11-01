@@ -1,7 +1,8 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Icon, type IconName } from "./Icons";
-import { NAV_GROUPS } from "../lib/navigation";
+import { navGroupsForRole } from "../lib/navigation";
+import { useAuth } from "../hooks/useAuth";
 
 interface Entry {
   to: string;
@@ -31,18 +32,20 @@ export function ModuleSearch({
   onClose: () => void;
 }) {
   const navigate = useNavigate();
+  const { profile } = useAuth();
+  const role = profile?.role;
   const [query, setQuery] = useState("");
   const [index, setIndex] = useState(0);
 
   const entries = useMemo<Entry[]>(
     () => [
-      ...NAV_GROUPS.flatMap((g) =>
+      ...navGroupsForRole(role).flatMap((g) =>
         g.modules.map((m) => ({ to: `${projectBase}/${m.path}`, label: m.label, hint: `${g.label} · ${m.hint}`, icon: m.icon }))
       ),
       { to: projectBase, label: "Ficha del proyecto", hint: "Proyecto · estado, sector y fechas", icon: "list" },
       { to: projectsPath, label: "Cambiar de proyecto", hint: "Proyecto · lista de proyectos", icon: "arrow-left" },
     ],
-    [projectBase, projectsPath]
+    [projectBase, projectsPath, role]
   );
 
   const q = normalize(query.trim());

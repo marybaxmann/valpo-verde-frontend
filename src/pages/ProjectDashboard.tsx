@@ -4,7 +4,8 @@ import { getProjectWithSector } from "../api/projects";
 import type { ProjectWithSector } from "../types/project";
 import { Icon, type IconName } from "../components/Icons";
 import { PendingNotice } from "../components/PendingNotice";
-import { NAV_GROUPS } from "../lib/navigation";
+import { navGroupsForRole } from "../lib/navigation";
+import { useAuth } from "../hooks/useAuth";
 import { ESTADO_PROYECTO_LABEL } from "../lib/projects";
 import { obtenerResumen } from "../api/resumen";
 import { listarDiagnosticos } from "../api/diagnosticos";
@@ -87,6 +88,7 @@ function RiskDonut({ partes, total }: { partes: ConteoCatalogo[]; total: number 
 
 export default function ProjectDashboard() {
   const { projectId = "" } = useParams();
+  const { profile } = useAuth();
   const [detail, setDetail] = useState<ProjectWithSector | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [resumen, setResumen] = useState<{ id: string; data: ResumenProyecto } | { id: string; error: string } | null>(null);
@@ -160,7 +162,7 @@ export default function ProjectDashboard() {
     { label: "Sin evaluación", icon: "clock", value: r?.sin_evaluacion, sub: "aún no inspeccionados", tone: "var(--ot-programada)" },
     { label: "Especies", icon: "sparkle", value: r?.especies_distintas, sub: "distintas" },
   ];
-  const modules = NAV_GROUPS.flatMap((g) => g.modules).filter((m) => m.path !== "dashboard");
+  const modules = navGroupsForRole(profile?.role).flatMap((g) => g.modules).filter((m) => m.path !== "dashboard");
 
   return (
     <div className="sivu-dash">

@@ -5,7 +5,7 @@ import { SivuLogo } from "./SivuLogo";
 import { useAuth } from "../hooks/useAuth";
 import { useCurrentProject } from "../hooks/useCurrentProject";
 import { useTheme } from "../hooks/useTheme";
-import { NAV_GROUPS, findActiveModule, type NavGroup } from "../lib/navigation";
+import { ROLES_SOLO_LECTURA, findActiveModule, navGroupsForRole, type NavGroup } from "../lib/navigation";
 
 type Menu = NavGroup["id"] | "proyecto" | "cuenta" | null;
 
@@ -46,6 +46,8 @@ export function AppTopBar({
     : "";
   const active = findActiveModule(subpath);
   const isAdmin = profile?.role === "admin";
+  const soloLectura = ROLES_SOLO_LECTURA.includes(profile?.role ?? "");
+  const groups = navGroupsForRole(profile?.role);
   const userName = profile?.nombre ?? profile?.email ?? roleLabel;
 
   // Clic fuera de la barra o Escape cierran el menú.
@@ -85,6 +87,17 @@ export function AppTopBar({
           >
             <Icon name="check" size={14} />
             {workspace.label}
+          </Link>
+        )}
+
+        {/* Desde «Mis OT», el Inspector y el Encargado pasan a los módulos de sus proyectos. */}
+        {workspace && !projectBase && (
+          <Link
+            to={projectsPath}
+            className={`sivu-topbar__workspace ${location.pathname.startsWith(projectsPath) ? "is-active" : ""}`}
+          >
+            <Icon name="leaf" size={14} />
+            Proyectos
           </Link>
         )}
 
@@ -134,7 +147,7 @@ export function AppTopBar({
 
       {projectBase && (
         <nav className="sivu-topbar__spaces" aria-label="Módulos del proyecto">
-          {NAV_GROUPS.map((g) => (
+          {groups.map((g) => (
             <div key={g.id} className="sivu-topbar__menu-wrap">
               <button
                 type="button"
@@ -172,6 +185,12 @@ export function AppTopBar({
       )}
 
       <div className="sivu-topbar__right">
+        {soloLectura && projectBase && (
+          <span className="sivu-topbar__readonly" title="Puedes consultar los módulos del proyecto; registras solo en tus OT">
+            <Icon name="eye" size={13} />
+            Solo lectura
+          </span>
+        )}
         {projectBase && (
           <button type="button" className="sivu-topbar__search" onClick={onOpenSearch} aria-label="Buscar módulo (Ctrl K)">
             <Icon name="search" size={15} />

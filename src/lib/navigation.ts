@@ -1,4 +1,5 @@
 import type { IconName } from "../components/Icons";
+import type { KnownRole } from "../types/authProfile";
 
 /**
  * Navegación del proyecto (CC-059) con los nombres visibles de CC-060.
@@ -16,6 +17,8 @@ export interface NavModule {
   /** Qué se hace en el módulo, para el menú y el buscador. */
   hint: string;
   icon: IconName;
+  /** Roles que no ven el módulo (la API les responde 403; CC-064). */
+  hiddenFor?: KnownRole[];
 }
 
 export interface NavGroup {
@@ -43,7 +46,8 @@ export const NAV_GROUPS: NavGroup[] = [
       { path: "mantencion", label: "Mantención", hint: "Órdenes de trabajo de mantenimiento", icon: "wrench" },
       { path: "incidencias", label: "Incidencias", hint: "Reportes y su estado", icon: "alert" },
       // Ruta propia: /inspeccion es Riesgo Arbóreo (CC-059 mantuvo esa ruta).
-      { path: "ot-inspeccion", label: "Inspección", hint: "Órdenes de trabajo de inspección", icon: "check" },
+      // El Encargado de mantención no ve el módulo Inspección (CC-064; B3 responde 403).
+      { path: "ot-inspeccion", label: "Inspección", hint: "Órdenes de trabajo de inspección", icon: "check", hiddenFor: ["encargado_mantencion"] },
       // Prototipo para la demo, pedido por la autora (2026-10-27): CC-062 sin aprobar y sin endpoints.
       { path: "conecta", label: "Valpo Verde Conecta", hint: "Reportes ciudadanos, QR y ficha pública (prototipo)", icon: "leaf" },
     ],
@@ -71,3 +75,18 @@ export function findActiveModule(subpath: string): { group: NavGroup; module: Na
   }
   return null;
 }
+
+/** Grupos con solo los módulos que el rol puede consultar. */
+export function navGroupsForRole(role: string | null | undefined): NavGroup[] {
+  return NAV_GROUPS.map((g) => ({
+    ...g,
+    modules: g.modules.filter((m) => !(role && m.hiddenFor?.includes(role as KnownRole))),
+  })).filter((g) => g.modules.length > 0);
+}
+
+/**
+ * Roles cuyo espacio propio son sus OT (CC-064): entran a «Mis OT» y
+ * consultan los módulos del proyecto en solo lectura. Las acciones de
+ * registro las decide cada pantalla por rol y, sobre todo, el backend.
+ */
+export const ROLES_SOLO_LECTURA: readonly string[] = ["inspector", "encargado_mantencion"];
