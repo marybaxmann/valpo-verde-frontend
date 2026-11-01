@@ -14,6 +14,7 @@ import "./styles/maintenance.css";
 import "./styles/project.css";
 import "./styles/inspection.css";
 import "./styles/species.css";
+import "./styles/incidents.css";
 import "./styles/wizard.css";
 import "./styles/loader.css";
 import "./styles/conecta-publica.css";

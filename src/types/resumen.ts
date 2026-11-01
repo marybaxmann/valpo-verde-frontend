@@ -18,4 +18,6 @@ export interface ResumenProyecto {
   especies_distintas: number;
   especies_top: { especie_cientifica: string | null; nombre_comun: string | null; total: number }[];
   ot_por_estado: ConteoCatalogo[];
+  /** Incidencias del proyecto por estado (D-184). */
+  incidencias_por_estado?: ConteoCatalogo[];
 }

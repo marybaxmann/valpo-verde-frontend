@@ -71,6 +71,8 @@ export interface CrearOtInspeccionInput {
   prioridad?: string;
   observaciones?: string | null;
   responsable_accion_id: string;
+  /** Incidencia que origina la OT (CC-036, D-233). */
+  incident_id?: string;
 }
 
 /** Crea una OT de Inspección (#58; D-238, D-244). Solo Usuario municipal. */

@@ -23,12 +23,15 @@ const PRIORIDADES_OT = ["baja", "media", "alta", "critica"];
 export function NewMaintenanceOrderModal({
   projectId,
   arbolInicial,
+  incidentId,
   onClose,
   onCreated,
 }: {
   projectId: string;
   /** Árbol ya elegido (por ejemplo, desde su ficha). */
   arbolInicial?: string;
+  /** Incidencia que origina la OT (CC-036, D-233). */
+  incidentId?: string;
   onClose: () => void;
   onCreated: (codigo: string | null) => void;
 }) {
@@ -116,6 +119,7 @@ export function NewMaintenanceOrderModal({
         responsable_accion_id: encargadoId,
         requiere_revision_inspector: conRevision,
         inspector_revisor_id: conRevision ? revisorId : null,
+        ...(incidentId ? { incident_id: incidentId } : {}),
       });
       onCreated(ot.codigo_ot);
     } catch (err) {

@@ -22,6 +22,7 @@ const ProjectDetail = lazy(() => import("./pages/ProjectDetail"));
 const ProjectDashboard = lazy(() => import("./pages/ProjectDashboard"));
 const MaintenancePage = lazy(() => import("./pages/MaintenancePage"));
 const IncidentsPage = lazy(() => import("./pages/IncidentsPage"));
+const IncidenciaPage = lazy(() => import("./pages/IncidenciaPage"));
 const ArbolPublicoPage = lazy(() => import("./pages/ArbolPublicoPage"));
 const IndicesPage = lazy(() => import("./pages/IndicesPage"));
 const ConectaPage = lazy(() => import("./pages/ConectaPage"));
@@ -70,6 +71,7 @@ function projectRoutes() {
       <Route path="projects/:projectId/mantencion" element={<MaintenancePage />} />
       <Route path="projects/:projectId/ot-inspeccion" element={<InspectionOrdersPage />} />
       <Route path="projects/:projectId/incidencias" element={<IncidentsPage />} />
+      <Route path="projects/:projectId/incidencias/:incidentId" element={<IncidenciaPage />} />
       <Route path="projects/:projectId/indices" element={<IndicesPage />} />
       <Route path="projects/:projectId/conecta" element={<ConectaPage />} />
     </>

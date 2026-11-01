@@ -1,0 +1,632 @@
+/* ==================================================
+   SIVU — INCIDENCIAS (B9)
+   Composición de la maqueta del módulo (artefacto «SIVU — Incidencias»,
+   2026-10-31): bandeja con pulso del territorio y flujo en columnas, y
+   revisión de una incidencia. Valores de diseño de la maqueta, sin datos;
+   los colores claros funcionan sobre ambos temas con los tokens de SIVU.
+   ================================================== */
+
+.sivu-inc,
+.sivu-increv {
+  display: grid;
+  gap: 16px;
+}
+
+.sivu-inc__head {
+  align-items: flex-end;
+}
+
+.sivu-inc__badge {
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+  background: rgba(183, 156, 242, 0.16);
+  color: #8f74d6;
+  font-weight: 600;
+}
+
+:root[data-theme="dark"] .sivu-inc__badge {
+  color: #c9b6f5;
+}
+
+.sivu-inc__muted {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.sivu-inc__code {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+/* Filtro por tipo (maqueta: .inc-chip) */
+.sivu-inc__chips {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.sivu-inc__chipbtn {
+  height: 34px;
+  padding: 0 12px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-muted);
+  font: 500 12.5px var(--font-body, inherit);
+  cursor: pointer;
+}
+
+.sivu-inc__chipbtn[aria-pressed="true"] {
+  background: #a8e6c3;
+  color: #0f2417;
+  border-color: transparent;
+  font-weight: 600;
+}
+
+.sivu-inc__toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+  font-size: 12.5px;
+  color: var(--text-muted);
+}
+
+/* Pulso + flujo */
+.sivu-inc__board {
+  display: grid;
+  grid-template-columns: minmax(320px, 420px) minmax(0, 1fr);
+  gap: 16px;
+  align-items: start;
+}
+
+@media (max-width: 1100px) {
+  .sivu-inc__board {
+    grid-template-columns: 1fr;
+  }
+}
+
+.sivu-inc__pulse {
+  display: grid;
+  gap: 12px;
+}
+
+.sivu-inc__map {
+  position: relative;
+  height: 320px;
+  border-radius: 18px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  background: var(--surface-sunken);
+}
+
+.sivu-inc__mapview {
+  position: absolute;
+  inset: 0;
+}
+
+.sivu-inc__mapstate {
+  display: grid;
+  place-items: center;
+  height: 100%;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.sivu-inc__legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  font-size: 11.5px;
+  color: var(--text-muted);
+}
+
+.sivu-inc__legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.sivu-inc__legend i {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+}
+
+.sivu-inc__legend .sivu-inc__legend-empty {
+  background: #fff;
+  border: 1.5px solid rgba(40, 52, 32, 0.85);
+}
+
+.sivu-inc__flow {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.sivu-inc__flow--5 {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
+@media (max-width: 760px) {
+  .sivu-inc__flow,
+  .sivu-inc__flow--5 {
+    grid-template-columns: 1fr;
+  }
+}
+
+.sivu-inc__col {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+  padding: 12px;
+  border-radius: 20px;
+  background: var(--surface-subtle);
+  border: 1px solid var(--border);
+}
+
+.sivu-inc__colhead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 2px 4px 6px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.sivu-inc__colhead > span:first-child {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sivu-inc__colhead i {
+  width: 9px;
+  height: 9px;
+  border-radius: 3px;
+}
+
+.sivu-inc__empty {
+  margin: 0;
+  padding: 8px 4px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+/* Tarjeta (maqueta: .inc-card) */
+.sivu-inc__card {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 12px;
+  border-radius: 16px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.sivu-inc__card:hover,
+.sivu-inc__card:focus-visible {
+  border-color: #a8e6c3;
+  box-shadow: 0 0 0 1px #a8e6c3;
+  outline: none;
+}
+
+.sivu-inc__cardtop {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 2px 8px;
+}
+
+.sivu-inc__type {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sivu-inc__type strong {
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.sivu-inc__typeicon {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 9px;
+  background: rgba(183, 156, 242, 0.16);
+  color: #8f74d6;
+}
+
+:root[data-theme="dark"] .sivu-inc__typeicon {
+  color: #c9b6f5;
+}
+
+.sivu-inc__tree {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.sivu-inc__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.sivu-inc__prio {
+  padding: 2px 8px;
+  border-radius: var(--radius-pill);
+  font-size: 10.5px;
+  font-weight: 600;
+  background: color-mix(in srgb, var(--c) 24%, transparent);
+  color: var(--text);
+}
+
+/* Ingresada hace menos de 24 h: punto que late (maqueta: .inc-ring) */
+.sivu-inc__live {
+  position: relative;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #b79cf2;
+}
+
+.sivu-inc__live::after {
+  content: "";
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  border: 2px solid #b79cf2;
+  animation: sivuIncPulse 2.2s ease-out infinite;
+}
+
+@keyframes sivuIncPulse {
+  0% {
+    transform: scale(0.6);
+    opacity: 0.9;
+  }
+  100% {
+    transform: scale(2.4);
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sivu-inc__live::after {
+    animation: none;
+    opacity: 0.5;
+  }
+}
+
+.sivu-inc__ots {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 6px;
+}
+
+.sivu-inc__ots li {
+  display: flex;
+  justify-content: space-between;
+  padding: 7px 10px;
+  border-radius: var(--radius-md);
+  background: var(--surface-subtle);
+  font-size: 12.5px;
+}
+
+/* ── Revisión de una incidencia ── */
+.sivu-increv__title {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin-top: 6px;
+}
+
+.sivu-increv__title h1 {
+  margin: 0;
+  font-size: 32px;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+}
+
+.sivu-increv__estado {
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+  background: color-mix(in srgb, var(--c) 26%, transparent);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.sivu-increv__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 520px) minmax(0, 1fr);
+  gap: 16px;
+  align-items: start;
+}
+
+@media (max-width: 1000px) {
+  .sivu-increv__grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.sivu-increv__col {
+  display: grid;
+  gap: 14px;
+  min-width: 0;
+}
+
+.sivu-increv__photo {
+  position: relative;
+  min-height: 320px;
+  border-radius: 24px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  background: repeating-linear-gradient(135deg, rgba(120, 140, 120, 0.06) 0 14px, rgba(120, 140, 120, 0.02) 14px 28px), var(--surface-sunken);
+  display: grid;
+  place-items: center;
+}
+
+.sivu-increv__photo img {
+  display: block;
+  width: 100%;
+  max-height: 460px;
+  object-fit: contain;
+}
+
+.sivu-increv__photonav {
+  position: absolute;
+  left: 14px;
+  top: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 6px;
+  border-radius: var(--radius-pill);
+  background: rgba(11, 16, 9, 0.8);
+  color: #f1f6f1;
+  font-size: 11.5px;
+}
+
+.sivu-increv__photonav button {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.12);
+  color: inherit;
+  cursor: pointer;
+}
+
+.sivu-increv__nophoto {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  padding: 24px;
+  text-align: center;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.sivu-increv__report,
+.sivu-increv__card,
+.sivu-increv__review {
+  display: grid;
+  gap: 10px;
+}
+
+.sivu-increv__quote {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.sivu-increv__facts {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin: 0;
+  font-size: 12px;
+}
+
+.sivu-increv__facts dt {
+  color: var(--text-muted);
+}
+
+.sivu-increv__facts dd {
+  margin: 2px 0 0;
+  font-weight: 500;
+  overflow-wrap: anywhere;
+}
+
+.sivu-increv__pair {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+@media (max-width: 640px) {
+  .sivu-increv__pair,
+  .sivu-increv__facts {
+    grid-template-columns: 1fr;
+  }
+}
+
+.sivu-increv__cardtop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.sivu-increv__big {
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.sivu-increv__link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12.5px;
+}
+
+.sivu-increv__card--lock {
+  border-color: rgba(183, 156, 242, 0.35);
+}
+
+.sivu-increv__lock {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #8f74d6;
+}
+
+:root[data-theme="dark"] .sivu-increv__lock {
+  color: #c9b6f5;
+}
+
+.sivu-increv__kv {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 13px;
+}
+
+.sivu-increv__kv span {
+  color: var(--text-muted);
+}
+
+.sivu-increv__h2 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.sivu-increv__obs {
+  margin: 0;
+  font-size: 13px;
+}
+
+/* Resultado (maqueta: .rv-opt) */
+.sivu-increv__opts {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+@media (max-width: 640px) {
+  .sivu-increv__opts {
+    grid-template-columns: 1fr;
+  }
+}
+
+.sivu-increv__opt {
+  display: grid;
+  gap: 4px;
+  padding: 12px 14px;
+  border-radius: 16px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+}
+
+.sivu-increv__opt strong {
+  font-size: 14px;
+}
+
+.sivu-increv__opt span {
+  font-size: 11.5px;
+  line-height: 1.35;
+  color: var(--text-muted);
+}
+
+.sivu-increv__opt[aria-checked="true"] {
+  border-color: var(--c);
+  box-shadow: 0 0 0 1px var(--c);
+  background: color-mix(in srgb, var(--c) 14%, var(--surface));
+}
+
+.sivu-increv__field {
+  display: grid;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.sivu-increv__field textarea {
+  width: 100%;
+}
+
+/* Prioridad (maqueta: .rv-prio) */
+.sivu-increv__prios {
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  border-radius: var(--radius-pill);
+  background: var(--surface-subtle);
+  border: 1px solid var(--border);
+}
+
+.sivu-increv__prio {
+  flex: 1;
+  height: 34px;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: var(--text);
+  font: 600 12.5px var(--font-body, inherit);
+  cursor: pointer;
+}
+
+.sivu-increv__prio[aria-checked="true"] {
+  background: var(--c);
+  color: #0f2417;
+}
+
+.sivu-increv__submit {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.sivu-increv__submit > .sivu-inc__muted {
+  flex: 1;
+  min-width: 200px;
+  line-height: 1.4;
+}
+
+.sivu-increv__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}

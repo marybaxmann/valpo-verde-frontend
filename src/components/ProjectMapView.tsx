@@ -36,6 +36,8 @@ export interface MapPoint {
    * PR-016, tokens `--classification-*`); `neutral` = sin evaluación.
    */
   tone?: "critical" | "high" | "medium" | "low" | "neutral";
+  /** Color propio (`#rrggbb`) cuando el módulo no usa la paleta de riesgo (p. ej. Incidencias). */
+  color?: string;
   /** Nombre que acompaña al código en la etiqueta del seleccionado (p. ej. el nombre común). */
   label?: string;
   /** Dato del módulo en la etiqueta del seleccionado (p. ej. el nivel de riesgo). */
@@ -150,7 +152,7 @@ export default function ProjectMapView({
   }, [basemap, status]);
 
   // Puntos de la API: se redibujan al cambiar los datos o la selección.
-  const pointsKey = (points ?? []).map((p) => `${p.id}:${p.lng}:${p.lat}:${p.tone ?? ""}`).join("|");
+  const pointsKey = (points ?? []).map((p) => `${p.id}:${p.lng}:${p.lat}:${p.tone ?? ""}:${p.color ?? ""}`).join("|");
   useEffect(() => {
     const layer = layerRef.current;
     const view = viewRef.current;
@@ -164,7 +166,7 @@ export default function ProjectMapView({
       // «Sin evaluación»: punto blanco pequeño, discreto; los árboles con
       // clasificación destacan con su color, borde blanco y halo (pedido de la
       // autora, 2026-10-27).
-      if (p.tone === "neutral") {
+      if (p.tone === "neutral" && !p.color) {
         layer.add(
           new Graphic({
             geometry,
@@ -180,8 +182,8 @@ export default function ProjectMapView({
         );
         continue;
       }
-      const color = p.tone ? colorDeTono(p.tone) : "#3fb07e";
-      const base = p.tone ? 16 : 11;
+      const color = p.color ?? (p.tone ? colorDeTono(p.tone) : "#3fb07e");
+      const base = p.tone || p.color ? 16 : 11;
       layer.add(
         new Graphic({
           geometry,

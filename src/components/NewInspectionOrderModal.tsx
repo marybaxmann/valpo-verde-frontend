@@ -23,10 +23,16 @@ export function NewInspectionOrderModal({
   projectId,
   onClose,
   onCreated,
+  arbolInicial,
+  incidentId,
 }: {
   projectId: string;
   onClose: () => void;
   onCreated: () => void;
+  /** Árbol ya elegido (al solicitar una inspección desde una incidencia). */
+  arbolInicial?: string;
+  /** Incidencia que origina la OT (CC-036, D-233; «Requiere antecedentes»). */
+  incidentId?: string;
 }) {
   const [catalogos, setCatalogos] = useState<Catalogos | null>(null);
   const [inspectores, setInspectores] = useState<MiembroAsignable[] | null>(null);
@@ -36,7 +42,7 @@ export function NewInspectionOrderModal({
   const [accion, setAccion] = useState("");
   const [subtipo, setSubtipo] = useState("");
   const [buscar, setBuscar] = useState("");
-  const [arbolId, setArbolId] = useState("");
+  const [arbolId, setArbolId] = useState(arbolInicial ?? "");
   const [inspectorId, setInspectorId] = useState("");
   const [prioridad, setPrioridad] = useState("");
   const [motivo, setMotivo] = useState("");
@@ -100,6 +106,7 @@ export function NewInspectionOrderModal({
         motivo: motivo.trim() || null,
         observaciones: observaciones.trim() || null,
         responsable_accion_id: inspectorId,
+        ...(incidentId ? { incident_id: incidentId } : {}),
       });
       onCreated();
     } catch (err) {

@@ -56,7 +56,8 @@ export default function InventoryPage() {
   const [listError, setListError] = useState<string | null>(null);
   const [todos, setTodos] = useState<ArbolInventario[] | null>(null);
   const [mapError, setMapError] = useState<string | null>(null);
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+  // `?arbol=<id>` abre la ficha de ese árbol (enlace desde Incidencias).
+  const [selectedId, setSelectedId] = useState<string | null>(() => new URLSearchParams(window.location.search).get("arbol"));
   // Etiquetas del ciclo de vida desde el catálogo de la API (provisionales, D-28).
   const [cicloLabel, setCicloLabel] = useState<Record<string, string>>({});
   // Evaluación vigente por árbol (B18 `vigente`, CC-050): la columna de riesgo la muestra tal como llega.
