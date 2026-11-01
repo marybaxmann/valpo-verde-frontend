@@ -82,7 +82,7 @@ export default function RevisionesPage() {
           </div>
           {ots && ots.length === 0 && (
             <p className="sivu-mant__muted">
-              {soloPendientes ? "No tienes ejecuciones esperando tu revisión." : "No eres revisor de ninguna orden de mantenimiento."}
+              {soloPendientes ? "No tienes ejecuciones esperando tu revisión." : "No tienes órdenes de mantenimiento abiertas como revisor. Las completadas se ven en el módulo Mantención de cada proyecto."}
             </p>
           )}
           {ots && ots.length > 0 && (
