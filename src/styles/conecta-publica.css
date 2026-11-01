@@ -1,0 +1,709 @@
+/* ==================================================
+   Valpo Verde Conecta — experiencia ciudadana del árbol (CC-062).
+   Para teléfono primero; en pantallas anchas, una columna de lectura
+   centrada. Tonos claros y naturales, propios de esta vista pública
+   (no sigue el modo oscuro del panel interno).
+   ================================================== */
+
+.vvc {
+  --vvc-bg: #f4f3ea;
+  --vvc-card: #fffefa;
+  --vvc-ink: #1d2817;
+  --vvc-muted: #5b6655;
+  --vvc-line: rgba(29, 40, 23, 0.1);
+  --vvc-olive: #485635;
+  --vvc-green: #2f7a52;
+  --vvc-soft: rgba(47, 122, 82, 0.08);
+  --vvc-especie: #6b5a2e;
+  min-height: 100dvh;
+  max-width: 520px;
+  margin: 0 auto;
+  background: var(--vvc-bg);
+  color: var(--vvc-ink);
+  font-family: var(--font-body, system-ui, sans-serif);
+  position: relative;
+  padding-bottom: 96px;
+  box-shadow: 0 0 0 1px var(--vvc-line);
+}
+
+.vvc .sivu-logo__img--light {
+  display: none;
+}
+
+.vvc .sivu-logo__img--olive {
+  display: block;
+}
+
+.vvc button {
+  font: inherit;
+}
+
+/* Barra superior */
+.vvc-top {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 18px;
+}
+
+.vvc-top__brand {
+  padding-left: 10px;
+  border-left: 1px solid var(--vvc-line);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--vvc-olive);
+}
+
+/* Portada */
+.vvc-hero {
+  position: relative;
+  margin: 0 12px;
+  padding: 150px 22px 24px;
+  border-radius: 28px;
+  overflow: hidden;
+  background:
+    radial-gradient(70% 60% at 50% 25%, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0) 70%),
+    linear-gradient(180deg, #e3ecd3 0%, #eef1e1 55%, #f6f3e4 100%);
+}
+
+.vvc-hero__art {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 10px;
+  height: 150px;
+}
+
+.vvc-hero__leaf {
+  position: absolute;
+  left: 50%;
+  top: 14px;
+  width: 190px;
+  margin-left: -95px;
+  filter: drop-shadow(0 18px 18px rgba(47, 82, 40, 0.18));
+  animation: sivuLoaderLeafY 4.8s ease-in-out infinite alternate, sivuLoaderLeafSway 3.9s ease-in-out infinite alternate;
+}
+
+.vvc-hero__mini {
+  position: absolute;
+  width: 44px;
+  animation: sivuLoaderMiniSway 3s ease-in-out infinite alternate;
+}
+
+.vvc-hero__mini--a {
+  left: 18%;
+  top: 22px;
+}
+
+.vvc-hero__mini--b {
+  right: 16%;
+  top: 96px;
+  animation-delay: -1.3s;
+}
+
+.vvc-hero__hola {
+  margin: 0;
+  font-size: 15px;
+  color: var(--vvc-muted);
+}
+
+.vvc-hero__name {
+  margin: 2px 0 0;
+  font-size: 36px;
+  line-height: 1.02;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+}
+
+.vvc-hero__sci {
+  margin: 6px 0 0;
+  font-size: 16px;
+  font-style: italic;
+  color: var(--vvc-muted);
+}
+
+.vvc-hero__place {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  margin: 14px 0 0;
+  font-size: 13.5px;
+  line-height: 1.4;
+  color: var(--vvc-ink);
+}
+
+.vvc-hero__place svg {
+  flex: none;
+  margin-top: 2px;
+  color: var(--vvc-green);
+}
+
+/* Secciones: accesos rápidos */
+.vvc-nav {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  display: flex;
+  gap: 6px;
+  padding: 12px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  background: linear-gradient(180deg, var(--vvc-bg) 80%, rgba(244, 243, 234, 0));
+}
+
+.vvc-nav__item {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 40px;
+  padding: 0 14px;
+  border: 1px solid var(--vvc-line);
+  border-radius: 999px;
+  background: var(--vvc-card);
+  color: var(--vvc-ink);
+  font-size: 13.5px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.vvc-nav__item svg {
+  color: var(--vvc-green);
+}
+
+/* Bloques */
+.vvc-body {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 4px 12px 0;
+}
+
+.vvc-block {
+  scroll-margin-top: 70px;
+  padding: 20px 18px;
+  border-radius: 26px;
+  background: var(--vvc-card);
+  border: 1px solid var(--vvc-line);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.vvc-block h2 {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.vvc-block__sub {
+  margin: -6px 0 2px;
+  font-size: 14px;
+  color: var(--vvc-muted);
+}
+
+.vvc-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.vvc-dato {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 12px;
+  border-radius: 16px;
+  background: var(--vvc-bg);
+  min-width: 0;
+}
+
+.vvc-dato--ancho {
+  grid-column: span 2;
+}
+
+.vvc-dato__k {
+  font-size: 12px;
+  color: var(--vvc-muted);
+}
+
+.vvc-dato strong {
+  font-size: 16px;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.vvc-dato__vacio {
+  font-size: 13.5px;
+  color: var(--vvc-muted);
+}
+
+.vvc-it {
+  font-style: italic;
+}
+
+/* Este árbol / Su especie */
+.vvc-tag {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  height: 20px;
+  padding: 0 8px;
+  border-radius: 999px;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.vvc-tag--arbol {
+  background: rgba(47, 122, 82, 0.14);
+  color: #225c3c;
+}
+
+.vvc-tag--especie {
+  background: rgba(176, 140, 60, 0.18);
+  color: var(--vvc-especie);
+}
+
+/* Próximamente */
+.vvc-soon {
+  display: grid;
+  grid-template-columns: 38px minmax(0, 1fr);
+  gap: 4px 12px;
+  align-items: start;
+  padding: 12px 14px;
+  border-radius: 16px;
+  border: 1px dashed rgba(29, 40, 23, 0.18);
+}
+
+.vvc-soon__icon {
+  grid-row: span 2;
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  background: var(--vvc-soft);
+  color: var(--vvc-green);
+}
+
+.vvc-soon strong {
+  font-size: 14.5px;
+}
+
+.vvc-soon p {
+  margin: 2px 0 0;
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--vvc-muted);
+}
+
+.vvc-soon__tag {
+  grid-column: 2;
+  justify-self: start;
+  margin-top: 4px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(29, 40, 23, 0.06);
+  color: var(--vvc-muted);
+  font-size: 10.5px;
+  font-weight: 600;
+}
+
+/* Beneficios */
+.vvc-benefits {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.vvc-benefit {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 14px;
+  border-radius: 18px;
+  background: linear-gradient(160deg, #eef4e4, #f8f6ec);
+}
+
+.vvc-benefit__icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 13px;
+  display: grid;
+  place-items: center;
+  background: var(--vvc-card);
+  color: var(--vvc-green);
+  margin-bottom: 4px;
+}
+
+.vvc-benefit strong {
+  font-size: 15px;
+}
+
+.vvc-benefit p {
+  margin: 0;
+  font-size: 12.5px;
+  line-height: 1.4;
+  color: var(--vvc-muted);
+}
+
+.vvc-benefit .vvc-soon__tag {
+  margin-top: 6px;
+}
+
+.vvc-note {
+  display: flex;
+  gap: 8px;
+  margin: 0;
+  font-size: 12.5px;
+  line-height: 1.4;
+  color: var(--vvc-muted);
+}
+
+.vvc-note svg {
+  flex: none;
+  margin-top: 2px;
+}
+
+/* Reportar */
+.vvc-report {
+  display: grid;
+  grid-template-columns: 46px minmax(0, 1fr);
+  gap: 10px 12px;
+  padding: 16px;
+  border-radius: 20px;
+  background: linear-gradient(160deg, #fbeee0, #fdf7ee);
+  border: 1px solid rgba(201, 120, 50, 0.2);
+}
+
+.vvc-report__icon {
+  width: 46px;
+  height: 46px;
+  border-radius: 15px;
+  display: grid;
+  place-items: center;
+  background: #fff;
+  color: #b4581f;
+}
+
+.vvc-report h3 {
+  margin: 0;
+  font-size: 16px;
+}
+
+.vvc-report p {
+  margin: 4px 0 0;
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--vvc-muted);
+}
+
+.vvc-report .vvc-btn {
+  grid-column: span 2;
+}
+
+.vvc-btn {
+  width: 100%;
+  height: 52px;
+  border: 0;
+  border-radius: 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: var(--vvc-olive);
+  color: #fff;
+  font-size: 15.5px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 10px 22px -12px rgba(72, 86, 53, 0.9);
+}
+
+.vvc-btn:disabled {
+  background: #c9cebf;
+  box-shadow: none;
+  cursor: default;
+}
+
+.vvc-fab {
+  position: fixed;
+  left: 50%;
+  bottom: 0;
+  z-index: 20;
+  width: 100%;
+  max-width: 520px;
+  transform: translateX(-50%);
+  box-sizing: border-box;
+  padding: 14px 16px max(16px, env(safe-area-inset-bottom));
+  background: linear-gradient(180deg, rgba(244, 243, 234, 0), var(--vvc-bg) 40%);
+}
+
+.vvc-foot {
+  padding: 10px 6px 0;
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--vvc-muted);
+  text-align: center;
+}
+
+.vvc-foot p {
+  margin: 0 0 6px;
+}
+
+.vvc-foot .vvc-tag {
+  vertical-align: middle;
+}
+
+/* Hoja del formulario */
+.vvc-sheet-bg {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  background: rgba(20, 28, 16, 0.45);
+}
+
+.vvc-sheet {
+  width: 100%;
+  max-width: 520px;
+  max-height: 92dvh;
+  display: flex;
+  flex-direction: column;
+  border-radius: 26px 26px 0 0;
+  background: var(--vvc-card);
+  color: var(--vvc-ink);
+  animation: sivu-wizard-up 0.22s ease-out;
+}
+
+.vvc-sheet__head {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 18px 18px 10px;
+}
+
+.vvc-sheet__head h2 {
+  margin: 0;
+  font-size: 20px;
+}
+
+.vvc-sheet__head p {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin: 4px 0 0;
+  font-size: 12.5px;
+  color: var(--vvc-muted);
+}
+
+.vvc-icon-btn {
+  width: 44px;
+  height: 44px;
+  flex: none;
+  border: 0;
+  border-radius: 14px;
+  background: var(--vvc-bg);
+  color: var(--vvc-ink);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+}
+
+.vvc-sheet__body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 4px 18px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.vvc-sheet__foot {
+  padding: 12px 18px max(16px, env(safe-area-inset-bottom));
+  border-top: 1px solid var(--vvc-line);
+}
+
+.vvc-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.vvc-field label,
+.vvc-field__label {
+  font-size: 13.5px;
+  font-weight: 600;
+}
+
+.vvc-field input,
+.vvc-field select,
+.vvc-field textarea {
+  min-height: 46px;
+  padding: 10px 12px;
+  border: 1px solid var(--vvc-line);
+  border-radius: 14px;
+  background: var(--vvc-bg);
+  color: var(--vvc-ink);
+  font: inherit;
+  font-size: 15px;
+  box-sizing: border-box;
+  width: 100%;
+}
+
+.vvc-field select:disabled {
+  color: var(--vvc-muted);
+}
+
+.vvc-field small {
+  font-size: 12px;
+  color: var(--vvc-muted);
+}
+
+.vvc-field .vvc-err {
+  color: #b23a1e;
+}
+
+.vvc-photo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 56px;
+  padding: 0 14px;
+  border: 1.5px dashed rgba(47, 122, 82, 0.4);
+  border-radius: 16px;
+  background: var(--vvc-soft);
+  color: var(--vvc-green);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.vvc-row2 {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.vvc-privacy,
+.vvc-pending {
+  display: flex;
+  gap: 8px;
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 14px;
+  font-size: 12.5px;
+  line-height: 1.4;
+}
+
+.vvc-privacy {
+  background: var(--vvc-bg);
+  color: var(--vvc-muted);
+}
+
+.vvc-pending {
+  background: rgba(176, 140, 60, 0.14);
+  color: var(--vvc-especie);
+}
+
+.vvc-privacy svg,
+.vvc-pending svg {
+  flex: none;
+  margin-top: 2px;
+}
+
+/* Ficha no disponible */
+.vvc--empty {
+  padding-bottom: 0;
+}
+
+.vvc-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 40px 28px;
+  text-align: center;
+}
+
+.vvc-empty h1 {
+  margin: 0;
+  font-size: 24px;
+  letter-spacing: -0.02em;
+}
+
+.vvc-empty p {
+  margin: 0;
+  max-width: 34ch;
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--vvc-muted);
+}
+
+.vvc-empty .sivu-loader {
+  --sl-text: var(--vvc-muted);
+}
+
+@media (min-width: 560px) {
+  .vvc {
+    margin-top: 16px;
+    margin-bottom: 16px;
+    border-radius: 32px;
+    overflow: hidden;
+    min-height: calc(100dvh - 32px);
+  }
+}
+
+@media (max-width: 360px) {
+  .vvc-row2 {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .vvc-hero__leaf,
+  .vvc-hero__mini {
+    animation: none;
+  }
+}
+
+/* Vista previa en el panel interno: un teléfono. `transform` hace que lo
+   fijo de la experiencia (botón y formulario) quede dentro del marco. */
+.vvc-preview {
+  justify-self: center;
+  align-self: center;
+  width: min(390px, 100%);
+  padding: 10px;
+  border-radius: 44px;
+  background: #1b2317;
+  box-shadow: 0 30px 60px -30px rgba(10, 20, 8, 0.6);
+}
+
+.vvc-preview__screen {
+  position: relative;
+  height: 760px;
+  overflow: hidden;
+  border-radius: 34px;
+  transform: translateZ(0);
+  background: #f4f3ea;
+}
+
+.vvc-preview__screen .vvc {
+  max-width: none;
+  height: 100%;
+  min-height: 0;
+  margin: 0;
+  overflow-y: auto;
+  border-radius: 0;
+  box-shadow: none;
+  scrollbar-width: none;
+}
+
+.vvc-preview__screen .vvc-fab {
+  max-width: none;
+}

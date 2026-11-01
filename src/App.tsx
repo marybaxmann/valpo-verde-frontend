@@ -21,6 +21,7 @@ const ProjectDetail = lazy(() => import("./pages/ProjectDetail"));
 const ProjectDashboard = lazy(() => import("./pages/ProjectDashboard"));
 const MaintenancePage = lazy(() => import("./pages/MaintenancePage"));
 const IncidentsPage = lazy(() => import("./pages/IncidentsPage"));
+const ArbolPublicoPage = lazy(() => import("./pages/ArbolPublicoPage"));
 const IndicesPage = lazy(() => import("./pages/IndicesPage"));
 const ConectaPage = lazy(() => import("./pages/ConectaPage"));
 const InventoryPage = lazy(() => import("./pages/InventoryPage"));
@@ -78,6 +79,15 @@ export default function App() {
   return (
     <Routes>
       <Route path="/" element={<RootRoute />} />
+      {/* Valpo Verde Conecta (CC-062): ficha del árbol por su QR, sin iniciar sesión. */}
+      <Route
+        path="/arbol/:qrToken"
+        element={
+          <Suspense fallback={<SivuLoader variant="fullscreen" message="Buscando a tu árbol…" />}>
+            <ArbolPublicoPage />
+          </Suspense>
+        }
+      />
 
       <Route element={<RequireRole role="admin" />}>
         <Route path="/admin" element={<AdminLayout />}>

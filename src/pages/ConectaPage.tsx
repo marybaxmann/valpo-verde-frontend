@@ -4,6 +4,7 @@ import { listarInventarioCompleto } from "../api/inventory";
 import type { ArbolInventario } from "../types/inventory";
 import { PendingNotice } from "../components/PendingNotice";
 import { Icon } from "../components/Icons";
+import { VistaPreviaCiudadana } from "../components/conecta/VistaPreviaCiudadana";
 
 type Tab = "reportes" | "qr" | "ficha";
 
@@ -17,7 +18,7 @@ type Tab = "reportes" | "qr" | "ficha";
  */
 export default function ConectaPage() {
   const { projectId = "" } = useParams();
-  const [tab, setTab] = useState<Tab>("reportes");
+  const [tab, setTab] = useState<Tab>("ficha");
   const [arboles, setArboles] = useState<ArbolInventario[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [elegido, setElegido] = useState<string>("");
@@ -96,9 +97,10 @@ export default function ConectaPage() {
             <h2>Código QR del árbol</h2>
           </div>
           <p className="sivu-conecta__lead">
-            Cada árbol tendrá un código en terreno que abre su ficha pública y el formulario para reportar.
+            Cada árbol tendrá un código en terreno que abre su ficha pública, sin iniciar sesión, en la dirección{" "}
+            <code>/arbol/&lt;código de su placa&gt;</code>. La ficha ya está construida; se ve en la pestaña «Ficha pública».
           </p>
-          <PendingNotice what="la dirección pública de la ficha y el código QR de cada árbol" refs="CC-062" />
+          <PendingNotice what="el código QR de cada árbol y su archivo imprimible de placas" refs="CC-062 · #62" />
         </section>
       )}
 
@@ -124,24 +126,13 @@ export default function ConectaPage() {
           {!arboles && !error && <p className="sivu-state">Cargando árboles…</p>}
           {arboles && arboles.length === 0 && <p className="sivu-state">El proyecto no tiene árboles registrados.</p>}
           {arbol && (
-            <article className="sivu-conecta__ficha" aria-label={`Ficha pública de ${arbol.tree_code}`}>
-              <span className="sivu-conecta__code">{arbol.tree_code}</span>
-              <h3>{arbol.nombre_comun ?? "Sin nombre común"}</h3>
-              <p>
-                <em>{arbol.especie_cientifica ?? "Especie sin registrar"}</em>
+            <>
+              <p className="sivu-conecta__lead">
+                Así verá este árbol quien escanee su código QR, sin iniciar sesión. Solo con los datos que CC-062 permite publicar;
+                lo demás aparece como «Próximamente».
               </p>
-              <dl>
-                <div>
-                  <dt>Ubicación</dt>
-                  <dd>{arbol.ubicacion_descriptiva ?? "—"}</dd>
-                </div>
-                <div>
-                  <dt>Sector</dt>
-                  <dd>{arbol.sector ?? "—"}</dd>
-                </div>
-              </dl>
-              <p className="sivu-conecta__note">Vista previa con datos reales del inventario. Qué campos son públicos lo define CC-062.</p>
-            </article>
+              <VistaPreviaCiudadana projectId={projectId} arbol={arbol} />
+            </>
           )}
         </section>
       )}

@@ -111,3 +111,36 @@ export const api = {
   patch: <T>(path: string, body?: unknown) => request<T>("PATCH", path, body),
   delete: <T = void>(path: string) => request<T>("DELETE", path),
 };
+
+/**
+ * Pedidos SIN sesión, solo para los endpoints públicos de Valpo Verde
+ * Conecta (CC-062: ficha por QR, formulario y seguimiento). Nunca adjunta
+ * el token: quien escanea un QR no tiene cuenta.
+ */
+async function requestPublic<T>(method: "GET" | "POST", path: string, body?: unknown): Promise<T> {
+  if (!API_BASE_URL) {
+    throw new Error("Falta VITE_API_BASE_URL. Revisa tu .env (ver .env.example).");
+  }
+  const isForm = body instanceof FormData;
+  const res = await fetch(`${API_BASE_URL}${path}`, {
+    method,
+    headers: body !== undefined && !isForm ? { "Content-Type": "application/json" } : {},
+    body: body === undefined ? undefined : isForm ? body : JSON.stringify(body),
+    cache: "no-store",
+  });
+  const isJson = res.headers.get("content-type")?.includes("application/json") ?? false;
+  const payload: unknown = isJson ? await res.json() : undefined;
+  if (!res.ok) {
+    const message =
+      payload && typeof payload === "object" && "error" in payload && typeof payload.error === "string"
+        ? payload.error
+        : res.statusText || "Error al comunicarse con el backend";
+    throw new ApiError(res.status, message);
+  }
+  return payload as T;
+}
+
+export const publicApi = {
+  get: <T>(path: string) => requestPublic<T>("GET", path),
+  post: <T>(path: string, body?: unknown) => requestPublic<T>("POST", path, body),
+};
