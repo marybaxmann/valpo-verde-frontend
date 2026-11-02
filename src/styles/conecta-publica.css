@@ -26,11 +26,22 @@
   box-shadow: 0 0 0 1px var(--vvc-line);
 }
 
-.vvc .sivu-logo__img--light {
+/* La ficha pública es siempre clara: no sigue el tema oscuro de la plataforma
+   ni el del teléfono. Se fijan los colores que los títulos y controles toman
+   del tema, y el logo oliva gana a la regla de material.css del modo oscuro. */
+.vvc {
+  color-scheme: light;
+  --text: var(--vvc-ink);
+  --text-muted: var(--vvc-muted);
+}
+
+.vvc .sivu-logo__img--light,
+:root[data-theme] .vvc .sivu-logo__img--light {
   display: none;
 }
 
-.vvc .sivu-logo__img--olive {
+.vvc .sivu-logo__img--olive,
+:root[data-theme] .vvc .sivu-logo__img--olive {
   display: block;
 }
 
