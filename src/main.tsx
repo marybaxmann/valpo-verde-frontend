@@ -18,6 +18,7 @@ import "./styles/incidents.css";
 import "./styles/wizard.css";
 import "./styles/loader.css";
 import "./styles/conecta-publica.css";
+import "./styles/indicadores.css";
 
 /**
  * Tras un despliegue nuevo, una pestaña abierta pide módulos de la versión
