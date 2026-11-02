@@ -221,8 +221,9 @@ export function HuellaVerde({ d, aportes }: { d: IndicadoresProyecto; aportes: A
                   <small>{c!.unidad ? `${c!.unidad} C` : ""}</small>
                 </span>
                 <span className="bio-hero__sub">
-                  en {num(carbono.cobertura.con_resultado)} {carbono.cobertura.con_resultado === 1 ? "árbol" : "árboles"} con estimación
-                  {sinResultado > 0 && ` · ${num(sinResultado)} sin estimación`}
+                  {carbono.cobertura.con_resultado === 0
+                    ? `Ninguno de los ${num(carbono.cobertura.presentes)} árboles presentes tiene todavía una estimación. Motivos:`
+                    : `en ${num(carbono.cobertura.con_resultado)} ${carbono.cobertura.con_resultado === 1 ? "árbol" : "árboles"} con estimación${sinResultado > 0 ? ` · ${num(sinResultado)} sin estimación` : ""}`}
                 </span>
                 {co2!.valor !== "—" && (
                   <span className="bio-hero__eq">
