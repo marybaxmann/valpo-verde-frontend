@@ -741,7 +741,9 @@
 
 /* Vista previa en el panel interno: un teléfono. `transform` hace que lo
    fijo de la experiencia (botón y formulario) quede dentro del marco. */
+/* Teléfono a escala: conserva el ancho real de 390 px por dentro y se ve al 78 %. */
 .vvc-preview {
+  zoom: 0.78;
   justify-self: center;
   align-self: center;
   width: min(390px, 100%);
@@ -753,7 +755,7 @@
 
 .vvc-preview__screen {
   position: relative;
-  height: 760px;
+  height: clamp(600px, calc(100vh - 80px), 760px);
   overflow: hidden;
   border-radius: 34px;
   transform: translateZ(0);
@@ -771,6 +773,10 @@
   scrollbar-width: none;
 }
 
+/* Dentro del teléfono las hojas se miden contra su pantalla, no contra la ventana. */
+.vvc-preview__screen .vvc-sheet {
+  max-height: 92%;
+}
 
 /* Código de seguimiento y consulta (contrato §8) */
 .vvc-code {
