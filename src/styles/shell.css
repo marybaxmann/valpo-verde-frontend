@@ -145,7 +145,7 @@
   white-space: nowrap;
 }
 
-/* Grupos: Análisis / Operación / Territorio */
+/* Grupos de módulos (CC-072): Inicio, Evaluación, Mantención, Análisis, Ciudadanía */
 .sivu-topbar__spaces {
   display: flex;
   align-items: center;
@@ -173,6 +173,11 @@
   font-size: 14px;
   font-weight: 500;
   transition: background 0.2s, color 0.2s;
+}
+
+/* Grupo de un solo módulo como enlace directo (CC-072). */
+a.sivu-topbar__space {
+  text-decoration: none;
 }
 
 .sivu-topbar__space:hover,
@@ -316,13 +321,11 @@
   animation: sivu-drop 0.2s cubic-bezier(0.2, 0.9, 0.3, 1.2);
 }
 
-/* Menú «Módulos» (CC-072): centrado bajo su botón y dentro de la pantalla. */
-.sivu-topbar__spaces .sivu-dd {
-  left: 50%;
-  translate: -50% 0;
-  width: min(340px, calc(100vw - 32px));
-  max-height: calc(100dvh - 140px);
-  overflow-y: auto;
+/* El último grupo abre su menú hacia la izquierda para no salirse de la pantalla. */
+.sivu-topbar__spaces > .sivu-topbar__menu-wrap:last-child .sivu-dd {
+  left: auto;
+  right: 0;
+  max-width: calc(100vw - 32px);
 }
 
 .sivu-dd--right {
@@ -508,7 +511,9 @@
 
 /* ---------- Pantallas medianas y pequeñas ---------- */
 
-@media (max-width: 1180px) {
+/* Con cinco grupos (CC-072) la barra se llena antes: hasta 1440 px el
+   buscador y la cuenta quedan solo con su ícono. */
+@media (max-width: 1440px) {
   .sivu-topbar__user-text,
   .sivu-topbar__search span,
   .sivu-topbar__search kbd {
@@ -632,6 +637,73 @@
 }
 
 @media (max-width: 720px) {
+  .sivu-topbar__readonly {
+    padding: 0 8px;
+    font-size: 0;
+    gap: 0;
+  }
+}
+
+/* Grupos de módulos en pantallas angostas (CC-072): la barra pasa a varias
+   filas; cada menú se abre centrado bajo la barra completa, dentro de la
+   pantalla, y los botones se compactan. */
+@media (max-width: 900px) {
+  .sivu-topbar__spaces {
+    position: relative;
+  }
+  .sivu-topbar__spaces > .sivu-topbar__menu-wrap {
+    position: static;
+  }
+  .sivu-topbar__spaces .sivu-dd,
+  .sivu-topbar__spaces > .sivu-topbar__menu-wrap:last-child .sivu-dd {
+    left: 50%;
+    right: auto;
+    translate: -50% 0;
+    width: min(340px, calc(100vw - 32px));
+    max-width: none;
+  }
+}
+
+@media (max-width: 520px) {
+  .sivu-topbar__space {
+    gap: 6px;
+    padding: 0 10px;
+    font-size: 13px;
+  }
+}
+
+/* Escritorio mediano (CC-072): con cinco grupos, el nombre del proyecto se
+   acorta en vez de quedar tapado, y los botones se compactan. */
+@media (min-width: 901px) {
+  .sivu-topbar__left {
+    min-width: 150px;
+  }
+  .sivu-topbar__left .sivu-topbar__menu-wrap {
+    min-width: 0;
+    flex: 0 1 auto;
+  }
+  .sivu-topbar__project {
+    min-width: 0;
+    max-width: 100%;
+  }
+  .sivu-topbar__spaces {
+    flex-shrink: 0;
+  }
+  /* La derecha ocupa su ancho real: antes se desbordaba sobre los grupos. */
+  .sivu-topbar__right {
+    flex: 0 0 auto;
+  }
+}
+
+@media (min-width: 901px) and (max-width: 1180px) {
+  .sivu-topbar__space {
+    gap: 6px;
+    padding: 0 11px;
+    font-size: 13.5px;
+  }
+  .sivu-topbar__space > svg:first-child {
+    display: none;
+  }
   .sivu-topbar__readonly {
     padding: 0 8px;
     font-size: 0;

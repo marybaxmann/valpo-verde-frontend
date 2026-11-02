@@ -22,30 +22,56 @@ export interface NavModule {
 }
 
 export interface NavGroup {
-  id: "modulos";
+  id: "inicio" | "evaluacion" | "mantencion" | "analisis" | "ciudadania";
   label: string;
   icon: IconName;
   modules: NavModule[];
 }
 
+// Orden de Valej (2026-11-02, CC-072), en lugar de los tres grupos de
+// CC-059: grupos en el orden del ciclo de trabajo, como las pestañas de un
+// programa (inicio → evaluación → mantención → análisis → ciudadanía).
+// Un grupo con un solo módulo se muestra como botón directo. Rutas,
+// nombres de módulo (CC-060) y permisos sin cambios.
 export const NAV_GROUPS: NavGroup[] = [
   {
-    // Orden de Valej (2026-11-02), en lugar de los tres grupos de CC-059:
-    // sigue el ciclo de trabajo (inventario, inspección, resultados,
-    // mantención). Rutas, nombres (CC-060) y permisos sin cambios.
-    id: "modulos",
-    label: "Módulos",
+    id: "inicio",
+    label: "Inicio",
     icon: "chart",
     modules: [
       { path: "dashboard", label: "Dashboard", hint: "Resumen del proyecto", icon: "chart" },
       { path: "mapa", label: "Inventario", hint: "Árboles del proyecto", icon: "leaf" },
+    ],
+  },
+  {
+    id: "evaluacion",
+    label: "Evaluación",
+    icon: "check-square",
+    modules: [
       // Ruta propia: /inspeccion es Riesgo Arbóreo (CC-059 mantuvo esa ruta).
       // El Encargado de mantención no ve el módulo Inspección (CC-064; B3 responde 403).
       { path: "ot-inspeccion", label: "Inspección", hint: "Órdenes de trabajo de inspección", icon: "check", hiddenFor: ["encargado_mantencion"] },
       { path: "inspeccion", label: "Riesgo Arbóreo", hint: "Resultados de riesgo en el territorio", icon: "check-square" },
       { path: "infraestructura", label: "Infraestructura", hint: "Conflictos árbol–infraestructura", icon: "building" },
-      { path: "mantencion", label: "Mantención", hint: "Órdenes de trabajo de mantenimiento", icon: "wrench" },
-      { path: "indices", label: "Indicadores biométricos", hint: "Composición y mediciones del inventario", icon: "sort" },
+    ],
+  },
+  {
+    id: "mantencion",
+    label: "Mantención",
+    icon: "wrench",
+    modules: [{ path: "mantencion", label: "Mantención", hint: "Órdenes de trabajo de mantenimiento", icon: "wrench" }],
+  },
+  {
+    id: "analisis",
+    label: "Análisis",
+    icon: "sort",
+    modules: [{ path: "indices", label: "Indicadores biométricos", hint: "Composición y mediciones del inventario", icon: "sort" }],
+  },
+  {
+    id: "ciudadania",
+    label: "Ciudadanía",
+    icon: "alert",
+    modules: [
       { path: "incidencias", label: "Incidencias", hint: "Reportes y su estado", icon: "alert" },
       { path: "conecta", label: "Valpo Verde Conecta", hint: "Reportes ciudadanos, QR y ficha pública", icon: "leaf" },
     ],

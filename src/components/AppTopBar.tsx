@@ -11,7 +11,7 @@ type Menu = NavGroup["id"] | "proyecto" | "cuenta" | null;
 
 /**
  * Barra superior de SIVU (Fase 7, Paso 2; CC-057 y CC-059): logotipo,
- * proyecto actual con su menú, los tres grupos de módulos, buscador,
+ * proyecto actual con su menú, los grupos de módulos (CC-072), buscador,
  * tema y cuenta. Reescrita sobre la arquitectura productiva (CC-058): no
  * importa nada de la maqueta. El rol que muestra es el que confirma el
  * backend (GET /api/auth/me); los guards de App.tsx siguen decidiendo el
@@ -125,7 +125,20 @@ export function AppTopBar({
 
       {projectBase && (
         <nav className="sivu-topbar__spaces" aria-label="Módulos del proyecto">
-          {groups.map((g) => (
+          {groups.map((g) =>
+            g.modules.length === 1 ? (
+              // Grupo de un solo módulo: botón directo, sin desplegable.
+              <Link
+                key={g.id}
+                className={`sivu-topbar__space ${active?.group.id === g.id ? "is-active" : ""}`}
+                to={`${projectBase}/${g.modules[0].path}`}
+                aria-current={active?.group.id === g.id ? "page" : undefined}
+                title={g.modules[0].label}
+              >
+                <Icon name={g.icon} size={15} />
+                {g.label}
+              </Link>
+            ) : (
             <div key={g.id} className="sivu-topbar__menu-wrap">
               <button
                 type="button"
@@ -134,8 +147,8 @@ export function AppTopBar({
                 aria-expanded={open === g.id}
                 onClick={() => toggle(g.id)}
               >
-                <Icon name={active?.group.id === g.id ? active.module.icon : g.icon} size={15} />
-                {active?.group.id === g.id ? active.module.label : g.label}
+                <Icon name={g.icon} size={15} />
+                {g.label}
                 <Icon name="chevron-down" size={13} />
               </button>
               {open === g.id && (
@@ -158,7 +171,8 @@ export function AppTopBar({
                 </div>
               )}
             </div>
-          ))}
+            ),
+          )}
         </nav>
       )}
 
