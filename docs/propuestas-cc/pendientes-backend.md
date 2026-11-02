@@ -111,3 +111,13 @@ Detalle en `formulario-inspeccion-bloqueos.md` y `mensaje-backend-b16.md`.
   `Cache-Control: no-store` (son datos con sesión) o desactive el ETag
   (`app.set("etag", false)`). Sigue pendiente el 500 de crear OT sin
   prioridad (PGRST201).
+- **2026-11-02 — Cuadro de Infraestructura (pendiente, decisión de la responsable).**
+  La maqueta muestra en Infraestructura «N árboles con evaluación», «N
+  evaluaciones» y, por componente (Acera / vereda, Alcorque, Calzada, Redes /
+  servicios, Infraestructura vertical), cuántos árboles tienen daño o
+  interferencia, más la leyenda inferior con conteos (con daño / sin daño /
+  sin evaluación). El backend no entrega esos conteos y el frontend no cuenta
+  (decisión de la responsable). Se pide agregarlos al resumen del proyecto (B7),
+  con la regla de qué categoría cuenta como «con daño o interferencia», desde la
+  evaluación vigente. Mientras tanto la pantalla muestra solo el total de
+  árboles con evaluación.
