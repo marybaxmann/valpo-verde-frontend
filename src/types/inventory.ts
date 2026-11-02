@@ -22,6 +22,8 @@ export interface ArbolInventario {
   /** Ciclo de vida con su etiqueta (B1). */
   ciclo_vida?: { codigo: string; etiqueta: string };
   fecha_registro: string;
+  /** Token de la placa QR; B1 lo entrega solo al Usuario municipal. */
+  qr_token?: string;
 }
 
 export interface ListadoInventario {

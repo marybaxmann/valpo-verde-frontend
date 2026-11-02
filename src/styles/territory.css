@@ -927,3 +927,240 @@
 .sivu-terr__legendbar {
   width: max-content;
 }
+
+/* Conecta · Placas QR (disposición de la maqueta SIVU Lab, solo diseño) */
+.sivu-placas {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 360px;
+  gap: 16px;
+  align-items: start;
+}
+
+.sivu-placas__list {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+}
+
+.sivu-placas__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.sivu-placas__head h2 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.sivu-placas__scroll {
+  max-height: calc(100vh - 300px);
+  min-height: 260px;
+  overflow: auto;
+}
+
+.sivu-placas__table {
+  width: 100%;
+}
+
+.sivu-placas__table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.sivu-placas__table tbody tr {
+  cursor: pointer;
+}
+
+.sivu-placas__table tbody tr:hover {
+  background: var(--surface-subtle);
+}
+
+.sivu-placas__table tbody tr.is-sel {
+  background: var(--surface-muted);
+}
+
+.sivu-placas__table td {
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border);
+  font-size: 13.5px;
+  vertical-align: middle;
+}
+
+.sivu-placas__table td strong {
+  display: block;
+  font-weight: 600;
+}
+
+.sivu-placas__table td em {
+  display: block;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.sivu-placas__code button {
+  border: 0;
+  background: none;
+  padding: 0;
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  color: var(--text);
+  cursor: pointer;
+}
+
+.sivu-placas__place {
+  max-width: 280px;
+  color: var(--text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sivu-placas__pill {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: var(--radius-pill);
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  background: var(--surface-muted);
+  color: var(--text-muted);
+}
+
+.sivu-placas__pill.is-on {
+  background: rgba(63, 176, 126, 0.16);
+  color: var(--sivu-accent);
+}
+
+.sivu-placas__preview {
+  display: grid;
+  gap: 14px;
+  position: sticky;
+  top: 90px;
+}
+
+.sivu-placas__phead {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.sivu-placas__phead h2 {
+  margin: 2px 0 0;
+  font-size: 18px;
+}
+
+.sivu-placas__eyebrow {
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  color: var(--text-muted);
+}
+
+.sivu-placa {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 18px 20px 14px;
+  border-radius: 18px;
+  background: linear-gradient(160deg, #4f6b3c, #3d5a2e);
+  color: #fff;
+  text-align: center;
+}
+
+.sivu-placa__brand {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  opacity: 0.85;
+}
+
+.sivu-placa__qr {
+  display: grid;
+  place-items: center;
+  gap: 4px;
+  width: 150px;
+  height: 150px;
+  margin: 10px 0 8px;
+  border-radius: 14px;
+  background: #fff;
+  color: #2b3a22;
+}
+
+.sivu-placa__qr small {
+  max-width: 12ch;
+  font-size: 10.5px;
+  line-height: 1.25;
+  color: #6b7563;
+}
+
+.sivu-placa__name {
+  font-size: 18px;
+}
+
+.sivu-placa__sci {
+  font-size: 13px;
+  opacity: 0.85;
+}
+
+.sivu-placa__code {
+  margin-top: 8px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  opacity: 0.75;
+}
+
+.sivu-placas__meta {
+  display: grid;
+  gap: 10px;
+}
+
+.sivu-placas__meta > div {
+  display: grid;
+  gap: 2px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: var(--surface-subtle);
+}
+
+.sivu-placas__meta span {
+  font-size: 11.5px;
+  color: var(--text-muted);
+}
+
+.sivu-placas__meta code {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sivu-placas__open {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  justify-self: start;
+  padding: 7px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  font-size: 13px;
+  color: var(--text);
+  text-decoration: none;
+}
+
+@media (max-width: 1100px) {
+  .sivu-placas {
+    grid-template-columns: 1fr;
+  }
+
+  .sivu-placas__preview {
+    position: static;
+  }
+}
