@@ -5,7 +5,7 @@ import { SivuLogo } from "./SivuLogo";
 import { useAuth } from "../hooks/useAuth";
 import { useCurrentProject } from "../hooks/useCurrentProject";
 import { useTheme } from "../hooks/useTheme";
-import { ROLES_SOLO_LECTURA, findActiveModule, moduloPrincipal, navGroupsForRole, type NavGroup } from "../lib/navigation";
+import { findActiveModule, moduloPrincipal, navGroupsForRole, type NavGroup } from "../lib/navigation";
 
 type Menu = NavGroup["id"] | "proyecto" | "cuenta" | null;
 
@@ -43,9 +43,6 @@ export function AppTopBar({
     : "";
   const active = findActiveModule(subpath);
   const isAdmin = profile?.role === "admin";
-  // En su módulo principal trabaja; en el resto del proyecto solo consulta.
-  const soloLectura =
-    ROLES_SOLO_LECTURA.includes(profile?.role ?? "") && active?.module.path !== moduloPrincipal(profile?.role);
   const groups = navGroupsForRole(profile?.role);
   const userName = profile?.nombre ?? profile?.email ?? roleLabel;
 
@@ -177,12 +174,6 @@ export function AppTopBar({
       )}
 
       <div className="sivu-topbar__right">
-        {soloLectura && projectBase && (
-          <span className="sivu-topbar__readonly" title="Puedes consultar los módulos del proyecto; registras solo en tus OT">
-            <Icon name="eye" size={13} />
-            Solo lectura
-          </span>
-        )}
         {projectBase && (
           <button type="button" className="sivu-topbar__search" onClick={onOpenSearch} aria-label="Buscar módulo (Ctrl K)">
             <Icon name="search" size={15} />
@@ -190,15 +181,7 @@ export function AppTopBar({
             <kbd>Ctrl K</kbd>
           </button>
         )}
-        <button
-          type="button"
-          className="sivu-topbar__icon-btn"
-          onClick={toggleTheme}
-          aria-label={theme === "dark" ? "Cambiar a modo claro" : "Cambiar a modo oscuro"}
-          title={theme === "dark" ? "Modo claro" : "Modo oscuro"}
-        >
-          <Icon name={theme === "dark" ? "sun" : "moon"} size={16} />
-        </button>
+        {/* Modo claro/oscuro: solo en el menú de la cuenta (Valej, CC-072). */}
         <div className="sivu-topbar__menu-wrap">
           <button
             type="button"

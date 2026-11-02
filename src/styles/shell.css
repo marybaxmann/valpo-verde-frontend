@@ -145,7 +145,7 @@
   white-space: nowrap;
 }
 
-/* Grupos de módulos (CC-072): Inicio, Evaluación, Mantención, Análisis, Ciudadanía */
+/* Grupos de módulos (CC-072): Dashboard, Inventario, Operación, Ciudadanía */
 .sivu-topbar__spaces {
   display: flex;
   align-items: center;
@@ -511,9 +511,7 @@ a.sivu-topbar__space {
 
 /* ---------- Pantallas medianas y pequeñas ---------- */
 
-/* Con cinco grupos (CC-072) la barra se llena antes: hasta 1440 px el
-   buscador y la cuenta quedan solo con su ícono. */
-@media (max-width: 1440px) {
+@media (max-width: 1180px) {
   .sivu-topbar__user-text,
   .sivu-topbar__search span,
   .sivu-topbar__search kbd {
@@ -637,11 +635,6 @@ a.sivu-topbar__space {
 }
 
 @media (max-width: 720px) {
-  .sivu-topbar__readonly {
-    padding: 0 8px;
-    font-size: 0;
-    gap: 0;
-  }
 }
 
 /* Grupos de módulos en pantallas angostas (CC-072): la barra pasa a varias
@@ -672,7 +665,7 @@ a.sivu-topbar__space {
   }
 }
 
-/* Escritorio mediano (CC-072): con cinco grupos, el nombre del proyecto se
+/* Escritorio mediano (CC-072): con los grupos, el nombre del proyecto se
    acorta en vez de quedar tapado, y los botones se compactan. */
 @media (min-width: 901px) {
   .sivu-topbar__left {

@@ -22,58 +22,52 @@ export interface NavModule {
 }
 
 export interface NavGroup {
-  id: "inicio" | "evaluacion" | "mantencion" | "analisis" | "ciudadania";
+  id: "dashboard" | "inventario" | "operacion" | "ciudadania";
   label: string;
   icon: IconName;
   modules: NavModule[];
 }
 
-// Orden de Valej (2026-11-02, CC-072), en lugar de los tres grupos de
-// CC-059: grupos en el orden del ciclo de trabajo, como las pestañas de un
-// programa (inicio → evaluación → mantención → análisis → ciudadanía).
-// Un grupo con un solo módulo se muestra como botón directo. Rutas,
-// nombres de módulo (CC-060) y permisos sin cambios.
+// Orden y grupos de Valej (2026-11-02, CC-072), en lugar de los tres grupos
+// de CC-059: Dashboard, Inventario, Operación y Ciudadanía, como las pestañas
+// de un programa. Un grupo con un solo módulo se muestra como botón directo.
+// Rutas, nombres de módulo (CC-060) y permisos sin cambios.
 export const NAV_GROUPS: NavGroup[] = [
   {
-    id: "inicio",
-    label: "Inicio",
+    id: "dashboard",
+    label: "Dashboard",
     icon: "chart",
-    modules: [
-      { path: "dashboard", label: "Dashboard", hint: "Resumen del proyecto", icon: "chart" },
-      { path: "mapa", label: "Inventario", hint: "Árboles del proyecto", icon: "leaf" },
-    ],
+    modules: [{ path: "dashboard", label: "Dashboard", hint: "Resumen del proyecto", icon: "chart" }],
   },
   {
-    id: "evaluacion",
-    label: "Evaluación",
-    icon: "check-square",
+    id: "inventario",
+    label: "Inventario",
+    icon: "leaf",
     modules: [
-      // Ruta propia: /inspeccion es Riesgo Arbóreo (CC-059 mantuvo esa ruta).
-      // El Encargado de mantención no ve el módulo Inspección (CC-064; B3 responde 403).
-      { path: "ot-inspeccion", label: "Inspección", hint: "Órdenes de trabajo de inspección", icon: "check", hiddenFor: ["encargado_mantencion"] },
+      { path: "mapa", label: "Inventario", hint: "Árboles del proyecto", icon: "leaf" },
+      // /inspeccion es Riesgo Arbóreo (CC-059 mantuvo esa ruta).
       { path: "inspeccion", label: "Riesgo Arbóreo", hint: "Resultados de riesgo en el territorio", icon: "check-square" },
       { path: "infraestructura", label: "Infraestructura", hint: "Conflictos árbol–infraestructura", icon: "building" },
     ],
   },
   {
-    id: "mantencion",
-    label: "Mantención",
+    id: "operacion",
+    label: "Operación",
     icon: "wrench",
-    modules: [{ path: "mantencion", label: "Mantención", hint: "Órdenes de trabajo de mantenimiento", icon: "wrench" }],
-  },
-  {
-    id: "analisis",
-    label: "Análisis",
-    icon: "sort",
-    modules: [{ path: "indices", label: "Indicadores biométricos", hint: "Composición y mediciones del inventario", icon: "sort" }],
+    modules: [
+      { path: "mantencion", label: "Mantención", hint: "Órdenes de trabajo de mantenimiento", icon: "wrench" },
+      // El Encargado de mantención no ve el módulo Inspección (CC-064; B3 responde 403).
+      { path: "ot-inspeccion", label: "Inspección", hint: "Órdenes de trabajo de inspección", icon: "check", hiddenFor: ["encargado_mantencion"] },
+    ],
   },
   {
     id: "ciudadania",
     label: "Ciudadanía",
     icon: "alert",
     modules: [
-      { path: "incidencias", label: "Incidencias", hint: "Reportes y su estado", icon: "alert" },
       { path: "conecta", label: "Valpo Verde Conecta", hint: "Reportes ciudadanos, QR y ficha pública", icon: "leaf" },
+      { path: "incidencias", label: "Incidencias", hint: "Reportes y su estado", icon: "alert" },
+      { path: "indices", label: "Indicadores biométricos", hint: "Composición y mediciones del inventario", icon: "sort" },
     ],
   },
 ];
