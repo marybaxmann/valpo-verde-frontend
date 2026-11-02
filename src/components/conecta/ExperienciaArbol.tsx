@@ -6,6 +6,7 @@ import hoja from "../../assets/loader/hoja.webp";
 import hojaChicaA from "../../assets/loader/hoja-chica-a.webp";
 import hojaChicaB from "../../assets/loader/hoja-chica-b.webp";
 import { ReporteCiudadano } from "./ReporteCiudadano";
+import { SeguimientoReporte } from "./SeguimientoReporte";
 
 /**
  * Valpo Verde Conecta: la identidad digital de un árbol para quien escanea
@@ -73,7 +74,8 @@ export function ExperienciaArbol({
   vistaPrevia?: boolean;
 }) {
   const [reportando, setReportando] = useState(false);
-  const esp = ficha.especie;
+  const [consultando, setConsultando] = useState(false);
+  const esp = ficha.sobre_la_especie;
   const nombre =
     ficha.nombre_comun ?? ficha.especie_cientifica ?? "Árbol de Valparaíso";
 
@@ -135,6 +137,10 @@ export function ExperienciaArbol({
         </div>
 
         <ReportarCard onReportar={() => setReportando(true)} />
+
+        <button type="button" className="vvc-link vvc-link--center" onClick={() => setConsultando(true)}>
+          ¿Ya enviaste un reporte? Consulta su estado
+        </button>
 
         <footer className="vvc-foot">
           <p>
@@ -317,6 +323,8 @@ export function ExperienciaArbol({
           onCerrar={() => setReportando(false)}
         />
       )}
+
+      {consultando && <SeguimientoReporte vistaPrevia={vistaPrevia} onCerrar={() => setConsultando(false)} />}
     </div>
   );
 }

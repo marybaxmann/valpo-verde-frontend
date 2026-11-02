@@ -6,8 +6,8 @@
  * (D-257 a D-262). Nunca el `tree_code`, coordenadas, riesgo, fotos ni
  * otro resultado técnico.
  *
- * El backend aún no publica este endpoint (#62): esta forma es la que el
- * frontend espera según CC-062 y queda anotada como dependencia.
+ * Forma publicada por el backend: `GET /api/sivu/conecta/arboles/:qrToken`
+ * (contrato-frontend §8).
  */
 export interface CodigoEtiquetaPublico {
   codigo: string;
@@ -28,5 +28,5 @@ export interface FichaPublica {
   especie_cientifica: string | null;
   nombre_comun: string | null;
   ubicacion_descriptiva: string | null;
-  especie: EspeciePublica | null;
+  sobre_la_especie: EspeciePublica | null;
 }

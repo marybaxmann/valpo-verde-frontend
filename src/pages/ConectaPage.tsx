@@ -5,6 +5,8 @@ import type { ArbolInventario } from "../types/inventory";
 import { PendingNotice } from "../components/PendingNotice";
 import { Icon } from "../components/Icons";
 import { VistaPreviaCiudadana } from "../components/conecta/VistaPreviaCiudadana";
+import { descargarPlacasQr } from "../api/projects";
+import { useAuth } from "../hooks/useAuth";
 
 type Tab = "reportes" | "qr" | "ficha";
 
@@ -22,6 +24,28 @@ export default function ConectaPage() {
   const [arboles, setArboles] = useState<ArbolInventario[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [elegido, setElegido] = useState<string>("");
+  const { profile } = useAuth();
+  const municipal = profile?.role === "usuario_municipal";
+  const [descargando, setDescargando] = useState(false);
+  const [errorPdf, setErrorPdf] = useState<string | null>(null);
+
+  async function descargarPlacas() {
+    setDescargando(true);
+    setErrorPdf(null);
+    try {
+      const pdf = await descargarPlacasQr(projectId);
+      const url = URL.createObjectURL(pdf);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "placas-qr.pdf";
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    } catch (err: unknown) {
+      setErrorPdf(err instanceof Error ? err.message : "No se pudo generar el PDF de placas.");
+    } finally {
+      setDescargando(false);
+    }
+  }
 
   useEffect(() => {
     let cancelled = false;
@@ -97,10 +121,23 @@ export default function ConectaPage() {
             <h2>Código QR del árbol</h2>
           </div>
           <p className="sivu-conecta__lead">
-            Cada árbol tendrá un código en terreno que abre su ficha pública, sin iniciar sesión, en la dirección{" "}
-            <code>/arbol/&lt;código de su placa&gt;</code>. La ficha ya está construida; se ve en la pestaña «Ficha pública».
+            Cada árbol activo tiene un código QR propio que abre su ficha pública, sin iniciar sesión. El PDF trae seis placas por
+            hoja A4, una por árbol activo, con el QR, el nombre común, la especie y el código del árbol.
           </p>
-          <PendingNotice what="el código QR de cada árbol y su archivo imprimible de placas" refs="CC-062 · #62" />
+          {municipal ? (
+            <>
+              <button type="button" className="btn btn-primary" onClick={descargarPlacas} disabled={descargando}>
+                <Icon name="download" size={15} /> {descargando ? "Generando PDF…" : "Descargar placas QR (PDF)"}
+              </button>
+              {errorPdf && (
+                <p className="sivu-state sivu-state--error" role="alert">
+                  <Icon name="alert" size={13} /> {errorPdf}
+                </p>
+              )}
+            </>
+          ) : (
+            <p className="sivu-state">Solo el Usuario municipal descarga las placas QR (CC-062).</p>
+          )}
         </section>
       )}
 

@@ -35,7 +35,7 @@ export function VistaPreviaCiudadana({ projectId, arbol }: { projectId: string; 
     especie_cientifica: arbol.especie_cientifica,
     nombre_comun: arbol.nombre_comun,
     ubicacion_descriptiva: arbol.ubicacion_descriptiva,
-    especie: {
+    sobre_la_especie: {
       especie_cientifica: arbol.especie_cientifica,
       genero: esp?.genero ?? null,
       familia: esp?.familia ?? null,

@@ -66,3 +66,8 @@ export function previewSector(archivo: Omit<GeometriaSectorArchivo, "indicesSele
     .post<{ data: VistaPreviaSector }>("/api/sivu/projects/sector-preview", archivo)
     .then((res) => res.data);
 }
+
+/** PDF con las placas QR de los árboles activos (solo Usuario municipal; CC-062). */
+export function descargarPlacasQr(projectId: string): Promise<Blob> {
+  return api.blob(`/api/sivu/projects/${encodeURIComponent(projectId)}/placas-qr`);
+}

@@ -771,3 +771,44 @@
   scrollbar-width: none;
 }
 
+
+/* Código de seguimiento y consulta (contrato §8) */
+.vvc-code {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 16px 12px;
+  border-radius: 16px;
+  background: var(--vvc-bg);
+  text-align: center;
+}
+
+.vvc-code__value {
+  font-size: 20px;
+  letter-spacing: 0.04em;
+  word-break: break-all;
+}
+
+.vvc-link {
+  border: 0;
+  background: none;
+  padding: 6px 4px;
+  color: var(--vvc-green);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+.vvc-link--center {
+  display: block;
+  margin: 14px auto 0;
+}
+
+.vvc-pending--error {
+  background: rgba(180, 60, 50, 0.12);
+  color: #9b2f25;
+}

@@ -110,7 +110,35 @@ export const api = {
   post: <T>(path: string, body?: unknown) => request<T>("POST", path, body),
   patch: <T>(path: string, body?: unknown) => request<T>("PATCH", path, body),
   delete: <T = void>(path: string) => request<T>("DELETE", path),
+  /** Archivo binario con sesión (p. ej. el PDF de placas QR). */
+  blob: (path: string) => requestBlob(path),
 };
+
+/** GET con sesión que devuelve el cuerpo como archivo; mismo reintento ante 401 que `request`. */
+async function requestBlob(path: string): Promise<Blob> {
+  if (!API_BASE_URL) {
+    throw new Error("Falta VITE_API_BASE_URL. Revisa tu .env (ver .env.example).");
+  }
+  const send = (token: string) =>
+    fetch(`${API_BASE_URL}${path}`, { headers: { Authorization: `Bearer ${token}` }, cache: "no-store" });
+
+  let res = await send(await getAccessToken());
+  if (res.status === 401) {
+    const { data, error } = await supabase.auth.refreshSession();
+    if (error || !data.session) throw new ApiError(401, SESSION_EXPIRED_MESSAGE);
+    res = await send(data.session.access_token);
+  }
+  if (!res.ok) {
+    const isJson = res.headers.get("content-type")?.includes("application/json") ?? false;
+    const payload: unknown = isJson ? await res.json() : undefined;
+    const message =
+      payload && typeof payload === "object" && "error" in payload && typeof payload.error === "string"
+        ? payload.error
+        : res.statusText || "Error al comunicarse con el backend";
+    throw new ApiError(res.status, message);
+  }
+  return res.blob();
+}
 
 /**
  * Pedidos SIN sesión, solo para los endpoints públicos de Valpo Verde
