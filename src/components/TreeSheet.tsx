@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { listarDiagnosticos } from "../api/diagnosticos";
 import { listarOtsProyecto } from "../api/workOrders";
+import { obtenerCatalogos } from "../api/catalogs";
 import type { ArbolInventario } from "../types/inventory";
 import type { Diagnostico } from "../types/diagnostico";
 import type { OtListada } from "../types/workOrder";
@@ -12,7 +13,8 @@ import { TreeDiagnosis, TreeGlyph } from "./TreeDiagnosis";
 import { TreePhotos } from "./TreePhotos";
 import { fechaChile } from "../lib/dates";
 
-type Tab = "resumen" | "medicion" | "riesgo" | "infra" | "gestion";
+export type TabFicha = "resumen" | "medicion" | "riesgo" | "infra" | "gestion";
+type Tab = TabFicha;
 
 const TABS: { value: Tab; label: string }[] = [
   { value: "resumen", label: "Resumen" },
@@ -21,6 +23,18 @@ const TABS: { value: Tab; label: string }[] = [
   { value: "infra", label: "Infra." },
   { value: "gestion", label: "Gestión" },
 ];
+
+/** Componentes de infraestructura del resultado (`indicadores`, R04/M04), en el orden de la maqueta. */
+const COMPONENTES_INFRA: [string, string][] = [
+  ["vereda", "Acera / vereda"],
+  ["alcorque", "Alcorque / superficie de plantación"],
+  ["calzada", "Calzada"],
+  ["redAerea", "Red aérea"],
+  ["redSubterranea", "Red subterránea"],
+  ["infraestructuraVertical", "Infraestructura vertical"],
+];
+
+type IndicadorInfra = { categoria?: string | null; motivo?: string | null } | undefined;
 
 type Datos = { treeId: string; diag: Diagnostico | null; ots: OtListada[] } | { treeId: string; error: string };
 
@@ -36,14 +50,35 @@ export function TreeSheet({
   arbol,
   cicloVida,
   onClose,
+  initialTab = "resumen",
+  drawer = false,
 }: {
   projectId: string;
   arbol: ArbolInventario;
   /** Etiqueta del ciclo de vida (la resuelve el inventario con el catálogo). */
   cicloVida: string;
   onClose: () => void;
+  /** Pestaña con la que abre (Riesgo Arbóreo abre en «Riesgo»; Infraestructura, en «Infra.»). */
+  initialTab?: Tab;
+  /** Cajón a la derecha de la pantalla, con su propio desplazamiento (maqueta: `.sheet`). */
+  drawer?: boolean;
 }) {
-  const [tab, setTab] = useState<Tab>("resumen");
+  const [tab, setTab] = useState<Tab>(initialTab);
+  const [categorias, setCategorias] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    let cancelled = false;
+    obtenerCatalogos()
+      .then((c) => {
+        if (!cancelled) setCategorias(Object.fromEntries((c.categoria_infraestructura ?? []).map((i) => [i.codigo, i.etiqueta])));
+      })
+      .catch(() => {
+        // Sin catálogo se muestra el código.
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
   const [datos, setDatos] = useState<Datos | null>(null);
 
   useEffect(() => {
@@ -78,7 +113,7 @@ export function TreeSheet({
   const infra = vigente?.resultado.infraestructura ?? null;
 
   return (
-    <aside className="sivu-sheet" aria-label={`Ficha del árbol ${arbol.tree_code}`}>
+    <aside className={`sivu-sheet ${drawer ? "sivu-sheet--drawer" : ""}`} aria-label={`Ficha del árbol ${arbol.tree_code}`}>
       <div className="sivu-sheet__head">
         <div>
           <span className="sivu-sheet__code">{arbol.tree_code}</span>
@@ -177,6 +212,25 @@ export function TreeSheet({
                 label="Porcentaje"
                 valor={infra?.porcentaje != null ? `${infra.porcentaje.toLocaleString("es-CL", { maximumFractionDigits: 1 })} %` : "—"}
               />
+              <ul className="sivu-sheet__comps" aria-label="Componentes de infraestructura">
+                {COMPONENTES_INFRA.map(([clave, nombre]) => {
+                  const ind = (vigente.resultado as unknown as { indicadores?: Record<string, IndicadorInfra> }).indicadores?.[clave];
+                  const cat = ind?.categoria ?? null;
+                  const afecta = cat === "leve" || cat === "moderada" || cat === "severa";
+                  const icono = afecta ? "alert" : cat === "sin_afectacion" ? "check" : "minus";
+                  return (
+                    <li key={clave} className={afecta ? "is-alert" : ""}>
+                      <span className="sivu-sheet__comp-icon" aria-hidden="true">
+                        <Icon name={icono} size={13} />
+                      </span>
+                      <span>
+                        <strong>{nombre}</strong>
+                        <small>{cat ? categorias[cat] ?? cat : "Sin registro"}{ind?.motivo ? ` · ${ind.motivo}` : ""}</small>
+                      </span>
+                    </li>
+                  );
+                })}
+              </ul>
             </div>
           ) : (
             <div className="sivu-sheet__card sivu-sheet__empty">Sin evaluación de infraestructura vigente.</div>
@@ -190,6 +244,7 @@ export function TreeSheet({
           </div>
         )}
 
+        {tab === "resumen" && (
         <div className="sivu-sheet__card sivu-sheet__loc">
           <Fila label="Estado ciclo de vida" valor={cicloVida} />
           <Fila label="Sector" valor={arbol.sector ?? "—"} />
@@ -197,6 +252,7 @@ export function TreeSheet({
           <Fila label="UTM 19S" valor={arbol.utm_este !== null && arbol.utm_norte !== null ? `${arbol.utm_este} / ${arbol.utm_norte}` : "—"} mono />
           <Fila label="Registro" valor={fechaChile(arbol.fecha_registro)} />
         </div>
+        )}
       </div>
     </aside>
   );

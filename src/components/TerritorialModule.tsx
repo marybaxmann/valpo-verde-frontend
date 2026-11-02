@@ -26,6 +26,7 @@ export function TerritorialModule({
   filtros,
   filtrosActivos = 0,
   registros,
+  sheet,
 }: {
   moduleLabel: string;
   card: ReactNode;
@@ -39,6 +40,8 @@ export function TerritorialModule({
   filtrosActivos?: number;
   /** Registros de la lista, para «Lista · N registros». */
   registros?: number;
+  /** Ficha del árbol elegido, a la derecha del mapa (maqueta: `.sheet`). */
+  sheet?: ReactNode;
 }) {
   const { projectId = "" } = useParams();
   const apiKey = getArcgisApiKey();
@@ -49,7 +52,7 @@ export function TerritorialModule({
   const angosta = usePantallaAngosta();
   // Lo que tapa la tarjeta en computador (territory.css).
   // En pantalla angosta nada tapa el mapa (la tarjeta va debajo).
-  const padding = angosta ? {} : { left: minimizada ? 0 : 400 };
+  const padding = angosta ? {} : { left: minimizada ? 0 : 400, right: sheet ? 432 : 0 };
 
   useEffect(() => {
     let cancelled = false;
@@ -69,7 +72,7 @@ export function TerritorialModule({
   }, [projectId]);
 
   return (
-    <div className={`sivu-terr ${minimizada ? "is-min" : ""}`}>
+    <div className={`sivu-terr ${minimizada ? "is-min" : ""} ${sheet ? "has-sheet" : ""}`}>
       {apiKey ? (
         <Suspense fallback={<div className="sivu-terr__map sivu-terr__map--loading">Cargando mapa…</div>}>
           <ProjectMapView
@@ -138,6 +141,7 @@ export function TerritorialModule({
           </div>
         )}
       </div>
+      {sheet}
     </div>
   );
 }

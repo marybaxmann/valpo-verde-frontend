@@ -956,3 +956,135 @@ section > .sivu-picker__state {
     animation: none;
   }
 }
+
+/* ---------- Ficha como cajón a la derecha (maqueta SIVU Lab: .sheet a la derecha del mapa; CC-058) ---------- */
+.sivu-sheet--drawer {
+  position: fixed;
+  z-index: 40;
+  top: calc(var(--shell-topbar-h, 72px) + 16px);
+  right: 16px;
+  bottom: 16px;
+  width: min(400px, calc(100vw - 32px));
+  overflow: hidden;
+  background: var(--shell-glass-strong, var(--surface));
+  border: 1px solid var(--shell-line, var(--border));
+  box-shadow: var(--shell-float, var(--shadow-md));
+  backdrop-filter: blur(22px);
+  -webkit-backdrop-filter: blur(22px);
+}
+
+.sivu-sheet--drawer .sivu-sheet__body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding-right: 2px;
+  overscroll-behavior: contain;
+}
+
+/* Con la barra en varias filas (≤ 900 px, shell.css) la ficha sube desde abajo. */
+@media (max-width: 900px) {
+  .sivu-sheet--drawer {
+    top: auto;
+    left: 8px;
+    right: 8px;
+    bottom: 8px;
+    width: auto;
+    max-height: 72vh;
+  }
+}
+
+/* Pestañas que no se salen del contenedor (antes «Gestión» quedaba cortada). */
+.sivu-sheet__tabs {
+  display: flex;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.sivu-sheet__tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.sivu-sheet__tabs .sivu-seg__opt {
+  flex: 1 0 auto;
+  min-width: 0;
+  padding: 0 10px;
+  font-size: 12.5px;
+  white-space: nowrap;
+}
+
+.sivu-sheet__eyebrow,
+.sivu-sheet__why,
+.sivu-sheet__row strong {
+  overflow-wrap: anywhere;
+}
+
+/* Infraestructura por componente (maqueta: lista con ícono por estado). */
+.sivu-sheet__comps {
+  list-style: none;
+  margin: 8px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+
+.sivu-sheet__comps li {
+  display: grid;
+  grid-template-columns: 24px 1fr;
+  gap: 10px;
+  align-items: start;
+  font-size: 13px;
+}
+
+.sivu-sheet__comps strong {
+  display: block;
+  font-weight: 600;
+}
+
+.sivu-sheet__comps small {
+  font-size: 12px;
+  color: var(--text-muted);
+  overflow-wrap: anywhere;
+}
+
+.sivu-sheet__comp-icon {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 8px;
+  background: var(--surface-subtle);
+  color: var(--text-muted);
+}
+
+.sivu-sheet__comps li.is-alert .sivu-sheet__comp-icon {
+  background: rgba(125, 184, 232, 0.2);
+  color: #2f6fa8;
+}
+
+:root[data-theme="dark"] .sivu-sheet__comps li.is-alert .sivu-sheet__comp-icon {
+  color: #9cc8ee;
+}
+
+/* En Riesgo e Infraestructura la ficha va sobre el mapa, a su derecha. */
+@media (min-width: 901px) {
+  .sivu-terr .sivu-sheet--drawer {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    bottom: 14px;
+  }
+}
+
+/* Con la ficha abierta, la tabla y el mapa se corren para no quedar debajo de ella. */
+@media (min-width: 901px) {
+  .sivu-inv.has-sheet {
+    padding-right: 416px;
+  }
+}
+
+/* Con la ficha abierta, la tabla ocupa todo el ancho disponible y el mapa baja. */
+@media (min-width: 901px) and (max-width: 1599px) {
+  .sivu-inv.has-sheet .sivu-inv__layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

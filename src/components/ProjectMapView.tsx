@@ -160,30 +160,16 @@ export default function ProjectMapView({
     layer.removeAll();
     const list = points ?? [];
     for (const p of list) {
-      const selected = p.id === selectedId;
       const geometry = new Point({ longitude: p.lng, latitude: p.lat });
       const attributes = { id: p.id };
-      // «Sin evaluación»: punto blanco pequeño, discreto; los árboles con
-      // clasificación destacan con su color, borde blanco y halo (pedido de la
-      // autora, 2026-10-27).
-      if (p.tone === "neutral" && !p.color) {
-        layer.add(
-          new Graphic({
-            geometry,
-            attributes,
-            symbol: {
-              type: "simple-marker",
-              style: "circle",
-              size: selected ? 14 : 9,
-              color: [255, 255, 255, 0.95],
-              outline: { color: selected ? [31, 122, 85, 1] : [40, 52, 32, 0.85], width: selected ? 3 : 1.5 },
-            },
-          })
-        );
-        continue;
-      }
+      // Pin de la maqueta SIVU Lab (styles.css `.pin`; CC-058): 14 px con borde
+      // blanco de 2 px y un halo de 4 px del mismo color al 28 %. Sin
+      // evaluación, gris de la maqueta. En Inventario (sin tono), `.pin--inv`:
+      // 10 px verde con halo menta. El seleccionado lo dibuja el halo que late.
+      const inventario = !p.tone && !p.color;
       const color = p.color ?? (p.tone ? colorDeTono(p.tone) : "#3fb07e");
-      const base = p.tone || p.color ? 16 : 11;
+      const nucleo = inventario ? 10 : 14;
+      const halo = inventario ? nucleo + 6 : nucleo + 8;
       layer.add(
         new Graphic({
           geometry,
@@ -191,8 +177,8 @@ export default function ProjectMapView({
           symbol: {
             type: "simple-marker",
             style: "circle",
-            size: base + (selected ? 18 : 12),
-            color: conAlfa(color, selected ? 0.45 : 0.32),
+            size: halo,
+            color: inventario ? [168, 230, 195, 0.35] : conAlfa(color, 0.28),
             outline: { color: [0, 0, 0, 0], width: 0 },
           },
         })
@@ -204,9 +190,9 @@ export default function ProjectMapView({
           symbol: {
             type: "simple-marker",
             style: "circle",
-            size: base + (selected ? 4 : 0),
+            size: nucleo,
             color,
-            outline: { color: selected ? [31, 122, 85, 1] : [255, 255, 255, 1], width: selected ? 3 : 2.5 },
+            outline: { color: [255, 255, 255, 0.95], width: inventario ? 1.5 : 2 },
           },
         })
       );
@@ -282,7 +268,7 @@ export default function ProjectMapView({
     return () => h.remove();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [seleccionado?.id, seleccionado?.lng, seleccionado?.lat, status]);
-  const colorSel = seleccionado?.tone ? colorDeTono(seleccionado.tone) : "#3fb07e";
+  const colorSel = seleccionado?.color ?? (seleccionado?.tone ? colorDeTono(seleccionado.tone) : "#3fb07e");
 
   return (
     <div className={className}>

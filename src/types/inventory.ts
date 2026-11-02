@@ -19,6 +19,8 @@ export interface ArbolInventario {
   nombre_comun: string | null;
   /** Código ('activo' | 'retirado' | 'tocon'); la etiqueta aún no llega en B1. */
   estado_ciclo_vida: string;
+  /** Ciclo de vida con su etiqueta (B1). */
+  ciclo_vida?: { codigo: string; etiqueta: string };
   fecha_registro: string;
 }
 

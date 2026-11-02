@@ -752,3 +752,15 @@
   color: var(--text);
   background: var(--shell-soft);
 }
+
+/* Con la ficha abierta a la derecha, el selector de capas se corre a su izquierda. */
+@media (min-width: 861px) {
+  .sivu-terr.has-sheet .sivu-basemaps {
+    right: 432px;
+  }
+}
+
+.sivu-diag__list button.is-sel {
+  border-color: var(--interactive, #2f7a52);
+  box-shadow: 0 0 0 1px var(--interactive, #2f7a52);
+}
