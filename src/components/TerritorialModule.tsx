@@ -57,7 +57,7 @@ export function TerritorialModule({
   const [panel, setPanel] = useState<"lista" | "filtros" | null>(null);
   const angosta = usePantallaAngosta();
   // Lo que tapan el resumen (izquierda) y la ficha (derecha) en computador.
-  const padding = angosta ? {} : { left: 380, right: sheet ? 432 : 0 };
+  const padding = angosta ? {} : { left: 380, right: sheet ? 392 : 0 };
 
   useEffect(() => {
     let cancelled = false;

@@ -1078,7 +1078,7 @@ section > .sivu-picker__state {
 /* Con la ficha abierta, la tabla y el mapa se corren para no quedar debajo de ella. */
 @media (min-width: 901px) {
   .sivu-inv.has-sheet {
-    padding-right: 416px;
+    padding-right: 376px;
   }
 }
 
@@ -1087,4 +1087,279 @@ section > .sivu-picker__state {
   .sivu-inv.has-sheet .sivu-inv__layout {
     grid-template-columns: minmax(0, 1fr);
   }
+}
+
+/* Ficha compacta (pedido de la responsable): ancho de la maqueta, alto según su
+   contenido hasta el alto disponible, tipografía algo menor. */
+.sivu-sheet--drawer {
+  width: min(360px, calc(100vw - 32px));
+  bottom: auto;
+  max-height: calc(100vh - var(--shell-topbar-h, 72px) - 32px);
+  padding: 14px;
+  gap: 10px;
+}
+
+.sivu-sheet--drawer .sivu-sheet__head h2 {
+  font-size: 22px;
+}
+
+.sivu-sheet--drawer .sivu-sheet__card {
+  padding: 10px 12px;
+  border-radius: 16px;
+}
+
+.sivu-sheet--drawer .sivu-sheet__tabs .sivu-seg__opt {
+  height: 32px;
+  font-size: 12px;
+  padding: 0 8px;
+}
+
+@media (min-width: 901px) {
+  .sivu-terr .sivu-sheet--drawer {
+    bottom: auto;
+    max-height: calc(100% - 28px);
+  }
+}
+
+.sivu-sheet__full {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 42px;
+  flex-shrink: 0;
+  border-radius: var(--radius-pill);
+  background: var(--shell-soft);
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.sivu-sheet__full:hover {
+  background: var(--shell-hover);
+}
+
+/* ---------- Historial del árbol (B2 + B17 + B16) ---------- */
+.sivu-hist {
+  display: grid;
+  gap: 16px;
+}
+
+.sivu-hist__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.sivu-hist__head h1 {
+  margin: 4px 0 2px;
+  font-size: 32px;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+}
+
+.sivu-hist__species {
+  margin: 0;
+  font-style: italic;
+  color: var(--text-muted);
+}
+
+.sivu-hist__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.sivu-hist__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 340px);
+  gap: 16px;
+  align-items: start;
+}
+
+@media (max-width: 960px) {
+  .sivu-hist__grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.sivu-hist__h2 {
+  margin: 0 0 6px;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.sivu-hist__h3 {
+  margin: 12px 0 8px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.sivu-hist__lead {
+  margin: 0 0 12px;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.sivu-hist__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 12px;
+}
+
+.sivu-hist__item {
+  position: relative;
+  padding-left: 22px;
+}
+
+.sivu-hist__item::before {
+  content: "";
+  position: absolute;
+  left: 5px;
+  top: 18px;
+  bottom: -14px;
+  width: 2px;
+  background: var(--border);
+}
+
+.sivu-hist__item:last-child::before {
+  display: none;
+}
+
+.sivu-hist__dot {
+  position: absolute;
+  left: 0;
+  top: 14px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--interactive, #2f7a52);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--interactive, #2f7a52) 22%, transparent);
+}
+
+.sivu-hist__dot.is-alta {
+  background: #a7b0ab;
+  box-shadow: 0 0 0 3px rgba(167, 176, 171, 0.25);
+}
+
+.sivu-hist__version summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  cursor: pointer;
+  list-style: none;
+}
+
+.sivu-hist__version summary::-webkit-details-marker {
+  display: none;
+}
+
+.sivu-hist__version summary > span:first-child {
+  display: grid;
+  gap: 2px;
+}
+
+.sivu-hist__version summary strong {
+  font-size: 15px;
+}
+
+.sivu-hist__version summary small {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.sivu-hist__values {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 8px 16px;
+  margin: 0 0 10px;
+  font-size: 12.5px;
+}
+
+.sivu-hist__values dt {
+  color: var(--text-muted);
+}
+
+.sivu-hist__values dd {
+  margin: 2px 0 0;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.sivu-hist__obs {
+  margin: 0 0 10px;
+  font-size: 13px;
+  font-style: italic;
+}
+
+.sivu-hist__eval {
+  display: grid;
+  gap: 14px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+
+.sivu-hist__eval h4 {
+  margin: 0 0 8px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.sivu-hist__side {
+  display: grid;
+  gap: 14px;
+}
+
+.sivu-hist__items {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.sivu-hist__items li {
+  display: grid;
+  grid-template-columns: 28px 1fr auto;
+  align-items: center;
+  gap: 10px;
+  font-size: 12.5px;
+}
+
+.sivu-hist__items li > span:nth-child(2) {
+  display: grid;
+  min-width: 0;
+}
+
+.sivu-hist__items small {
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  color: var(--text-muted);
+}
+
+.sivu-hist__itemicon {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 9px;
+  background: var(--surface-subtle);
+  color: var(--text-muted);
+}
+
+.sivu-hist__state {
+  padding: 2px 9px;
+  border-radius: var(--radius-pill);
+  background: color-mix(in srgb, var(--c, #a7b0ab) 24%, transparent);
+  font-size: 11.5px;
+  font-weight: 600;
+  white-space: nowrap;
 }

@@ -1,4 +1,7 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
+import { useAuth } from "../hooks/useAuth";
+import { basePathForRole } from "../lib/roles";
 import { listarDiagnosticos } from "../api/diagnosticos";
 import { listarOtsProyecto } from "../api/workOrders";
 import { obtenerCatalogos } from "../api/catalogs";
@@ -64,6 +67,8 @@ export function TreeSheet({
   drawer?: boolean;
 }) {
   const [tab, setTab] = useState<Tab>(initialTab);
+  const { profile } = useAuth();
+  const historial = `${basePathForRole(profile?.role)}/projects/${projectId}/arboles/${arbol.id}`;
   const [categorias, setCategorias] = useState<Record<string, string>>({});
 
   useEffect(() => {
@@ -254,6 +259,9 @@ export function TreeSheet({
         </div>
         )}
       </div>
+      <Link to={historial} className="sivu-sheet__full">
+        <Icon name="arrow-right" size={14} /> Ver ficha completa e historial
+      </Link>
     </aside>
   );
 }

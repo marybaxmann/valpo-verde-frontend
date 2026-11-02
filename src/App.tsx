@@ -23,6 +23,7 @@ const ProjectDashboard = lazy(() => import("./pages/ProjectDashboard"));
 const MaintenancePage = lazy(() => import("./pages/MaintenancePage"));
 const IncidentsPage = lazy(() => import("./pages/IncidentsPage"));
 const IncidenciaPage = lazy(() => import("./pages/IncidenciaPage"));
+const TreeHistoryPage = lazy(() => import("./pages/TreeHistoryPage"));
 const ArbolPublicoPage = lazy(() => import("./pages/ArbolPublicoPage"));
 const IndicesPage = lazy(() => import("./pages/IndicesPage"));
 const ConectaPage = lazy(() => import("./pages/ConectaPage"));
@@ -65,6 +66,7 @@ function projectRoutes() {
       <Route path="projects/:projectId" element={<ProjectDetail />} />
       <Route path="projects/:projectId/dashboard" element={<ProjectDashboard />} />
       <Route path="projects/:projectId/mapa" element={<InventoryRoute />} />
+      <Route path="projects/:projectId/arboles/:treeId" element={<TreeHistoryPage />} />
       <Route path="projects/:projectId/inventario" element={<Navigate to="../mapa" relative="path" replace />} />
       <Route path="projects/:projectId/inspeccion" element={<RiskPage />} />
       <Route path="projects/:projectId/infraestructura" element={<InfrastructurePage />} />

@@ -19,9 +19,9 @@ import type {
  */
 
 /** B16 — campos del formulario de la evaluación completa, sus opciones, secciones y condiciones. */
-export function obtenerEsquemaFormulario(projectId: string): Promise<EsquemaFormulario> {
+export function obtenerEsquemaFormulario(projectId: string, tipo = "evaluacion_inicial"): Promise<EsquemaFormulario> {
   return api
-    .get<{ data: EsquemaFormulario }>(`/api/sivu/projects/${projectId}/inspection-form-schema?tipo=evaluacion_inicial`)
+    .get<{ data: EsquemaFormulario }>(`/api/sivu/projects/${projectId}/inspection-form-schema?tipo=${encodeURIComponent(tipo)}`)
     .then((res) => res.data);
 }
 

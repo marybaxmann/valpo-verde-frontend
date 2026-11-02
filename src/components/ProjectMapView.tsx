@@ -240,8 +240,20 @@ export default function ProjectMapView({
     if (!view || !layer || !sectorLayer || status !== "ready") return;
     view.padding = { top: 0, right: 0, bottom: 0, left: 0, ...padding };
     // Con árboles, el encuadre es el de los árboles (como la maqueta, a escala de calle); sin ellos, el sector.
-    const puntos = layer.graphics.toArray();
-    const objetivo = puntos.length ? puntos : sectorLayer.graphics.toArray();
+    const lista = points ?? [];
+    if (lista.length) {
+      const lngs = lista.map((p) => p.lng);
+      const lats = lista.map((p) => p.lat);
+      const ancho = Math.max(...lngs) - Math.min(...lngs);
+      const alto = Math.max(...lats) - Math.min(...lats);
+      // Árboles a menos de ~300 m entre sí: centro de los árboles a zoom 19 (escala de la maqueta).
+      if (ancho < 0.003 && alto < 0.003) {
+        const centro = new Point({ longitude: (Math.max(...lngs) + Math.min(...lngs)) / 2, latitude: (Math.max(...lats) + Math.min(...lats)) / 2 });
+        view.goTo({ center: centro, zoom: 19 }, { animate: false }).catch(() => undefined);
+        return;
+      }
+    }
+    const objetivo = lista.length ? layer.graphics.toArray() : sectorLayer.graphics.toArray();
     if (!objetivo.length) return;
     view
       .goTo(objetivo, { animate: false })

@@ -10,7 +10,7 @@ import type { Diagnostico } from "../types/diagnostico";
 import type { ArbolInventario } from "../types/inventory";
 import { TerritorialModule } from "./TerritorialModule";
 import { TreeSheet } from "./TreeSheet";
-import { ClassificationBadge, getClassificationTone } from "./ClassificationBadge";
+import { getClassificationTone } from "./ClassificationBadge";
 import { Icon } from "./Icons";
 
 type Vista = "riesgo" | "infraestructura";
@@ -108,7 +108,6 @@ export function DiagnosisModule({ vista }: { vista: Vista }) {
       points={points}
       selectedId={elegido}
       onSelect={setElegido}
-      registros={datos ? arbolesVisibles.length : undefined}
       sheet={
         arbol ? (
           <TreeSheet
@@ -120,12 +119,6 @@ export function DiagnosisModule({ vista }: { vista: Vista }) {
             initialTab={vista === "riesgo" ? "riesgo" : "infra"}
             onClose={() => setElegido(null)}
           />
-        ) : undefined
-      }
-      filtrosActivos={ocultos.size}
-      filtros={
-        leyenda && leyenda.length > 0 ? (
-          <FiltroNiveles niveles={niveles} ocultos={ocultos} onChange={alternarNivel} onTodos={() => setOcultos(new Set())} />
         ) : undefined
       }
       card={
@@ -156,25 +149,6 @@ export function DiagnosisModule({ vista }: { vista: Vista }) {
           {!datos && !error && <p className="sivu-state">Cargando árboles y diagnósticos…</p>}
           {datos && datos.arboles.length === 0 && <p className="sivu-state">El proyecto no tiene árboles registrados.</p>}
         </>
-      }
-      lista={
-        datos && datos.arboles.length > 0 ? (
-          <ul className="sivu-diag__list" aria-label="Árboles del proyecto">
-            {arbolesVisibles.map((a) => {
-              const v = valor(datos.diag.get(a.id));
-              return (
-                <li key={a.id}>
-                  <button type="button" className={a.id === elegido ? "is-sel" : ""} aria-pressed={a.id === elegido} onClick={() => setElegido(a.id)}>
-                    <span>
-                      <strong>{a.tree_code}</strong> <em>{a.especie_cientifica ?? ""}</em>
-                    </span>
-                    {v ? <ClassificationBadge level={v.etiqueta} /> : <span className="status-pill">Evaluación pendiente</span>}
-                  </button>
-                </li>
-              );
-            })}
-          </ul>
-        ) : undefined
       }
       leyendaInferior={
         vista === "infraestructura" && niveles.length > 0 ? (
@@ -251,39 +225,5 @@ function RiesgoResumen({ resumen, leyenda }: { resumen: ResumenProyecto; leyenda
         </li>
       </ul>
     </>
-  );
-}
-
-/** Panel «Filtros»: muestra u oculta cada nivel en el mapa y en la lista (solo filtra lo que llegó de la API). */
-function FiltroNiveles({
-  niveles,
-  ocultos,
-  onChange,
-  onTodos,
-}: {
-  niveles: CatalogoItem[];
-  ocultos: ReadonlySet<string>;
-  onChange: (codigo: string) => void;
-  onTodos: () => void;
-}) {
-  const opciones = [...niveles.map((n) => ({ codigo: n.codigo, etiqueta: n.etiqueta })), { codigo: "", etiqueta: "Evaluación pendiente" }];
-  return (
-    <div role="group" aria-label="Niveles visibles">
-      <ul className="sivu-terr__chips">
-        {opciones.map((o) => (
-          <li key={o.codigo || "pendiente"}>
-            <button type="button" className={`sivu-lchip ${ocultos.has(o.codigo) ? "" : "is-on"}`} aria-pressed={!ocultos.has(o.codigo)} onClick={() => onChange(o.codigo)}>
-              <span className={`sivu-diag__dot sivu-diag__dot--${o.codigo ? getClassificationTone(o.etiqueta) : "neutral"}`} aria-hidden="true" />
-              {o.etiqueta}
-            </button>
-          </li>
-        ))}
-      </ul>
-      {ocultos.size > 0 && (
-        <button type="button" className="sivu-panel__link" onClick={onTodos}>
-          Mostrar todos
-        </button>
-      )}
-    </div>
   );
 }

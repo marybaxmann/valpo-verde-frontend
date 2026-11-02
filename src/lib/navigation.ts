@@ -68,7 +68,7 @@ export const NAV_GROUPS: NavGroup[] = [
 export function findActiveModule(subpath: string): { group: NavGroup; module: NavModule } | null {
   const first = subpath.split("/")[0];
   // `/inventario` redirige a `/mapa` (App.tsx): mismo módulo.
-  const key = first === "inventario" ? "mapa" : first;
+  const key = first === "inventario" || first === "arboles" ? "mapa" : first;
   for (const group of NAV_GROUPS) {
     const module = group.modules.find((m) => m.path === key);
     if (module) return { group, module };
