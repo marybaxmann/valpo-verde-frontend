@@ -154,7 +154,7 @@ function LosQueMasAportan({ aportes }: { aportes: Aportes }) {
     <article className="bio-card bio-panel bio-aportan">
       <header className="bio-panel__head">
         <h2>Los que más aportan</h2>
-        <Estado tipo="resuelto">CC-069 v1</Estado>
+        {aportes.estado === "listo" ? <Estado tipo="resuelto">CC-069 v1</Estado> : aportes.estado === "no_disponible" && <Estado tipo="pendiente">Pendiente de publicar</Estado>}
       </header>
       {aportes.estado === "cargando" && <p className="bio-skeleton-list" aria-busy="true">Calculando el orden…</p>}
       {aportes.estado === "no_disponible" && <p className="bio-empty">{aportes.motivo}</p>}
