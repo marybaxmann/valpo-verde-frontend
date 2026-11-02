@@ -818,3 +818,16 @@
   background: rgba(180, 60, 50, 0.12);
   color: #9b2f25;
 }
+
+/* Foto referencial de la especie en la portada */
+.vvc-photo-hero--foto {
+  margin: 0;
+  background: #dfe6d2;
+}
+
+.vvc-photo-hero__img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}

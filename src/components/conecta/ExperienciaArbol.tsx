@@ -7,6 +7,7 @@ import hojaChicaA from "../../assets/loader/hoja-chica-a.webp";
 import hojaChicaB from "../../assets/loader/hoja-chica-b.webp";
 import { ReporteCiudadano } from "./ReporteCiudadano";
 import { SeguimientoReporte } from "./SeguimientoReporte";
+import { fotoDeEspecie } from "./fotosEspecie";
 
 /**
  * Valpo Verde Conecta: la identidad digital de un árbol para quien escanea
@@ -79,6 +80,8 @@ export function ExperienciaArbol({
   const nombre =
     ficha.nombre_comun ?? ficha.especie_cientifica ?? "Árbol de Valparaíso";
 
+  const foto = fotoDeEspecie(ficha.especie_cientifica);
+
   const [abierta, setAbierta] = useState<Seccion | null>(null);
   const seccion = SECCIONES.find((x) => x.id === abierta) ?? null;
 
@@ -90,22 +93,35 @@ export function ExperienciaArbol({
       </header>
 
       <main className="vvc-home">
-        <div className="vvc-photo-hero" aria-hidden="true">
-          <img className="vvc-hero__leaf" src={hoja} alt="" />
-          <img
-            className="vvc-hero__mini vvc-hero__mini--a"
-            src={hojaChicaA}
-            alt=""
-          />
-          <img
-            className="vvc-hero__mini vvc-hero__mini--b"
-            src={hojaChicaB}
-            alt=""
-          />
-          <span className="vvc-photo-hero__chip">
-            <Icon name="camera" size={13} /> Mi foto, próximamente
-          </span>
-        </div>
+        {foto ? (
+          <figure className="vvc-photo-hero vvc-photo-hero--foto">
+            <img
+              className="vvc-photo-hero__img"
+              src={foto}
+              alt={`Foto referencial de ${nombre}`}
+            />
+            <figcaption className="vvc-photo-hero__chip">
+              <Icon name="camera" size={13} /> Foto referencial de la especie
+            </figcaption>
+          </figure>
+        ) : (
+          <div className="vvc-photo-hero" aria-hidden="true">
+            <img className="vvc-hero__leaf" src={hoja} alt="" />
+            <img
+              className="vvc-hero__mini vvc-hero__mini--a"
+              src={hojaChicaA}
+              alt=""
+            />
+            <img
+              className="vvc-hero__mini vvc-hero__mini--b"
+              src={hojaChicaB}
+              alt=""
+            />
+            <span className="vvc-photo-hero__chip">
+              <Icon name="camera" size={13} /> Mi foto, próximamente
+            </span>
+          </div>
+        )}
 
         <h1 className="vvc-hero__name">¡Hola, soy {nombre}!</h1>
         {ficha.especie_cientifica && ficha.nombre_comun && (
@@ -138,7 +154,11 @@ export function ExperienciaArbol({
 
         <ReportarCard onReportar={() => setReportando(true)} />
 
-        <button type="button" className="vvc-link vvc-link--center" onClick={() => setConsultando(true)}>
+        <button
+          type="button"
+          className="vvc-link vvc-link--center"
+          onClick={() => setConsultando(true)}
+        >
           ¿Ya enviaste un reporte? Consulta su estado
         </button>
 
@@ -324,7 +344,12 @@ export function ExperienciaArbol({
         />
       )}
 
-      {consultando && <SeguimientoReporte vistaPrevia={vistaPrevia} onCerrar={() => setConsultando(false)} />}
+      {consultando && (
+        <SeguimientoReporte
+          vistaPrevia={vistaPrevia}
+          onCerrar={() => setConsultando(false)}
+        />
+      )}
     </div>
   );
 }
