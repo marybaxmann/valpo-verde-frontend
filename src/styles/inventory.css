@@ -973,6 +973,12 @@ section > .sivu-picker__state {
   -webkit-backdrop-filter: blur(22px);
 }
 
+/* Encabezado, estado, pestañas y botón final no se encogen: solo el cuerpo
+   se desplaza (antes las pestañas quedaban aplastadas bajo el contenido). */
+.sivu-sheet--drawer > :not(.sivu-sheet__body) {
+  flex-shrink: 0;
+}
+
 .sivu-sheet--drawer .sivu-sheet__body {
   flex: 1;
   min-height: 0;
