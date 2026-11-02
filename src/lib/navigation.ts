@@ -22,7 +22,7 @@ export interface NavModule {
 }
 
 export interface NavGroup {
-  id: "analisis" | "operacion" | "territorio";
+  id: "modulos";
   label: string;
   icon: IconName;
   modules: NavModule[];
@@ -30,36 +30,24 @@ export interface NavGroup {
 
 export const NAV_GROUPS: NavGroup[] = [
   {
-    id: "analisis",
-    label: "Análisis",
+    // Orden de Valej (2026-11-02), en lugar de los tres grupos de CC-059:
+    // sigue el ciclo de trabajo (inventario, inspección, resultados,
+    // mantención). Rutas, nombres (CC-060) y permisos sin cambios.
+    id: "modulos",
+    label: "Módulos",
     icon: "chart",
     modules: [
       { path: "dashboard", label: "Dashboard", hint: "Resumen del proyecto", icon: "chart" },
-      { path: "indices", label: "Indicadores biométricos", hint: "Composición y mediciones del inventario", icon: "sort" },
-    ],
-  },
-  {
-    id: "operacion",
-    label: "Operación",
-    icon: "wrench",
-    modules: [
-      { path: "mantencion", label: "Mantención", hint: "Órdenes de trabajo de mantenimiento", icon: "wrench" },
-      { path: "incidencias", label: "Incidencias", hint: "Reportes y su estado", icon: "alert" },
+      { path: "mapa", label: "Inventario", hint: "Árboles del proyecto", icon: "leaf" },
       // Ruta propia: /inspeccion es Riesgo Arbóreo (CC-059 mantuvo esa ruta).
       // El Encargado de mantención no ve el módulo Inspección (CC-064; B3 responde 403).
       { path: "ot-inspeccion", label: "Inspección", hint: "Órdenes de trabajo de inspección", icon: "check", hiddenFor: ["encargado_mantencion"] },
-      // Prototipo para la demo, pedido por la autora (2026-10-27): CC-062 sin aprobar y sin endpoints.
-      { path: "conecta", label: "Valpo Verde Conecta", hint: "Reportes ciudadanos, QR y ficha pública (prototipo)", icon: "leaf" },
-    ],
-  },
-  {
-    id: "territorio",
-    label: "Territorio",
-    icon: "leaf",
-    modules: [
-      { path: "mapa", label: "Inventario", hint: "Árboles del proyecto", icon: "leaf" },
       { path: "inspeccion", label: "Riesgo Arbóreo", hint: "Resultados de riesgo en el territorio", icon: "check-square" },
       { path: "infraestructura", label: "Infraestructura", hint: "Conflictos árbol–infraestructura", icon: "building" },
+      { path: "mantencion", label: "Mantención", hint: "Órdenes de trabajo de mantenimiento", icon: "wrench" },
+      { path: "indices", label: "Indicadores biométricos", hint: "Composición y mediciones del inventario", icon: "sort" },
+      { path: "incidencias", label: "Incidencias", hint: "Reportes y su estado", icon: "alert" },
+      { path: "conecta", label: "Valpo Verde Conecta", hint: "Reportes ciudadanos, QR y ficha pública", icon: "leaf" },
     ],
   },
 ];

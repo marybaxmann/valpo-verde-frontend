@@ -47,6 +47,18 @@
   color: var(--text-muted);
 }
 
+/* Bloques con subtítulo dentro de una sección (orden de presentación). */
+.sivu-insp__block + .sivu-insp__block {
+  margin-top: 6px;
+}
+
+.sivu-insp__block > .sivu-insp__subhead {
+  margin: 12px 0 10px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+  color: var(--text-muted);
+}
+
 .sivu-insp__grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));

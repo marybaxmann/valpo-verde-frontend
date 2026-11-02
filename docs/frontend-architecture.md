@@ -303,6 +303,11 @@ email, nunca hardcodeado.
 
 ---
 
+### Fase 7 · Orden de los módulos y de la evaluación del Inspector
+**Fecha:** 2026-11-02. Pedido de Valej: «no está ordenado ni intuitivo»; «solo hazlo ordenado, no cambie metodología».
+- **Módulos** (`src/lib/navigation.ts`): un solo menú «Módulos», en este orden: Dashboard, Inventario, Inspección, Riesgo Arbóreo, Infraestructura, Mantención, Indicadores biométricos, Incidencias, Valpo Verde Conecta. Reemplaza los grupos Análisis, Operación y Territorio de CC-059 (registrado en CC-072). El botón muestra el módulo actual. Rutas, nombres (CC-060) y permisos sin cambios.
+- **Evaluación del Inspector** (`src/lib/ordenFormulario.ts`): solo cambia la presentación. Secciones: Identificación, Medidas del árbol (subtítulos Copa y Edad), Zona objetivo, Raíces y cuello, Tronco, Copa y ramas (subtítulo «Estado fitosanitario», los cuatro campos de CC-040 a), Tutorado, Infraestructura (subtítulos Vereda, Calzada, Alcorque y suelo, Infraestructura vertical, Redes de servicios) y la sección de consecuencias del backend. Los campos, etiquetas, validaciones y condiciones siguen viniendo de B16. Un campo no listado va al final de su sección del backend, sin perderse (prueba con los 158 campos: 158 de entrada, 158 de salida).
+
 ## 5. Limitaciones conocidas
 
 - **No existe ningún endpoint para listar usuarios municipales disponibles** (`GET /api/users` o equivalente no existe en el backend — confirmado contra `valpo-verde-backend/src/routes/index.ts`, que solo monta `/auth` y `/projects`). Por eso, "Agregar miembro" en F7 pide el `user_id` (UUID) directamente en un campo de texto — es una **interfaz provisional**: cuando ese endpoint exista, se reemplaza por un selector real de usuarios.

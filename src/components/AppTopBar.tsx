@@ -134,8 +134,8 @@ export function AppTopBar({
                 aria-expanded={open === g.id}
                 onClick={() => toggle(g.id)}
               >
-                <Icon name={g.icon} size={15} />
-                {g.label}
+                <Icon name={active?.group.id === g.id ? active.module.icon : g.icon} size={15} />
+                {active?.group.id === g.id ? active.module.label : g.label}
                 <Icon name="chevron-down" size={13} />
               </button>
               {open === g.id && (

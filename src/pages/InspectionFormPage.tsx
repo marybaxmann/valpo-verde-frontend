@@ -20,13 +20,11 @@ import type {
   AjustesBody,
   CalculoRespuesta,
   CampoAjustable,
-  CampoFormulario,
   EsquemaFormulario,
   FinalizacionRespuesta,
   FinalizarBody,
   FotoInspeccion,
   InspeccionDeOt,
-  SeccionFormulario,
   ValorCampo,
   VistaFoto,
 } from "../types/inspection";
@@ -45,6 +43,7 @@ import {
   type ValorCrudo,
 } from "../lib/inspectionForm";
 import { fechaChile } from "../lib/dates";
+import { ordenarParaPresentacion } from "../lib/ordenFormulario";
 
 /** Las cuatro vistas obligatorias de la evaluación completa (D-27); su etiqueta viene del catálogo `vista_foto`. */
 const VISTAS: VistaFoto[] = ["arbol_completo", "base", "tronco", "copa"];
@@ -96,25 +95,6 @@ function referenciaArbol(ot: OtListada, campo: string): string | null {
   if (campo === "nombre_comun") return a.nombre_comun;
   if (campo === "ubicacion_descriptiva") return a.ubicacion_descriptiva;
   return null;
-}
-
-/** Agrupa los campos por la sección que entrega el backend, en el orden de `secciones`. */
-function agruparPorSeccion(campos: CampoFormulario[], secciones: SeccionFormulario[]): { seccion: SeccionFormulario; campos: CampoFormulario[] }[] {
-  const otros: SeccionFormulario = { codigo: "__otros", etiqueta: "Otros datos" };
-  const orden = [...secciones].sort((a, b) => (a.orden ?? 0) - (b.orden ?? 0));
-  const grupos = new Map<string, CampoFormulario[]>();
-  for (const c of campos) {
-    const codigo = c.seccion?.codigo ?? otros.codigo;
-    if (!grupos.has(codigo)) grupos.set(codigo, []);
-    grupos.get(codigo)!.push(c);
-  }
-  const conocidas = orden.filter((s) => grupos.has(s.codigo)).map((s) => ({ seccion: s, campos: grupos.get(s.codigo)! }));
-  // Una sección que el backend nombra en un campo pero no en `secciones` se agrega al final con su propia etiqueta.
-  const sueltas = [...grupos.keys()]
-    .filter((k) => k !== otros.codigo && !orden.some((s) => s.codigo === k))
-    .map((k) => ({ seccion: grupos.get(k)![0].seccion ?? otros, campos: grupos.get(k)! }));
-  const resto = grupos.has(otros.codigo) ? [{ seccion: otros, campos: grupos.get(otros.codigo)! }] : [];
-  return [...conocidas, ...sueltas, ...resto];
 }
 
 interface AjusteEditable {
@@ -219,7 +199,7 @@ export default function InspectionFormPage() {
   const camposArbol = useMemo(() => (esquema ? ordenar(esquema.campos_arbol) : []), [esquema]);
   const variables = useMemo(() => (esquema ? ordenar(esquema.variables) : []), [esquema]);
   const todos = useMemo(() => [...camposArbol, ...variables], [camposArbol, variables]);
-  const grupos = useMemo(() => agruparPorSeccion(todos, esquema?.secciones ?? []), [todos, esquema]);
+  const grupos = useMemo(() => ordenarParaPresentacion(todos, esquema?.secciones ?? []), [todos, esquema]);
   const etiquetaDe = useMemo(() => new Map(todos.map((c) => [c.identificador, c.etiqueta])), [todos]);
   const convertidos = useMemo(() => valoresConvertidos(todos, valores), [todos, valores]);
   const faltantes = useMemo(() => {
@@ -460,14 +440,19 @@ export default function InspectionFormPage() {
         </div>
       )}
 
-      {grupos.map(({ seccion, campos }) => {
-        const visibles = campos.filter((c) => cumple(c.condicion_activacion, convertidos));
+      {grupos.map(({ seccion, bloques }) => {
+        const visibles = bloques
+          .map((b) => ({ ...b, campos: b.campos.filter((c) => cumple(c.condicion_activacion, convertidos)) }))
+          .filter((b) => b.campos.length > 0);
         if (visibles.length === 0) return null;
         return (
           <section key={seccion.codigo} className="card card--pad sivu-insp__section">
             <h2>{seccion.etiqueta}</h2>
+            {visibles.map((b, i) => (
+            <div key={b.subtitulo ?? i} className="sivu-insp__block">
+            {b.subtitulo && <h3 className="sivu-insp__subhead">{b.subtitulo}</h3>}
             <div className="sivu-insp__grid">
-              {visibles.map((c) => (
+              {b.campos.map((c) => (
                 <InspectionField
                   key={c.identificador}
                   campo={c}
@@ -481,6 +466,8 @@ export default function InspectionFormPage() {
                 />
               ))}
             </div>
+            </div>
+            ))}
           </section>
         );
       })}
