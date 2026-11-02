@@ -4,7 +4,7 @@ import { listarInventarioCompleto } from "../api/inventory";
 import type { ArbolInventario } from "../types/inventory";
 import { PendingNotice } from "../components/PendingNotice";
 import { Icon } from "../components/Icons";
-import { VistaPreviaCiudadana } from "../components/conecta/VistaPreviaCiudadana";
+import { FichaPublicaEditor } from "../components/conecta/FichaPublicaEditor";
 import { PlacasQr } from "../components/conecta/PlacasQr";
 import { useAuth } from "../hooks/useAuth";
 
@@ -23,7 +23,6 @@ export default function ConectaPage() {
   const [tab, setTab] = useState<Tab>("ficha");
   const [arboles, setArboles] = useState<ArbolInventario[] | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [elegido, setElegido] = useState<string>("");
   const { profile } = useAuth();
   const municipal = profile?.role === "usuario_municipal";
 
@@ -40,8 +39,6 @@ export default function ConectaPage() {
       cancelled = true;
     };
   }, [projectId]);
-
-  const arbol = arboles?.find((a) => a.id === elegido) ?? arboles?.[0] ?? null;
 
   return (
     <div className="sivu-dash sivu-conecta">
@@ -109,19 +106,7 @@ export default function ConectaPage() {
       )}
 
       {tab === "ficha" && (
-        <section className="sivu-panel sivu-conecta__panel">
-          <div className="sivu-panel__head">
-            <h2>Ficha pública</h2>
-            {arboles && arboles.length > 1 && (
-              <select aria-label="Árbol" value={arbol?.id ?? ""} onChange={(e) => setElegido(e.target.value)}>
-                {arboles.map((a) => (
-                  <option key={a.id} value={a.id}>
-                    {a.tree_code} · {a.nombre_comun ?? a.especie_cientifica ?? ""}
-                  </option>
-                ))}
-              </select>
-            )}
-          </div>
+        <>
           {error && (
             <p className="sivu-state sivu-state--error" role="alert">
               <Icon name="alert" size={13} /> {error}
@@ -129,16 +114,8 @@ export default function ConectaPage() {
           )}
           {!arboles && !error && <p className="sivu-state">Cargando árboles…</p>}
           {arboles && arboles.length === 0 && <p className="sivu-state">El proyecto no tiene árboles registrados.</p>}
-          {arbol && (
-            <>
-              <p className="sivu-conecta__lead">
-                Así verá este árbol quien escanee su código QR, sin iniciar sesión. Solo con los datos que CC-062 permite publicar;
-                lo demás aparece como «Próximamente».
-              </p>
-              <VistaPreviaCiudadana projectId={projectId} arbol={arbol} />
-            </>
-          )}
-        </section>
+          {arboles && arboles.length > 0 && <FichaPublicaEditor projectId={projectId} arboles={arboles} />}
+        </>
       )}
     </div>
   );

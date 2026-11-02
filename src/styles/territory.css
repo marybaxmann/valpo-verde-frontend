@@ -1164,3 +1164,288 @@
     position: static;
   }
 }
+
+/* Conecta · Ficha pública por árbol (guía: maqueta SIVU Lab, solo diseño) */
+.sivu-fpe {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 360px;
+  gap: 16px;
+  align-items: start;
+}
+
+.sivu-fpe__main {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+}
+
+.sivu-fpe__picker {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.sivu-fpe__nav {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+}
+
+.sivu-fpe__nav:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.sivu-fpe__who {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+
+.sivu-fpe__code {
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  color: var(--text-muted);
+}
+
+.sivu-fpe__who select {
+  width: 100%;
+  max-width: 420px;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.sivu-fpe__notice {
+  display: flex;
+  gap: 10px;
+  margin: 0;
+  padding: 10px 14px;
+  border-radius: 14px;
+  background: rgba(176, 140, 60, 0.12);
+  color: #7a5a1c;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.sivu-fpe__notice p {
+  margin: 0;
+}
+
+.sivu-fpe__notice svg {
+  flex: none;
+  margin-top: 2px;
+}
+
+.sivu-fpe__group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 6px 0 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.sivu-fpe__tag {
+  padding: 2px 8px;
+  border-radius: var(--radius-pill);
+  background: rgba(176, 140, 60, 0.16);
+  color: #7a5a1c;
+  font-size: 11px;
+}
+
+.sivu-fpe__rows {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px 20px;
+}
+
+.sivu-fpe__row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 4px;
+}
+
+.sivu-fpe__row strong {
+  display: block;
+  font-size: 13.5px;
+}
+
+.sivu-fpe__row span:not(.sivu-fpe__check):not(.sivu-fpe__switch) {
+  display: block;
+  font-size: 12px;
+  color: var(--text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sivu-fpe__row .is-italic {
+  font-style: italic;
+}
+
+.sivu-fpe__row code {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-faint);
+}
+
+.sivu-fpe__check {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: rgba(63, 176, 126, 0.18);
+  color: var(--sivu-accent);
+}
+
+.sivu-fpe__switch {
+  position: relative;
+  width: 36px;
+  height: 20px;
+  border-radius: 999px;
+  background: var(--surface-muted);
+  border: 1px solid var(--border);
+  opacity: 0.7;
+}
+
+.sivu-fpe__switch::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
+}
+
+.sivu-fpe__content {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+  gap: 12px;
+}
+
+.sivu-fpe__field {
+  display: grid;
+  gap: 4px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.sivu-fpe__field textarea {
+  resize: none;
+  font: inherit;
+  font-weight: 400;
+}
+
+.sivu-fpe__photo {
+  display: grid;
+  justify-items: center;
+  align-content: center;
+  gap: 4px;
+  padding: 12px;
+  border: 1.5px dashed var(--border);
+  border-radius: 14px;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.sivu-fpe__photo strong {
+  color: var(--text);
+  font-size: 13px;
+}
+
+.sivu-fpe__never {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.sivu-fpe__never li {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 9px 12px;
+  border-radius: 12px;
+  background: var(--surface-subtle);
+  color: var(--text-muted);
+}
+
+.sivu-fpe__never li svg {
+  flex: none;
+  margin-top: 2px;
+}
+
+.sivu-fpe__never strong {
+  display: block;
+  font-size: 13px;
+  color: var(--text);
+}
+
+.sivu-fpe__never span {
+  font-size: 12px;
+}
+
+.sivu-fpe__preview {
+  display: grid;
+  gap: 12px;
+  justify-items: center;
+  position: sticky;
+  top: 90px;
+}
+
+.sivu-fpe__phead {
+  justify-self: stretch;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.sivu-fpe__phead h2 {
+  margin: 0;
+  font-size: 15px;
+}
+
+.sivu-fpe__phead span {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+@media (max-width: 1100px) {
+  .sivu-fpe {
+    grid-template-columns: 1fr;
+  }
+
+  .sivu-fpe__preview {
+    position: static;
+  }
+}
+
+@media (max-width: 700px) {
+  .sivu-fpe__rows,
+  .sivu-fpe__never,
+  .sivu-fpe__content {
+    grid-template-columns: 1fr;
+  }
+}
