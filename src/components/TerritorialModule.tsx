@@ -9,37 +9,44 @@ import type { MapPoint } from "./ProjectMapView";
 const ProjectMapView = lazy(() => import("./ProjectMapView"));
 
 /**
- * Estructura común de los módulos con mapa protagonista (Fase 7;
- * maqueta SIVU Lab, pantallas Riesgo Arbóreo e Infraestructura, CC-057):
- * mapa a pantalla completa bajo la barra, encabezado flotante con el
- * módulo y el lugar, y una tarjeta flotante con el resumen del módulo
- * (`card`), que se puede minimizar para ver el mapa completo; en el
- * teléfono ocupa la mitad inferior. Solo consulta: las acciones de registro no viven aquí
- * (CC-059, punto 6; CC-061).
+ * Estructura común de los módulos con mapa protagonista (Fase 7; maqueta
+ * SIVU Lab, pantallas Riesgo Arbóreo e Infraestructura, CC-057; solo el
+ * diseño): mapa a pantalla completa, arriba a la izquierda el lugar y el
+ * resumen del módulo (`card`); abajo a la izquierda «Filtros» y «Lista»,
+ * que abren su panel; abajo al centro la leyenda (`leyendaInferior`); y a
+ * la derecha la ficha del árbol elegido (`sheet`). Solo consulta: las
+ * acciones de registro no viven aquí (CC-059, punto 6; CC-061).
  */
 export function TerritorialModule({
   moduleLabel,
   card,
+  lista,
   points,
   selectedId,
   onSelect,
   filtros,
   filtrosActivos = 0,
   registros,
+  leyendaInferior,
   sheet,
 }: {
   moduleLabel: string;
+  /** Resumen del módulo, siempre a la vista (maqueta: `.ov`). */
   card: ReactNode;
+  /** Lista de árboles, que se abre con «Lista» (maqueta: `ListTools`). */
+  lista?: ReactNode;
   /** Puntos del mapa (árboles de la API), si el módulo los tiene. */
   points?: MapPoint[];
   selectedId?: string | null;
   onSelect?: (id: string) => void;
-  /** Contenido del panel «Filtros» (maqueta: `ListTools`); sin él no se muestra el botón. */
+  /** Contenido del panel «Filtros»; sin él no se muestra el botón. */
   filtros?: ReactNode;
   /** Filtros activos, para el número del botón. */
   filtrosActivos?: number;
   /** Registros de la lista, para «Lista · N registros». */
   registros?: number;
+  /** Leyenda flotante abajo al centro (maqueta: barra de Infraestructura). */
+  leyendaInferior?: ReactNode;
   /** Ficha del árbol elegido, a la derecha del mapa (maqueta: `.sheet`). */
   sheet?: ReactNode;
 }) {
@@ -47,12 +54,10 @@ export function TerritorialModule({
   const apiKey = getArcgisApiKey();
   const [detail, setDetail] = useState<ProjectWithSector | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [minimizada, setMinimizada] = useState(false);
-  const [verFiltros, setVerFiltros] = useState(false);
+  const [panel, setPanel] = useState<"lista" | "filtros" | null>(null);
   const angosta = usePantallaAngosta();
-  // Lo que tapa la tarjeta en computador (territory.css).
-  // En pantalla angosta nada tapa el mapa (la tarjeta va debajo).
-  const padding = angosta ? {} : { left: minimizada ? 0 : 400, right: sheet ? 432 : 0 };
+  // Lo que tapan el resumen (izquierda) y la ficha (derecha) en computador.
+  const padding = angosta ? {} : { left: 380, right: sheet ? 432 : 0 };
 
   useEffect(() => {
     let cancelled = false;
@@ -71,8 +76,10 @@ export function TerritorialModule({
     };
   }, [projectId]);
 
+  const alternar = (p: "lista" | "filtros") => setPanel((actual) => (actual === p ? null : p));
+
   return (
-    <div className={`sivu-terr ${minimizada ? "is-min" : ""} ${sheet ? "has-sheet" : ""}`}>
+    <div className={`sivu-terr ${sheet ? "has-sheet" : ""} ${panel ? "has-panel" : ""}`}>
       {apiKey ? (
         <Suspense fallback={<div className="sivu-terr__map sivu-terr__map--loading">Cargando mapa…</div>}>
           <ProjectMapView
@@ -104,43 +111,50 @@ export function TerritorialModule({
             )}
           </p>
         </header>
-        {!error && (
-          <div className={`sivu-terr__dock ${minimizada ? "is-min" : ""}`}>
-            <div className="sivu-terr__tools">
-              {filtros && (
-                <button
-                  type="button"
-                  className={`sivu-terr__toggle ${verFiltros ? "is-on" : ""}`}
-                  aria-expanded={verFiltros}
-                  onClick={() => setVerFiltros((v) => !v)}
-                >
-                  <Icon name="filter" size={14} />
-                  Filtros
-                  {filtrosActivos > 0 && <span className="sivu-terr__badge">{filtrosActivos}</span>}
-                </button>
-              )}
+        {!error && <section className="sivu-terr__card">{card}</section>}
+      </div>
+
+      {!error && (lista || filtros) && (
+        <div className="sivu-terr__bottom">
+          {panel === "filtros" && filtros && <div className="sivu-terr__panel">{filtros}</div>}
+          {panel === "lista" && lista && (
+            <div className="sivu-terr__panel sivu-terr__panel--list" id="sivu-terr-lista">
+              {lista}
+            </div>
+          )}
+          <div className="sivu-terr__tools">
+            {filtros && (
               <button
                 type="button"
-                className="sivu-terr__toggle"
-                aria-expanded={!minimizada}
-                aria-controls="sivu-terr-card"
-                onClick={() => setMinimizada((m) => !m)}
+                className={`sivu-terr__toggle ${panel === "filtros" ? "is-on" : ""}`}
+                aria-expanded={panel === "filtros"}
+                onClick={() => alternar("filtros")}
+              >
+                <Icon name="filter" size={14} />
+                Filtros
+                {filtrosActivos > 0 && <span className="sivu-terr__badge">{filtrosActivos}</span>}
+              </button>
+            )}
+            {lista && (
+              <button
+                type="button"
+                className={`sivu-terr__toggle ${panel === "lista" ? "is-on" : ""}`}
+                aria-expanded={panel === "lista"}
+                aria-controls="sivu-terr-lista"
+                onClick={() => alternar("lista")}
               >
                 <Icon name="list" size={14} />
                 Lista
                 {registros !== undefined && <span className="sivu-terr__count">{registros} registros</span>}
                 <Icon name="chevron-down" size={13} />
               </button>
-            </div>
-            {filtros && verFiltros && <div className="sivu-terr__filters">{filtros}</div>}
-            {!minimizada && (
-              <section id="sivu-terr-card" className="sivu-terr__card">
-                {card}
-              </section>
             )}
           </div>
-        )}
-      </div>
+        </div>
+      )}
+
+      {!error && leyendaInferior && <div className="sivu-terr__legendbar">{leyendaInferior}</div>}
+
       {sheet}
     </div>
   );

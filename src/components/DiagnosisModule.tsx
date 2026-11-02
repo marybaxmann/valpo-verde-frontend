@@ -49,7 +49,6 @@ export function DiagnosisModule({ vista }: { vista: Vista }) {
   }, [vista]);
 
   useEffect(() => {
-    if (vista !== "riesgo") return;
     let cancelled = false;
     obtenerResumen(projectId)
       .then((r) => !cancelled && setResumen(r))
@@ -93,6 +92,14 @@ export function DiagnosisModule({ vista }: { vista: Vista }) {
       };
     });
   const arbol = datos?.arboles.find((a) => a.id === elegido) ?? null;
+  const niveles = [...(leyenda ?? [])].sort((a, b) => a.orden - b.orden);
+  const alternarNivel = (codigo: string) =>
+    setOcultos((o) => {
+      const n = new Set(o);
+      if (n.has(codigo)) n.delete(codigo);
+      else n.add(codigo);
+      return n;
+    });
 
 
   return (
@@ -118,19 +125,7 @@ export function DiagnosisModule({ vista }: { vista: Vista }) {
       filtrosActivos={ocultos.size}
       filtros={
         leyenda && leyenda.length > 0 ? (
-          <FiltroNiveles
-            niveles={[...leyenda].sort((a, b) => a.orden - b.orden)}
-            ocultos={ocultos}
-            onChange={(codigo) =>
-              setOcultos((o) => {
-                const n = new Set(o);
-                if (n.has(codigo)) n.delete(codigo);
-                else n.add(codigo);
-                return n;
-              })
-            }
-            onTodos={() => setOcultos(new Set())}
-          />
+          <FiltroNiveles niveles={niveles} ocultos={ocultos} onChange={alternarNivel} onTodos={() => setOcultos(new Set())} />
         ) : undefined
       }
       card={
@@ -139,24 +134,19 @@ export function DiagnosisModule({ vista }: { vista: Vista }) {
             <h2>{titulo}</h2>
             <span className="sivu-diag__tag">Evaluación vigente</span>
           </div>
-          {vista === "riesgo" && resumen && leyenda && leyenda.length > 0 && (
-            <RiesgoResumen resumen={resumen} leyenda={leyenda} />
-          )}
-          {!(vista === "riesgo" && resumen) && leyenda && leyenda.length > 0 && (
-            <ul className="sivu-diag__legend" aria-label="Leyenda del mapa">
-              {[...leyenda]
-                .sort((a, b) => a.orden - b.orden)
-                .map((c) => (
-                  <li key={c.codigo}>
-                    <span className={`sivu-diag__dot sivu-diag__dot--${getClassificationTone(c.etiqueta)}`} aria-hidden="true" />
-                    {c.etiqueta}
-                  </li>
-                ))}
-              <li>
-                <span className="sivu-diag__dot sivu-diag__dot--neutral" aria-hidden="true" />
-                Evaluación pendiente
-              </li>
-            </ul>
+          {vista === "riesgo" && resumen && niveles.length > 0 && <RiesgoResumen resumen={resumen} leyenda={niveles} />}
+          {vista === "infraestructura" && resumen && (
+            <>
+              <div className="sivu-ov__hero">
+                <span className="sivu-ov__num">{resumen.con_diagnostico}</span>
+                <span className="sivu-ov__lbl">
+                  árboles con evaluación
+                  <br />
+                  de {resumen.arboles_total} registrados
+                </span>
+              </div>
+              <p className="sivu-terr__note">Afectación de infraestructura de la evaluación vigente. Toca un nivel abajo para mostrarlo u ocultarlo en el mapa.</p>
+            </>
           )}
           {error && (
             <p className="sivu-state sivu-state--error" role="alert">
@@ -165,28 +155,44 @@ export function DiagnosisModule({ vista }: { vista: Vista }) {
           )}
           {!datos && !error && <p className="sivu-state">Cargando árboles y diagnósticos…</p>}
           {datos && datos.arboles.length === 0 && <p className="sivu-state">El proyecto no tiene árboles registrados.</p>}
-
-          {datos && datos.arboles.length > 0 && (
-            <ul className="sivu-diag__list" aria-label="Árboles del proyecto">
-              {arbolesVisibles.map((a) => {
-                const v = valor(datos.diag.get(a.id));
-                return (
-                  <li key={a.id}>
-                    <button type="button" className={a.id === elegido ? "is-sel" : ""} aria-pressed={a.id === elegido} onClick={() => setElegido(a.id)}>
-                      <span>
-                        <strong>{a.tree_code}</strong> <em>{a.especie_cientifica ?? ""}</em>
-                      </span>
-                      {v ? <ClassificationBadge level={v.etiqueta} /> : <span className="status-pill">Evaluación pendiente</span>}
-                    </button>
-                  </li>
-                );
-              })}
-            </ul>
-          )}
-          <p className="sivu-terr__note">
-            Muestra la evaluación vigente de cada árbol. Una inspección finalizada pasa a vigente cuando se completa su orden de trabajo.
-          </p>
         </>
+      }
+      lista={
+        datos && datos.arboles.length > 0 ? (
+          <ul className="sivu-diag__list" aria-label="Árboles del proyecto">
+            {arbolesVisibles.map((a) => {
+              const v = valor(datos.diag.get(a.id));
+              return (
+                <li key={a.id}>
+                  <button type="button" className={a.id === elegido ? "is-sel" : ""} aria-pressed={a.id === elegido} onClick={() => setElegido(a.id)}>
+                    <span>
+                      <strong>{a.tree_code}</strong> <em>{a.especie_cientifica ?? ""}</em>
+                    </span>
+                    {v ? <ClassificationBadge level={v.etiqueta} /> : <span className="status-pill">Evaluación pendiente</span>}
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+        ) : undefined
+      }
+      leyendaInferior={
+        vista === "infraestructura" && niveles.length > 0 ? (
+          <div className="sivu-legendbar" role="group" aria-label="Niveles de afectación en el mapa">
+            {[...niveles.map((n) => ({ codigo: n.codigo, etiqueta: n.etiqueta })), { codigo: "", etiqueta: "Evaluación pendiente" }].map((n) => (
+              <button
+                key={n.codigo || "pendiente"}
+                type="button"
+                className={`sivu-legendbar__chip ${ocultos.has(n.codigo) ? "" : "is-on"}`}
+                aria-pressed={!ocultos.has(n.codigo)}
+                onClick={() => alternarNivel(n.codigo)}
+              >
+                <span className={`sivu-diag__dot sivu-diag__dot--${n.codigo ? getClassificationTone(n.etiqueta) : "neutral"}`} aria-hidden="true" />
+                {n.etiqueta}
+              </button>
+            ))}
+          </div>
+        ) : undefined
       }
     />
   );

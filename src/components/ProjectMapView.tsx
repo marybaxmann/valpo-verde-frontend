@@ -118,8 +118,8 @@ export default function ProjectMapView({
       ui: { components: ["zoom"] },
     });
     viewRef.current = view;
-    // Arriba a la izquierda van el encabezado y la tarjeta flotantes: el zoom baja.
-    view.ui.move("zoom", "bottom-left");
+    // Como en la maqueta, el zoom va abajo a la derecha (a la izquierda están Filtros y Lista).
+    view.ui.move("zoom", "bottom-right");
     view.when(
       () => {
         if (!cancelled) setStatus("ready");
@@ -239,9 +239,17 @@ export default function ProjectMapView({
     const sectorLayer = sectorLayerRef.current;
     if (!view || !layer || !sectorLayer || status !== "ready") return;
     view.padding = { top: 0, right: 0, bottom: 0, left: 0, ...padding };
-    const objetivo = [...sectorLayer.graphics.toArray(), ...layer.graphics.toArray()];
+    // Con árboles, el encuadre es el de los árboles (como la maqueta, a escala de calle); sin ellos, el sector.
+    const puntos = layer.graphics.toArray();
+    const objetivo = puntos.length ? puntos : sectorLayer.graphics.toArray();
     if (!objetivo.length) return;
-    view.goTo(objetivo, { animate: false }).catch(() => undefined);
+    view
+      .goTo(objetivo, { animate: false })
+      .then(() => {
+        // Árboles muy juntos: sin acercarse más que una cuadra (escala de la maqueta).
+        if (view.zoom > 18) view.zoom = 18;
+      })
+      .catch(() => undefined);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pointsKey, sectorKey, status]);
 
