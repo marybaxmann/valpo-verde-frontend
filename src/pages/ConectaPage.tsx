@@ -2,21 +2,20 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { listarInventarioCompleto } from "../api/inventory";
 import type { ArbolInventario } from "../types/inventory";
-import { PendingNotice } from "../components/PendingNotice";
 import { Icon } from "../components/Icons";
 import { FichaPublicaEditor } from "../components/conecta/FichaPublicaEditor";
 import { PlacasQr } from "../components/conecta/PlacasQr";
 import { useAuth } from "../hooks/useAuth";
 
-type Tab = "reportes" | "qr" | "ficha";
+type Tab = "qr" | "ficha";
 
 /**
  * Valpo Verde Conecta — prototipo para la demo (pedido de la autora,
- * 2026-10-27). Sigue la composición de la maqueta SIVU Lab (tres pestañas:
- * reportes ciudadanos, código QR y ficha pública), escrita de nuevo
- * (CC-058: no se copian `Conecta.tsx` ni `conecta.ts`). Sin datos ficticios:
- * los reportes esperan CC-062 y sus endpoints; la ficha pública muestra
- * árboles reales del inventario (B1) con los campos que ya son públicos.
+ * 2026-10-27). Sigue la composición de la maqueta SIVU Lab con dos
+ * pestañas: placas QR y ficha pública, escrita de nuevo (CC-058: no se
+ * copian `Conecta.tsx` ni `conecta.ts`). Los reportes ciudadanos no se
+ * muestran aquí: llegan como incidencias de la comunidad y se gestionan en
+ * el módulo Incidencias (indicación de la responsable, 2026-11-02).
  */
 export default function ConectaPage() {
   const { projectId = "" } = useParams();
@@ -49,14 +48,13 @@ export default function ConectaPage() {
             <span>Participación ciudadana</span>
           </div>
           <h1 className="sivu-phead__title">Valpo Verde Conecta</h1>
-          <p className="sivu-phead__meta">La comunidad reporta, consulta la ficha pública del árbol y la escanea en terreno.</p>
+          <p className="sivu-phead__meta">Placas QR de cada árbol y su ficha pública. Los reportes de la comunidad llegan al módulo Incidencias.</p>
         </div>
       </header>
 
       <div className="sivu-seg" role="tablist" aria-label="Secciones de Conecta">
         {(
           [
-            ["reportes", "Reportes ciudadanos"],
             ["qr", "Placas QR"],
             ["ficha", "Ficha pública"],
           ] as [Tab, string][]
@@ -73,24 +71,6 @@ export default function ConectaPage() {
           </button>
         ))}
       </div>
-
-      {tab === "reportes" && (
-        <section className="sivu-panel sivu-conecta__panel">
-          <div className="sivu-panel__head">
-            <h2>Reportes ciudadanos</h2>
-          </div>
-          <p className="sivu-conecta__lead">
-            Cada reporte llega con foto, ubicación y urgencia. El Usuario municipal lo toma en revisión, responde a la persona y lo
-            deriva a inspección o a una orden de trabajo.
-          </p>
-          <ol className="sivu-conecta__flow" aria-label="Recorrido de un reporte">
-            {["Ingresada", "En revisión", "Derivada", "Resuelta"].map((p) => (
-              <li key={p}>{p}</li>
-            ))}
-          </ol>
-          <PendingNotice what="los reportes ciudadanos" refs="CC-062 · Incidencias (B9)" />
-        </section>
-      )}
 
       {tab === "qr" && (
         <>
