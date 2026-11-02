@@ -316,6 +316,15 @@
   animation: sivu-drop 0.2s cubic-bezier(0.2, 0.9, 0.3, 1.2);
 }
 
+/* Menú «Módulos» (CC-072): centrado bajo su botón y dentro de la pantalla. */
+.sivu-topbar__spaces .sivu-dd {
+  left: 50%;
+  translate: -50% 0;
+  width: min(340px, calc(100vw - 32px));
+  max-height: calc(100dvh - 140px);
+  overflow-y: auto;
+}
+
 .sivu-dd--right {
   left: auto;
   right: 0;
