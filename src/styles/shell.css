@@ -511,7 +511,9 @@ a.sivu-topbar__space {
 
 /* ---------- Pantallas medianas y pequeñas ---------- */
 
-@media (max-width: 1180px) {
+/* Hasta 1360 px el buscador y la cuenta quedan solo con su ícono, para que
+   los grupos de módulos (CC-072) queden centrados. */
+@media (max-width: 1360px) {
   .sivu-topbar__user-text,
   .sivu-topbar__search span,
   .sivu-topbar__search kbd {
@@ -682,9 +684,12 @@ a.sivu-topbar__space {
   .sivu-topbar__spaces {
     flex-shrink: 0;
   }
-  /* La derecha ocupa su ancho real: antes se desbordaba sobre los grupos. */
+  /* Los dos lados reparten el espacio por igual para que los grupos queden
+     centrados; la derecha nunca baja de su ancho real (antes se desbordaba
+     sobre los grupos). */
   .sivu-topbar__right {
-    flex: 0 0 auto;
+    flex: 1 1 0;
+    min-width: max-content;
   }
 }
 
