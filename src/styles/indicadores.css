@@ -277,6 +277,13 @@
   font-size: 11.5px;
 }
 
+/* Vista del proyecto: separa sus filas (antes iban pegadas, sin espacio). */
+.bio-huella {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
 /* ---------- Fila principal: carbono + indicadores ---------- */
 
 .bio-hero-row {
