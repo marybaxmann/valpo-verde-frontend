@@ -21,6 +21,19 @@ export interface ContenidoEspecie {
   miAno: string;
   comoCuidarme: string;
   consejos: string;
+  /**
+   * Relleno temporal para la demostración (pedido de la responsable,
+   * 2026-11-03), redactado con información general de la especie; no es
+   * oficial ni medido en el ejemplar. La ficha lo rotula «Información
+   * temporal».
+   */
+  temporal?: {
+    fotos: string;
+    edadAltura: string;
+    sombra: string;
+    carbono: string;
+    historia: string;
+  };
 }
 
 const CONTENIDO: Record<string, ContenidoEspecie> = {
@@ -45,6 +58,21 @@ const CONTENIDO: Record<string, ContenidoEspecie> = {
       "Evita dañar mi tronco, mis raíces y el suelo que me rodea. Si observas una rama peligrosa o daños, repórtalos para evaluación municipal.",
     consejos:
       "No claves objetos en el tronco ni cortes ramas por tu cuenta. Evita compactar el suelo o depositar residuos junto a mis raíces. Reporta ramas quebradas, inclinaciones nuevas o daños visibles mediante SIVU.",
+    // Fuentes generales: UF/IFAS (ST-20), RHS, fichas de arbolado de
+    // Vitacura (cita CONAF 2013, «Árboles urbanos de Chile») y de
+    // Emilia-Romagna.
+    temporal: {
+      fotos:
+        "Esta es una foto referencial de mi especie. Pronto verás fotos de mí, tomadas aquí mismo en Valparaíso.",
+      edadAltura:
+        "Un arce negundo adulto suele medir entre 9 y 15 metros, como un edificio de 4 o 5 pisos. Crezco rápido, pero vivo poco para ser un arce: en la ciudad rara vez paso de los 40 años.",
+      sombra:
+        "Mi copa adulta puede abrirse entre 8 y 13 metros de ancho y dar sombra a un espacio parecido al de una casa.",
+      carbono:
+        "Mientras crezco, saco CO₂ del aire y guardo su carbono en mi tronco y mis ramas. Como crezco rápido, en mis primeros años lo acumulo con rapidez.",
+      historia:
+        "Soy uno de los árboles que SIVU registra en el centro de Valparaíso. Aquí aparecerán las revisiones y cuidados que reciba del municipio.",
+    },
   },
 };
 

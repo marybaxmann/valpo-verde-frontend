@@ -82,6 +82,7 @@ export function ExperienciaArbol({
   const [consultando, setConsultando] = useState(false);
   const esp = ficha.sobre_la_especie;
   const txt = contenidoDeEspecie(ficha.especie_cientifica);
+  const tmp = txt?.temporal ?? null;
   const nombreComun = ficha.nombre_comun ?? txt?.nombreComun ?? null;
   const nombre =
     nombreComun ?? ficha.especie_cientifica ?? "Árbol de Valparaíso";
@@ -234,16 +235,35 @@ export function ExperienciaArbol({
                     ancho
                   />
                 </div>
-                <Proximamente
-                  icono="camera"
-                  titulo="Mis fotografías"
-                  texto="Aquí verás fotos de este árbol. Su publicación aún no está autorizada en la ficha ciudadana."
-                />
-                <Proximamente
-                  icono="ruler"
-                  titulo="Mi edad y mi altura"
-                  texto="Datos de este árbol que se mostrarán cuando su publicación esté definida."
-                />
+                {tmp ? (
+                  <Texto
+                    icono="camera"
+                    titulo="Mis fotografías"
+                    texto={tmp.fotos}
+                    imagen={foto}
+                    temporal
+                  />
+                ) : (
+                  <Proximamente
+                    icono="camera"
+                    titulo="Mis fotografías"
+                    texto="Aquí verás fotos de este árbol. Su publicación aún no está autorizada en la ficha ciudadana."
+                  />
+                )}
+                {tmp ? (
+                  <Texto
+                    icono="ruler"
+                    titulo="Mi edad y mi altura"
+                    texto={tmp.edadAltura}
+                    temporal
+                  />
+                ) : (
+                  <Proximamente
+                    icono="ruler"
+                    titulo="Mi edad y mi altura"
+                    texto="Datos de este árbol que se mostrarán cuando su publicación esté definida."
+                  />
+                )}
                 {txt ? (
                   <Texto
                     icono="sparkle"
@@ -277,12 +297,20 @@ export function ExperienciaArbol({
                   <Beneficio
                     icono="sun"
                     titulo="Sombra"
-                    texto="La superficie que cubre mi copa y el alivio que da en días de calor."
+                    texto={
+                      tmp?.sombra ??
+                      "La superficie que cubre mi copa y el alivio que da en días de calor."
+                    }
+                    etiqueta={tmp ? "Información temporal" : undefined}
                   />
                   <Beneficio
                     icono="leaf"
                     titulo="Carbono"
-                    texto="El carbono que guardo en mi madera y el que capturo cada año."
+                    texto={
+                      tmp?.carbono ??
+                      "El carbono que guardo en mi madera y el que capturo cada año."
+                    }
+                    etiqueta={tmp ? "Información temporal" : undefined}
                   />
                   <Beneficio
                     icono="eye"
@@ -291,6 +319,7 @@ export function ExperienciaArbol({
                       txt?.aire ??
                       "Los contaminantes que mis hojas ayudan a retener."
                     }
+                    etiqueta={txt ? "Contenido en revisión" : undefined}
                   />
                   <Beneficio
                     icono="layers"
@@ -299,6 +328,7 @@ export function ExperienciaArbol({
                       txt?.agua ??
                       "La lluvia que retengo y que no escurre por la calle."
                     }
+                    etiqueta={txt ? "Contenido en revisión" : undefined}
                   />
                 </div>
                 <p className="vvc-note">
@@ -348,11 +378,20 @@ export function ExperienciaArbol({
                     texto="Cuándo florezco, cuándo cambian mis hojas y qué pasa conmigo en cada estación."
                   />
                 )}
-                <Proximamente
-                  icono="clock"
-                  titulo="Mi historia"
-                  texto="Los cuidados que he recibido y fotos de cómo he cambiado con los años."
-                />
+                {tmp ? (
+                  <Texto
+                    icono="clock"
+                    titulo="Mi historia"
+                    texto={tmp.historia}
+                    temporal
+                  />
+                ) : (
+                  <Proximamente
+                    icono="clock"
+                    titulo="Mi historia"
+                    texto="Los cuidados que he recibido y fotos de cómo he cambiado con los años."
+                  />
+                )}
               </Bloque>
             )}
 
@@ -492,15 +531,22 @@ function Proximamente({
   );
 }
 
-/** Texto ciudadano de la especie (contenidoEspecie.ts), aún en revisión. */
+/**
+ * Texto ciudadano de la especie (contenidoEspecie.ts): «Contenido en
+ * revisión» o, si es relleno de demostración, «Información temporal».
+ */
 function Texto({
   icono,
   titulo,
   texto,
+  imagen = null,
+  temporal = false,
 }: {
   icono: IconName;
   titulo: string;
   texto: string;
+  imagen?: string | null;
+  temporal?: boolean;
 }) {
   return (
     <div className="vvc-soon vvc-soon--texto">
@@ -510,8 +556,11 @@ function Texto({
       <div>
         <strong>{titulo}</strong>
         <p>{texto}</p>
+        {imagen && <img className="vvc-soon__img" src={imagen} alt={titulo} />}
       </div>
-      <span className="vvc-soon__tag">Contenido en revisión</span>
+      <span className="vvc-soon__tag">
+        {temporal ? "Información temporal" : "Contenido en revisión"}
+      </span>
     </div>
   );
 }
@@ -520,10 +569,12 @@ function Beneficio({
   icono,
   titulo,
   texto,
+  etiqueta = "Próximamente",
 }: {
   icono: IconName;
   titulo: string;
   texto: string;
+  etiqueta?: string;
 }) {
   return (
     <div className="vvc-benefit">
@@ -532,7 +583,7 @@ function Beneficio({
       </span>
       <strong>{titulo}</strong>
       <p>{texto}</p>
-      <span className="vvc-soon__tag">Próximamente</span>
+      <span className="vvc-soon__tag">{etiqueta}</span>
     </div>
   );
 }
