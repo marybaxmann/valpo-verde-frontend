@@ -25,7 +25,8 @@ import { contenidoDeEspecie } from "./contenidoEspecie";
  *   contenido por especie, beneficios, historia) se muestra como
  *   «Próximamente», sin valores: no se inventan datos.
  * - Textos ciudadanos por especie (contenidoEspecie.ts): solo de
- *   divulgación, rotulados «Contenido en revisión»; un valor de la API
+ *   divulgación, sin rótulo en pantalla (su estado queda en
+ *   contenidoEspecie.ts y en git); un valor de la API
  *   siempre tiene prioridad sobre ellos.
  */
 
@@ -241,7 +242,6 @@ export function ExperienciaArbol({
                     titulo="Mis fotografías"
                     texto={tmp.fotos}
                     imagen={foto}
-                    temporal
                   />
                 ) : (
                   <Proximamente
@@ -255,7 +255,6 @@ export function ExperienciaArbol({
                     icono="ruler"
                     titulo="Mi edad y mi altura"
                     texto={tmp.edadAltura}
-                    temporal
                   />
                 ) : (
                   <Proximamente
@@ -301,7 +300,7 @@ export function ExperienciaArbol({
                       tmp?.sombra ??
                       "La superficie que cubre mi copa y el alivio que da en días de calor."
                     }
-                    etiqueta={tmp ? "Información temporal" : undefined}
+                    etiqueta={tmp ? null : undefined}
                   />
                   <Beneficio
                     icono="leaf"
@@ -310,7 +309,7 @@ export function ExperienciaArbol({
                       tmp?.carbono ??
                       "El carbono que guardo en mi madera y el que capturo cada año."
                     }
-                    etiqueta={tmp ? "Información temporal" : undefined}
+                    etiqueta={tmp ? null : undefined}
                   />
                   <Beneficio
                     icono="eye"
@@ -319,7 +318,7 @@ export function ExperienciaArbol({
                       txt?.aire ??
                       "Los contaminantes que mis hojas ayudan a retener."
                     }
-                    etiqueta={txt ? "Contenido en revisión" : undefined}
+                    etiqueta={txt ? null : undefined}
                   />
                   <Beneficio
                     icono="layers"
@@ -328,7 +327,7 @@ export function ExperienciaArbol({
                       txt?.agua ??
                       "La lluvia que retengo y que no escurre por la calle."
                     }
-                    etiqueta={txt ? "Contenido en revisión" : undefined}
+                    etiqueta={txt ? null : undefined}
                   />
                 </div>
                 <p className="vvc-note">
@@ -383,7 +382,6 @@ export function ExperienciaArbol({
                     icono="clock"
                     titulo="Mi historia"
                     texto={tmp.historia}
-                    temporal
                   />
                 ) : (
                   <Proximamente
@@ -531,22 +529,17 @@ function Proximamente({
   );
 }
 
-/**
- * Texto ciudadano de la especie (contenidoEspecie.ts): «Contenido en
- * revisión» o, si es relleno de demostración, «Información temporal».
- */
+/** Texto ciudadano de la especie (contenidoEspecie.ts). */
 function Texto({
   icono,
   titulo,
   texto,
   imagen = null,
-  temporal = false,
 }: {
   icono: IconName;
   titulo: string;
   texto: string;
   imagen?: string | null;
-  temporal?: boolean;
 }) {
   return (
     <div className="vvc-soon vvc-soon--texto">
@@ -558,9 +551,6 @@ function Texto({
         <p>{texto}</p>
         {imagen && <img className="vvc-soon__img" src={imagen} alt={titulo} />}
       </div>
-      <span className="vvc-soon__tag">
-        {temporal ? "Información temporal" : "Contenido en revisión"}
-      </span>
     </div>
   );
 }
@@ -574,7 +564,8 @@ function Beneficio({
   icono: IconName;
   titulo: string;
   texto: string;
-  etiqueta?: string;
+  /** null = sin rótulo. */
+  etiqueta?: string | null;
 }) {
   return (
     <div className="vvc-benefit">
@@ -583,7 +574,7 @@ function Beneficio({
       </span>
       <strong>{titulo}</strong>
       <p>{texto}</p>
-      <span className="vvc-soon__tag">{etiqueta}</span>
+      {etiqueta && <span className="vvc-soon__tag">{etiqueta}</span>}
     </div>
   );
 }

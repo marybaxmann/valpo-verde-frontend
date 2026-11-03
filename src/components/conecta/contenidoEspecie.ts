@@ -2,8 +2,9 @@
  * Textos ciudadanos por especie para la ficha pública (pedido de la
  * responsable, 2026-11-03: «solo como front», contenido de divulgación
  * para la presentación). Fuente: SIVU_Contenido_Horizontal_Acer_negundo.xlsx,
- * estado «BORRADOR — REQUIERE REVISIÓN»; la ficha lo rotula «Contenido en
- * revisión». No es dato metodológico ni de inventario: no reemplaza un
+ * estado «BORRADOR — REQUIERE REVISIÓN». La ficha no lo rotula en pantalla
+ * (pedido de la responsable, 2026-11-03: frontend limpio, estado documentado
+ * aquí y en git). No es dato metodológico ni de inventario: no reemplaza un
  * valor que entregue la API (catálogo de especies), solo cubre su ausencia.
  * Provisional hasta que el contenido por especie exista en el backend.
  */
@@ -24,8 +25,7 @@ export interface ContenidoEspecie {
   /**
    * Relleno temporal para la demostración (pedido de la responsable,
    * 2026-11-03), redactado con información general de la especie; no es
-   * oficial ni medido en el ejemplar. La ficha lo rotula «Información
-   * temporal».
+   * oficial ni medido en el ejemplar; tampoco se rotula en pantalla.
    */
   temporal?: {
     fotos: string;
