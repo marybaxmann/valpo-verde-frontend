@@ -401,6 +401,19 @@
   font-weight: 600;
 }
 
+/* Texto ciudadano de la especie (en revisión) */
+.vvc-soon--texto {
+  border-style: solid;
+  border-color: rgba(176, 140, 60, 0.22);
+  background: var(--vvc-card);
+}
+
+.vvc-soon--texto p {
+  font-size: 14px;
+  line-height: 1.5;
+  color: inherit;
+}
+
 /* Beneficios */
 .vvc-benefits {
   display: grid;

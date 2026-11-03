@@ -8,6 +8,7 @@ import hojaChicaB from "../../assets/loader/hoja-chica-b.webp";
 import { ReporteCiudadano } from "./ReporteCiudadano";
 import { SeguimientoReporte } from "./SeguimientoReporte";
 import { fotoDeEspecie } from "./fotosEspecie";
+import { contenidoDeEspecie } from "./contenidoEspecie";
 
 /**
  * Valpo Verde Conecta: la identidad digital de un árbol para quien escanea
@@ -23,6 +24,9 @@ import { fotoDeEspecie } from "./fotosEspecie";
  * - Lo que CC-062 aún no autoriza o no tiene fuente (fotos, altura, edad,
  *   contenido por especie, beneficios, historia) se muestra como
  *   «Próximamente», sin valores: no se inventan datos.
+ * - Textos ciudadanos por especie (contenidoEspecie.ts): solo de
+ *   divulgación, rotulados «Contenido en revisión»; un valor de la API
+ *   siempre tiene prioridad sobre ellos.
  */
 
 type Seccion = "quien" | "aporto" | "vida" | "cuidarme";
@@ -77,8 +81,14 @@ export function ExperienciaArbol({
   const [reportando, setReportando] = useState(false);
   const [consultando, setConsultando] = useState(false);
   const esp = ficha.sobre_la_especie;
+  const txt = contenidoDeEspecie(ficha.especie_cientifica);
+  const nombreComun = ficha.nombre_comun ?? txt?.nombreComun ?? null;
   const nombre =
-    ficha.nombre_comun ?? ficha.especie_cientifica ?? "Árbol de Valparaíso";
+    nombreComun ?? ficha.especie_cientifica ?? "Árbol de Valparaíso";
+  const origenApi =
+    esp?.origen_biogeografico?.codigo === "no_determinado"
+      ? null
+      : (esp?.origen_biogeografico?.etiqueta ?? null);
 
   const foto = fotoDeEspecie(ficha.especie_cientifica);
 
@@ -124,7 +134,7 @@ export function ExperienciaArbol({
         )}
 
         <h1 className="vvc-hero__name">¡Hola, soy {nombre}!</h1>
-        {ficha.especie_cientifica && ficha.nombre_comun && (
+        {ficha.especie_cientifica && nombreComun && (
           <p className="vvc-hero__sci">{ficha.especie_cientifica}</p>
         )}
         {ficha.ubicacion_descriptiva && (
@@ -193,7 +203,7 @@ export function ExperienciaArbol({
                   <Dato
                     ambito="arbol"
                     etiqueta="Nombre común"
-                    valor={ficha.nombre_comun}
+                    valor={nombreComun}
                   />
                   <Dato
                     ambito="arbol"
@@ -204,18 +214,23 @@ export function ExperienciaArbol({
                   <Dato
                     ambito="especie"
                     etiqueta="Género"
-                    valor={esp?.genero ?? null}
+                    valor={esp?.genero ?? txt?.genero ?? null}
                     cursiva
                   />
                   <Dato
                     ambito="especie"
                     etiqueta="Familia"
-                    valor={esp?.familia ?? null}
+                    valor={esp?.familia ?? txt?.familia ?? null}
                   />
                   <Dato
                     ambito="especie"
                     etiqueta="Origen"
-                    valor={esp?.origen_biogeografico?.etiqueta ?? null}
+                    valor={
+                      origenApi ??
+                      txt?.origen ??
+                      esp?.origen_biogeografico?.etiqueta ??
+                      null
+                    }
                     ancho
                   />
                 </div>
@@ -229,11 +244,19 @@ export function ExperienciaArbol({
                   titulo="Mi edad y mi altura"
                   texto="Datos de este árbol que se mostrarán cuando su publicación esté definida."
                 />
-                <Proximamente
-                  icono="sparkle"
-                  titulo="Curiosidades de mi especie"
-                  texto="Contenido sobre la especie, preparado y revisado por el equipo de SIVU."
-                />
+                {txt ? (
+                  <Texto
+                    icono="sparkle"
+                    titulo="Curiosidades de mi especie"
+                    texto={txt.curiosidades}
+                  />
+                ) : (
+                  <Proximamente
+                    icono="sparkle"
+                    titulo="Curiosidades de mi especie"
+                    texto="Contenido sobre la especie, preparado y revisado por el equipo de SIVU."
+                  />
+                )}
               </Bloque>
             )}
 
@@ -243,6 +266,13 @@ export function ExperienciaArbol({
                 titulo="¿Qué aporto a Valparaíso?"
                 bajada="Lo que hago por la ciudad, explicado en simple."
               >
+                {txt && (
+                  <Texto
+                    icono="sun"
+                    titulo="Mis beneficios"
+                    texto={txt.beneficios}
+                  />
+                )}
                 <div className="vvc-benefits">
                   <Beneficio
                     icono="sun"
@@ -257,12 +287,18 @@ export function ExperienciaArbol({
                   <Beneficio
                     icono="eye"
                     titulo="Aire"
-                    texto="Los contaminantes que mis hojas ayudan a retener."
+                    texto={
+                      txt?.aire ??
+                      "Los contaminantes que mis hojas ayudan a retener."
+                    }
                   />
                   <Beneficio
                     icono="layers"
                     titulo="Agua"
-                    texto="La lluvia que retengo y que no escurre por la calle."
+                    texto={
+                      txt?.agua ??
+                      "La lluvia que retengo y que no escurre por la calle."
+                    }
                   />
                 </div>
                 <p className="vvc-note">
@@ -279,23 +315,39 @@ export function ExperienciaArbol({
                 titulo="¿Cómo es mi vida?"
                 bajada="Cómo cambio con las estaciones y lo que he vivido."
               >
-                <div className="vvc-grid">
-                  <Dato
-                    ambito="especie"
-                    etiqueta="Mi follaje"
-                    valor={esp?.persistencia_follaje?.etiqueta ?? null}
+                {(!txt || esp?.persistencia_follaje || esp?.tipo_hoja) && (
+                  <div className="vvc-grid">
+                    <Dato
+                      ambito="especie"
+                      etiqueta="Mi follaje"
+                      valor={esp?.persistencia_follaje?.etiqueta ?? null}
+                    />
+                    <Dato
+                      ambito="especie"
+                      etiqueta="Mis hojas"
+                      valor={esp?.tipo_hoja?.etiqueta ?? null}
+                    />
+                  </div>
+                )}
+                {txt && (
+                  <>
+                    <Texto
+                      icono="leaf"
+                      titulo="Mi follaje"
+                      texto={txt.follaje}
+                    />
+                    <Texto icono="leaf" titulo="Mis hojas" texto={txt.hojas} />
+                  </>
+                )}
+                {txt ? (
+                  <Texto icono="calendar" titulo="Mi año" texto={txt.miAno} />
+                ) : (
+                  <Proximamente
+                    icono="calendar"
+                    titulo="Mi año"
+                    texto="Cuándo florezco, cuándo cambian mis hojas y qué pasa conmigo en cada estación."
                   />
-                  <Dato
-                    ambito="especie"
-                    etiqueta="Mis hojas"
-                    valor={esp?.tipo_hoja?.etiqueta ?? null}
-                  />
-                </div>
-                <Proximamente
-                  icono="calendar"
-                  titulo="Mi año"
-                  texto="Cuándo florezco, cuándo cambian mis hojas y qué pasa conmigo en cada estación."
-                />
+                )}
                 <Proximamente
                   icono="clock"
                   titulo="Mi historia"
@@ -310,11 +362,26 @@ export function ExperienciaArbol({
                 titulo="¿Cómo puedes cuidarme?"
                 bajada="Pequeños gestos que me ayudan a vivir mejor."
               >
-                <Proximamente
-                  icono="leaf"
-                  titulo="Consejos de cuidado"
-                  texto="Recomendaciones simples para cuidarme en la vereda y en la plaza."
-                />
+                {txt ? (
+                  <>
+                    <Texto
+                      icono="user"
+                      titulo="¿Cómo puedes cuidarme?"
+                      texto={txt.comoCuidarme}
+                    />
+                    <Texto
+                      icono="leaf"
+                      titulo="Consejos de cuidado"
+                      texto={txt.consejos}
+                    />
+                  </>
+                ) : (
+                  <Proximamente
+                    icono="leaf"
+                    titulo="Consejos de cuidado"
+                    texto="Recomendaciones simples para cuidarme en la vereda y en la plaza."
+                  />
+                )}
                 <ReportarCard onReportar={() => setReportando(true)} />
               </Bloque>
             )}
@@ -421,6 +488,30 @@ function Proximamente({
         <p>{texto}</p>
       </div>
       <span className="vvc-soon__tag">Próximamente</span>
+    </div>
+  );
+}
+
+/** Texto ciudadano de la especie (contenidoEspecie.ts), aún en revisión. */
+function Texto({
+  icono,
+  titulo,
+  texto,
+}: {
+  icono: IconName;
+  titulo: string;
+  texto: string;
+}) {
+  return (
+    <div className="vvc-soon vvc-soon--texto">
+      <span className="vvc-soon__icon">
+        <Icon name={icono} size={18} />
+      </span>
+      <div>
+        <strong>{titulo}</strong>
+        <p>{texto}</p>
+      </div>
+      <span className="vvc-soon__tag">Contenido en revisión</span>
     </div>
   );
 }
