@@ -1,9 +1,10 @@
 import lagerstroemiaIndica from "../../assets/especies/lagerstroemia-indica.webp";
 import acerNegundo from "../../assets/especies/acer-negundo.webp";
 import acerPseudoplatanus from "../../assets/especies/acer-pseudoplatanus.webp";
-// Fotografía entregada por la responsable (2026-11-11), tomada en Plaza
-// Victoria; se usa igual que las demás, como foto de la especie.
+// Fotografías entregadas por la responsable (2026-11-11), tomadas en Plaza
+// Victoria; se usan igual que las demás, como foto de la especie.
 import araucariaAngustifolia from "../../assets/especies/araucaria-angustifolia.webp";
+import ginkgoBiloba from "../../assets/especies/ginkgo-biloba.webp";
 
 /**
  * Foto referencial por especie para la portada de la ficha pública
@@ -16,6 +17,7 @@ const FOTOS: Record<string, string> = {
   "acer negundo": acerNegundo,
   "acer pseudoplatanus": acerPseudoplatanus,
   "araucaria angustifolia": araucariaAngustifolia,
+  "ginkgo biloba": ginkgoBiloba,
 };
 
 export function fotoDeEspecie(especieCientifica: string | null): string | null {
