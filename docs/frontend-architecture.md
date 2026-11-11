@@ -314,6 +314,12 @@ email, nunca hardcodeado.
 - En pantalla no lleva rótulo de estado. Aplica a todos los árboles de *Acer negundo* (A-000421, 422, 424, 425). Un valor de la API siempre tiene prioridad. Sin cambios de backend, base ni evaluación; «Reportar un problema» sigue igual.
 - **Pendiente:** revisar y aprobar el contenido, y moverlo al backend cuando exista el contenido por especie; quitar el bloque `temporal` cuando haya datos reales.
 
+### Fase 7 · Fichas ciudadanas de Olmo, Araucaria brasileña y Ginkgo
+**Fecha:** 2026-11-11. Pedido de la responsable, para los 43 árboles de Plaza Victoria cargados ese día (A-000474 a A-000516).
+- `contenidoEspecie.ts`: textos de *Ulmus minor*, *Araucaria angustifolia* y *Ginkgo biloba* entregados por la responsable, con los mismos campos que *Acer negundo* y el mismo estado **BORRADOR — REQUIERE REVISIÓN**. Sin bloque `temporal`: edad, altura, fotos del ejemplar e historial quedan «próximamente».
+- `fotosEspecie.ts`: portada de Araucaria (A-000504) y Ginkgo (A-000505) con fotos de esos ejemplares tomadas por la responsable en Plaza Victoria; Olmo con una foto **genérica de la especie, de terceros** (marca de agua «Serbal»), común a los 36 olmos.
+- **Pendiente:** una foto por cada individuo (hoy la foto es por especie; requiere la foto por árbol en el backend, propuesta D6); confirmar el permiso de uso de la foto genérica del Olmo.
+
 ## 5. Limitaciones conocidas
 
 - **No existe ningún endpoint para listar usuarios municipales disponibles** (`GET /api/users` o equivalente no existe en el backend — confirmado contra `valpo-verde-backend/src/routes/index.ts`, que solo monta `/auth` y `/projects`). Por eso, "Agregar miembro" en F7 pide el `user_id` (UUID) directamente en un campo de texto — es una **interfaz provisional**: cuando ese endpoint exista, se reemplaza por un selector real de usuarios.

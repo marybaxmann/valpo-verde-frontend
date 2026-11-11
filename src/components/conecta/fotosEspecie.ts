@@ -5,6 +5,11 @@ import acerPseudoplatanus from "../../assets/especies/acer-pseudoplatanus.webp";
 // Victoria; se usan igual que las demás, como foto de la especie.
 import araucariaAngustifolia from "../../assets/especies/araucaria-angustifolia.webp";
 import ginkgoBiloba from "../../assets/especies/ginkgo-biloba.webp";
+// Ulmus minor: foto genérica de la especie entregada por la responsable
+// (2026-11-11) para todos los olmos de Plaza Victoria. Imagen de terceros
+// (marca de agua «Serbal»), no de un ejemplar de Valparaíso.
+// PENDIENTE (pedido de la responsable): una foto por cada individuo.
+import ulmusMinor from "../../assets/especies/ulmus-minor.webp";
 
 /**
  * Foto referencial por especie para la portada de la ficha pública
@@ -18,6 +23,7 @@ const FOTOS: Record<string, string> = {
   "acer pseudoplatanus": acerPseudoplatanus,
   "araucaria angustifolia": araucariaAngustifolia,
   "ginkgo biloba": ginkgoBiloba,
+  "ulmus minor": ulmusMinor,
 };
 
 export function fotoDeEspecie(especieCientifica: string | null): string | null {
