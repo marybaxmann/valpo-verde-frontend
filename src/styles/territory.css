@@ -1038,21 +1038,23 @@
 
 .sivu-placas__preview {
   display: grid;
-  gap: 14px;
+  gap: 10px;
   position: sticky;
   top: 90px;
+  max-height: calc(100vh - 110px);
+  overflow-y: auto;
 }
 
 .sivu-placas__phead {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
   gap: 10px;
 }
 
 .sivu-placas__phead h2 {
-  margin: 2px 0 0;
-  font-size: 18px;
+  margin: 0;
+  font-size: 15px;
 }
 
 .sivu-placas__eyebrow {
@@ -1061,40 +1063,30 @@
   color: var(--text-muted);
 }
 
+/* Placa en horizontal: QR a la izquierda y datos a la derecha. */
 .sivu-placa {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  gap: 4px;
-  padding: 18px 20px 14px;
-  border-radius: 18px;
+  gap: 14px;
+  padding: 12px;
+  border-radius: 16px;
   background: linear-gradient(160deg, #4f6b3c, #3d5a2e);
   color: #fff;
-  text-align: center;
-}
-
-.sivu-placa__brand {
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  opacity: 0.85;
 }
 
 .sivu-placa__qr {
   display: grid;
   place-items: center;
-  gap: 4px;
-  width: 150px;
-  height: 150px;
-  margin: 10px 0 8px;
-  border-radius: 14px;
+  flex: none;
+  width: 136px;
+  height: 136px;
+  border-radius: 10px;
   background: #fff;
   color: #2b3a22;
+  text-align: center;
 }
 
 .sivu-placa__qr--real {
-  padding: 0;
   overflow: hidden;
 }
 
@@ -1105,50 +1097,87 @@
   image-rendering: pixelated;
 }
 
+/* Mientras el backend genera el QR: un cuadro neutro, sin ícono de relleno. */
+.sivu-placa__qr--cargando {
+  background: linear-gradient(100deg, #f1f3ee 30%, #ffffff 50%, #f1f3ee 70%) 0 0 / 300% 100%;
+  animation: sivu-placa-cargando 1.2s linear infinite;
+}
+
+@keyframes sivu-placa-cargando {
+  to {
+    background-position: -150% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sivu-placa__qr--cargando {
+    animation: none;
+  }
+}
+
 .sivu-placa__qr small {
-  max-width: 12ch;
+  max-width: 14ch;
   font-size: 10.5px;
   line-height: 1.25;
   color: #6b7563;
 }
 
+.sivu-placa__info {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.sivu-placa__brand {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  opacity: 0.85;
+}
+
 .sivu-placa__name {
-  font-size: 18px;
+  margin-top: 4px;
+  font-size: 16px;
+  line-height: 1.2;
 }
 
 .sivu-placa__sci {
-  font-size: 13px;
+  font-size: 12.5px;
   opacity: 0.85;
 }
 
 .sivu-placa__code {
-  margin-top: 8px;
+  margin-top: 6px;
   font-family: var(--font-mono);
   font-size: 11px;
   opacity: 0.75;
 }
 
 .sivu-placas__meta {
-  display: grid;
-  gap: 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .sivu-placas__meta > div {
   display: grid;
-  gap: 2px;
-  padding: 10px 12px;
-  border-radius: 12px;
+  flex: 1;
+  min-width: 0;
+  gap: 1px;
+  padding: 7px 10px;
+  border-radius: 10px;
   background: var(--surface-subtle);
 }
 
 .sivu-placas__meta span {
-  font-size: 11.5px;
+  font-size: 11px;
   color: var(--text-muted);
 }
 
 .sivu-placas__meta code {
   font-family: var(--font-mono);
-  font-size: 12px;
+  font-size: 11.5px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -1156,36 +1185,33 @@
 
 .sivu-placas__3d {
   display: grid;
-  gap: 10px;
-  padding: 12px;
+  gap: 8px;
+  padding: 10px;
   border: 1px solid var(--border);
   border-radius: 12px;
 }
 
-.sivu-placas__3d p {
-  margin: 4px 0 0;
-  font-size: 12.5px;
-  line-height: 1.4;
-  color: var(--text-muted);
+.sivu-placas__3d .sivu-placas__eyebrow {
+  cursor: help;
 }
 
 .sivu-placas__medidas {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 8px;
+  gap: 6px;
 }
 
 .sivu-placas__medidas label {
   display: grid;
-  gap: 3px;
-  font-size: 11.5px;
+  gap: 2px;
+  font-size: 11px;
   color: var(--text-muted);
 }
 
 .sivu-placas__medidas input {
   width: 100%;
   min-width: 0;
-  padding: 6px 8px;
+  padding: 4px 8px;
   border: 1px solid var(--border);
   border-radius: 8px;
   font: inherit;
@@ -1195,16 +1221,23 @@
 }
 
 .sivu-placas__botones {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 6px;
+}
+
+.sivu-placas__botones .btn {
+  justify-content: center;
+  padding: 6px 8px;
+  font-size: 12.5px;
+  white-space: nowrap;
 }
 
 .sivu-placas__open {
   display: inline-flex;
   align-items: center;
+  flex: none;
   gap: 6px;
-  justify-self: start;
   padding: 7px 12px;
   border: 1px solid var(--border);
   border-radius: var(--radius-pill);
@@ -1220,6 +1253,8 @@
 
   .sivu-placas__preview {
     position: static;
+    max-height: none;
+    overflow: visible;
   }
 }
 

@@ -17,6 +17,12 @@ import { Icon } from "../Icons";
  * descargar en SVG o STL para modelarlo o imprimirlo en 3D.
  */
 
+/**
+ * QR ya generados en esta sesión (id del árbol → URL del SVG): al volver a
+ * un árbol la vista previa aparece al tiro, sin pedirlo de nuevo.
+ */
+const qrCache = new Map<string, string>();
+
 function guardar(blob: Blob, nombre: string) {
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
@@ -46,24 +52,25 @@ export function PlacasQr({ projectId, arboles, municipal }: { projectId: string;
   // Vista previa: el SVG real del árbol elegido (solo Usuario municipal y
   // árbol activo; para los demás el backend no entrega el QR).
   const conQr = municipal && !!arbol?.qr_token && arbol.estado_ciclo_vida === "activo";
-  const [svgUrl, setSvgUrl] = useState<string | null>(null);
+  // El SVG se lee del caché en cada render: así nunca se ve, ni por un
+  // instante, el QR de otro árbol. `setCargados` solo fuerza el render
+  // cuando llega uno nuevo.
+  const [, setCargados] = useState(0);
   const [errorQr, setErrorQr] = useState<string | null>(null);
+  const svgUrl = conQr && arbol ? (qrCache.get(arbol.id) ?? null) : null;
   useEffect(() => {
-    setSvgUrl(null);
     setErrorQr(null);
-    if (!conQr || !arbol) return;
+    if (!conQr || !arbol || qrCache.has(arbol.id)) return;
     let vigente = true;
-    let url: string | null = null;
-    descargarQrArbol(projectId, arbol.id, { formato: "svg" })
+    const id = arbol.id;
+    descargarQrArbol(projectId, id, { formato: "svg" })
       .then((blob) => {
-        if (!vigente) return;
-        url = URL.createObjectURL(blob);
-        setSvgUrl(url);
+        qrCache.set(id, URL.createObjectURL(blob));
+        if (vigente) setCargados((n) => n + 1);
       })
       .catch((err: unknown) => vigente && setErrorQr(err instanceof Error ? err.message : "No se pudo generar el QR."));
     return () => {
       vigente = false;
-      if (url) URL.revokeObjectURL(url);
     };
   }, [projectId, arbol?.id, conQr]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -155,20 +162,23 @@ export function PlacasQr({ projectId, arboles, municipal }: { projectId: string;
           </div>
 
           <div className="sivu-placa">
-            <span className="sivu-placa__brand">Valpo Verde Conecta</span>
             {svgUrl ? (
               <div className="sivu-placa__qr sivu-placa__qr--real">
                 <img src={svgUrl} alt={`Código QR de ${arbol.tree_code}`} />
               </div>
+            ) : conQr && !errorQr ? (
+              <div className="sivu-placa__qr sivu-placa__qr--cargando" role="status" aria-label="Generando el código QR" />
             ) : (
               <div className="sivu-placa__qr" aria-hidden="true">
-                <Icon name="qr" size={54} />
-                <small>{conQr ? "Generando el código…" : "El código se imprime en el PDF"}</small>
+                <small>{municipal ? "Sin placa: el árbol no está activo" : "El código se imprime en el PDF"}</small>
               </div>
             )}
-            <strong className="sivu-placa__name">{arbol.nombre_comun ?? arbol.especie_cientifica ?? "Sin especie"}</strong>
-            {arbol.nombre_comun && arbol.especie_cientifica && <em className="sivu-placa__sci">{arbol.especie_cientifica}</em>}
-            <span className="sivu-placa__code">{arbol.tree_code}</span>
+            <div className="sivu-placa__info">
+              <span className="sivu-placa__brand">Valpo Verde Conecta</span>
+              <strong className="sivu-placa__name">{arbol.nombre_comun ?? arbol.especie_cientifica ?? "Sin especie"}</strong>
+              {arbol.nombre_comun && arbol.especie_cientifica && <em className="sivu-placa__sci">{arbol.especie_cientifica}</em>}
+              <span className="sivu-placa__code">{arbol.tree_code}</span>
+            </div>
           </div>
 
           {arbol.estado_ciclo_vida !== "activo" && (
@@ -183,36 +193,35 @@ export function PlacasQr({ projectId, arboles, municipal }: { projectId: string;
 
           {conQr && (
             <div className="sivu-placas__3d">
-              <div>
-                <span className="sivu-placas__eyebrow">Archivos para 3D</span>
-                <p>
-                  Módulos cuadrados sobre una grilla regular, con 4 módulos de margen blanco. El SVG trae la placa y los módulos
-                  como piezas separadas; el STL es la placa lista para imprimir.
-                </p>
-              </div>
+              <span
+                className="sivu-placas__eyebrow"
+                title="Módulos cuadrados sobre una grilla regular, con 4 módulos de margen blanco. El SVG trae la placa y los módulos como piezas separadas; el STL es la placa lista para imprimir."
+              >
+                Archivos para 3D · medidas en mm
+              </span>
               <div className="sivu-placas__medidas">
                 <label>
-                  Lado (mm)
+                  Lado
                   <input type="number" min={20} max={300} step={1} value={lado} onChange={(e) => setLado(Number(e.target.value))} />
                 </label>
                 <label>
-                  Base (mm)
+                  Base
                   <input type="number" min={0.6} max={10} step={0.2} value={base} onChange={(e) => setBase(Number(e.target.value))} />
                 </label>
                 <label>
-                  Relieve (mm)
+                  Relieve
                   <input type="number" min={0.4} max={10} step={0.2} value={relieve} onChange={(e) => setRelieve(Number(e.target.value))} />
                 </label>
               </div>
               <div className="sivu-placas__botones">
                 <button type="button" className="btn btn-secondary" disabled={!!bajando3d} onClick={() => descargar3d("svg", { formato: "svg" })}>
-                  <Icon name="download" size={14} /> {bajando3d === "svg" ? "Descargando…" : "SVG"}
+                  <Icon name="download" size={13} /> {bajando3d === "svg" ? "…" : "SVG"}
                 </button>
                 <button type="button" className="btn btn-secondary" disabled={!!bajando3d} onClick={() => descargar3d("relieve", { formato: "stl", modo: "relieve" })}>
-                  <Icon name="download" size={14} /> {bajando3d === "relieve" ? "Descargando…" : "STL en relieve"}
+                  <Icon name="download" size={13} /> {bajando3d === "relieve" ? "…" : "STL relieve"}
                 </button>
                 <button type="button" className="btn btn-secondary" disabled={!!bajando3d} onClick={() => descargar3d("grabado", { formato: "stl", modo: "grabado" })}>
-                  <Icon name="download" size={14} /> {bajando3d === "grabado" ? "Descargando…" : "STL grabado"}
+                  <Icon name="download" size={13} /> {bajando3d === "grabado" ? "…" : "STL grabado"}
                 </button>
               </div>
             </div>
@@ -224,8 +233,8 @@ export function PlacasQr({ projectId, arboles, municipal }: { projectId: string;
                 <span>Código de la placa</span>
                 <code title={arbol.qr_token}>{arbol.qr_token}</code>
               </div>
-              <Link className="sivu-placas__open" to={`/arbol/${arbol.qr_token}`} target="_blank" rel="noopener">
-                <Icon name="eye" size={14} /> Abrir su ficha pública
+              <Link className="sivu-placas__open" to={`/arbol/${arbol.qr_token}`} target="_blank" rel="noopener" title="Abrir su ficha pública">
+                <Icon name="eye" size={14} /> Ficha pública
               </Link>
             </div>
           ) : (
