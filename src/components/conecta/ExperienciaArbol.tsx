@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { FichaPublica } from "../../types/fichaPublica";
 import { Icon } from "../Icons";
 import { SivuLogo } from "../SivuLogo";
@@ -55,6 +55,13 @@ const TRAZO: Record<IconoAporte | "globo" | "libro" | "corazon" | "pina" | "relo
   lupa: "M11 18a7 7 0 1 0 0-14 7 7 0 0 0 0 14Z M20 20l-3.5-3.5",
 };
 
+/** Foto abierta en el visor a pantalla completa. */
+interface FotoVisor {
+  src: string;
+  alt: string;
+  pie: string;
+}
+
 function Trazo({ d, size = 18 }: { d: string; size?: number }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -81,6 +88,7 @@ export function ExperienciaArbol({
 }) {
   const [reportando, setReportando] = useState(false);
   const [consultando, setConsultando] = useState(false);
+  const [visor, setVisor] = useState<FotoVisor | null>(null);
   const txt = contenidoDeEspecie(ficha.especie_cientifica);
   // Sin especie identificada (p. ej. «Sin identificar» en el inventario) no se usa ese rótulo como nombre.
   const sinEspecie = !txt && !ficha.especie_cientifica;
@@ -99,7 +107,17 @@ export function ExperienciaArbol({
       <main className="vvc-home">
         {foto ? (
           <figure className="vvc-photo-hero vvc-photo-hero--foto">
-            <img className="vvc-photo-hero__img" src={foto} alt={`Foto referencial de ${nombre}`} />
+            <button
+              type="button"
+              className="vvc-foto-btn"
+              aria-label={`Ver en grande la foto referencial de ${nombre}`}
+              onClick={() => setVisor({ src: foto, alt: `Foto referencial de ${nombre}`, pie: `${nombre} · Foto referencial de la especie` })}
+            >
+              <img className="vvc-photo-hero__img" src={foto} alt={`Foto referencial de ${nombre}`} />
+              <span className="vvc-foto-btn__ampliar" aria-hidden="true">
+                <Icon name="expand" size={15} />
+              </span>
+            </button>
             <figcaption className="vvc-photo-hero__chip">
               <Icon name="camera" size={13} /> Foto referencial de la especie
             </figcaption>
@@ -148,7 +166,7 @@ export function ExperienciaArbol({
               ))}
             </div>
 
-            <ConoceMas txt={txt} />
+            <ConoceMas txt={txt} onVer={setVisor} />
           </>
         ) : (
           <p className="vvc-intro">Soy parte del arbolado urbano de Valparaíso. Si ves algo raro en mí, avísale al municipio.</p>
@@ -178,12 +196,14 @@ export function ExperienciaArbol({
       )}
 
       {consultando && <SeguimientoReporte vistaPrevia={vistaPrevia} onCerrar={() => setConsultando(false)} />}
+
+      {visor && <VisorFoto foto={visor} onCerrar={() => setVisor(null)} />}
     </div>
   );
 }
 
 /** «Conoce más sobre mí»: un solo desplegable con mini tarjetas. */
-function ConoceMas({ txt }: { txt: FichaEspecie }) {
+function ConoceMas({ txt, onVer }: { txt: FichaEspecie; onVer: (f: FotoVisor) => void }) {
   const [rasgo, setRasgo] = useState(0);
   const [estacion, setEstacion] = useState<Estacion>(AHORA);
   const [paso, setPaso] = useState(0);
@@ -201,7 +221,17 @@ function ConoceMas({ txt }: { txt: FichaEspecie }) {
               <Trazo d={TRAZO.lupa} size={12} /> Reconóceme
             </span>
             {r.foto ? (
-              <img src={r.foto} alt={r.etiqueta} />
+              <button
+                type="button"
+                className="vvc-foto-btn"
+                aria-label={`Ver en grande: ${r.etiqueta}`}
+                onClick={() => onVer({ src: r.foto as string, alt: r.etiqueta, pie: `${txt.nombreComun} · ${r.etiqueta}` })}
+              >
+                <img src={r.foto} alt={r.etiqueta} />
+                <span className="vvc-foto-btn__ampliar" aria-hidden="true">
+                  <Icon name="expand" size={14} />
+                </span>
+              </button>
             ) : (
               <span className="vvc-reco__vacio">
                 <Icon name="camera" size={22} /> Foto próximamente
@@ -283,5 +313,39 @@ function ConoceMas({ txt }: { txt: FichaEspecie }) {
         </section>
       </div>
     </details>
+  );
+}
+
+/**
+ * Visor a pantalla completa: la foto se ve entera (sin recorte) sobre fondo
+ * oscuro. Se cierra con el botón, tocando fuera de la foto o con Escape; el
+ * gesto de pellizcar del teléfono sigue funcionando para acercar.
+ */
+function VisorFoto({ foto, onCerrar }: { foto: FotoVisor; onCerrar: () => void }) {
+  const cerrar = useRef<HTMLButtonElement>(null);
+  useEffect(() => {
+    const previo = document.activeElement as HTMLElement | null;
+    cerrar.current?.focus();
+    const overflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const tecla = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onCerrar();
+    };
+    window.addEventListener("keydown", tecla);
+    return () => {
+      window.removeEventListener("keydown", tecla);
+      document.body.style.overflow = overflow;
+      previo?.focus();
+    };
+  }, [onCerrar]);
+
+  return (
+    <div className="vvc-visor" role="dialog" aria-modal="true" aria-label={foto.alt} onClick={onCerrar}>
+      <button ref={cerrar} type="button" className="vvc-visor__cerrar" onClick={onCerrar} aria-label="Cerrar foto">
+        <Icon name="close" size={20} />
+      </button>
+      <img className="vvc-visor__img" src={foto.src} alt={foto.alt} onClick={(e) => e.stopPropagation()} />
+      <p className="vvc-visor__pie">{foto.pie}</p>
+    </div>
   );
 }
