@@ -1093,6 +1093,18 @@
   color: #2b3a22;
 }
 
+.sivu-placa__qr--real {
+  padding: 0;
+  overflow: hidden;
+}
+
+.sivu-placa__qr--real img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  image-rendering: pixelated;
+}
+
 .sivu-placa__qr small {
   max-width: 12ch;
   font-size: 10.5px;
@@ -1140,6 +1152,52 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.sivu-placas__3d {
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+
+.sivu-placas__3d p {
+  margin: 4px 0 0;
+  font-size: 12.5px;
+  line-height: 1.4;
+  color: var(--text-muted);
+}
+
+.sivu-placas__medidas {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.sivu-placas__medidas label {
+  display: grid;
+  gap: 3px;
+  font-size: 11.5px;
+  color: var(--text-muted);
+}
+
+.sivu-placas__medidas input {
+  width: 100%;
+  min-width: 0;
+  padding: 6px 8px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font: inherit;
+  font-size: 13px;
+  color: var(--text);
+  background: var(--surface, #fff);
+}
+
+.sivu-placas__botones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
 }
 
 .sivu-placas__open {

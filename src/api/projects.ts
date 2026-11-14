@@ -71,3 +71,22 @@ export function previewSector(archivo: Omit<GeometriaSectorArchivo, "indicesSele
 export function descargarPlacasQr(projectId: string): Promise<Blob> {
   return api.blob(`/api/sivu/projects/${encodeURIComponent(projectId)}/placas-qr`);
 }
+
+/** Medidas (mm) y forma del QR individual para 3D; ver GET .../trees/:treeId/qr. */
+export interface OpcionesQrArbol {
+  formato: "svg" | "stl";
+  lado_mm?: number;
+  base_mm?: number;
+  relieve_mm?: number;
+  modo?: "relieve" | "grabado";
+}
+
+/**
+ * QR de un árbol en SVG o STL, para modelar o imprimir en 3D (solo Usuario
+ * municipal y árboles activos). Lleva a la misma ficha pública que la placa.
+ */
+export function descargarQrArbol(projectId: string, treeId: string, opciones: OpcionesQrArbol): Promise<Blob> {
+  const q = new URLSearchParams();
+  for (const [k, v] of Object.entries(opciones)) if (v !== undefined) q.set(k, String(v));
+  return api.blob(`/api/sivu/projects/${encodeURIComponent(projectId)}/trees/${encodeURIComponent(treeId)}/qr?${q}`);
+}

@@ -7,6 +7,7 @@ import type { Project } from "../types/project";
 import type { EspecieCatalogo } from "../types/species";
 import { Icon } from "../components/Icons";
 import { PendingNotice } from "../components/PendingNotice";
+import { fotoDeEspecie } from "../components/conecta/fotosEspecie";
 
 /**
  * Catálogo de especies del Inspector (CC-053 puntos 4 y 5): buscar una
@@ -152,7 +153,10 @@ export default function SpeciesCatalogPage() {
                       setAviso(null);
                     }}
                   >
-                    <em>{e.especie_cientifica}</em>
+                    <span className="sivu-species__name">
+                      <FotoEspecie especie={e.especie_cientifica} className="sivu-species__thumb" />
+                      <em>{e.especie_cientifica}</em>
+                    </span>
                     <small>{[e.genero, e.familia].filter(Boolean).join(" · ") || "Ficha sin completar"}</small>
                   </button>
                 </li>
@@ -172,6 +176,22 @@ export default function SpeciesCatalogPage() {
         <SpeciesSheet key={seleccion.id + seleccion.updated_at} especie={seleccion} projectId={projectId} onSaved={actualizada} />
       )}
     </div>
+  );
+}
+
+/**
+ * Foto referencial de la especie (la misma de la ficha pública de Conecta,
+ * `fotosEspecie.ts`). No es una foto de un ejemplar. Sin foto, no muestra nada.
+ */
+function FotoEspecie({ especie, className, conLeyenda = false }: { especie: string; className: string; conLeyenda?: boolean }) {
+  const src = fotoDeEspecie(especie);
+  if (!src) return null;
+  if (!conLeyenda) return <img className={className} src={src} alt="" loading="lazy" />;
+  return (
+    <figure className={className}>
+      <img src={src} alt={`Foto referencial de ${especie}`} loading="lazy" />
+      <figcaption>Foto referencial de la especie</figcaption>
+    </figure>
   );
 }
 
@@ -246,6 +266,8 @@ function SpeciesSheet({
       <h2 id="ficha-especie">
         <em>{especie.especie_cientifica}</em>
       </h2>
+
+      <FotoEspecie especie={especie.especie_cientifica} className="sivu-species__photo" conLeyenda />
 
       <dl className="sivu-species__dl">
         <div>

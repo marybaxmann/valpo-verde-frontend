@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import type { ArbolInventario } from "../../types/inventory";
-import { descargarPlacasQr } from "../../api/projects";
+import { descargarPlacasQr, descargarQrArbol, type OpcionesQrArbol } from "../../api/projects";
 import { Icon } from "../Icons";
 
 /**
@@ -11,9 +11,20 @@ import { Icon } from "../Icons";
  * solo al Usuario municipal) y el ciclo de vida, que decide si el árbol
  * entra al PDF (el backend genera una placa por árbol activo, CC-062).
  * No hay escaneos, reportes por placa ni estado de la placa: esos datos no
- * existen (auditoría de Conecta, decisiones pendientes). El QR impreso solo
- * existe en el PDF, que arma el backend con su dirección pública.
+ * existen (auditoría de Conecta, decisiones pendientes). El QR lo arma
+ * siempre el backend con su dirección pública: la vista previa muestra el
+ * SVG real del árbol (módulos cuadrados, margen de 4 módulos) y se puede
+ * descargar en SVG o STL para modelarlo o imprimirlo en 3D.
  */
+
+function guardar(blob: Blob, nombre: string) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = nombre;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
 export function PlacasQr({ projectId, arboles, municipal }: { projectId: string; arboles: ArbolInventario[]; municipal: boolean }) {
   const [elegido, setElegido] = useState<string>("");
   const [descargando, setDescargando] = useState(false);
@@ -24,17 +35,56 @@ export function PlacasQr({ projectId, arboles, municipal }: { projectId: string;
     setDescargando(true);
     setErrorPdf(null);
     try {
-      const pdf = await descargarPlacasQr(projectId);
-      const url = URL.createObjectURL(pdf);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "placas-qr.pdf";
-      a.click();
-      setTimeout(() => URL.revokeObjectURL(url), 1000);
+      guardar(await descargarPlacasQr(projectId), "placas-qr.pdf");
     } catch (err: unknown) {
       setErrorPdf(err instanceof Error ? err.message : "No se pudo generar el PDF de placas.");
     } finally {
       setDescargando(false);
+    }
+  }
+
+  // Vista previa: el SVG real del árbol elegido (solo Usuario municipal y
+  // árbol activo; para los demás el backend no entrega el QR).
+  const conQr = municipal && !!arbol?.qr_token && arbol.estado_ciclo_vida === "activo";
+  const [svgUrl, setSvgUrl] = useState<string | null>(null);
+  const [errorQr, setErrorQr] = useState<string | null>(null);
+  useEffect(() => {
+    setSvgUrl(null);
+    setErrorQr(null);
+    if (!conQr || !arbol) return;
+    let vigente = true;
+    let url: string | null = null;
+    descargarQrArbol(projectId, arbol.id, { formato: "svg" })
+      .then((blob) => {
+        if (!vigente) return;
+        url = URL.createObjectURL(blob);
+        setSvgUrl(url);
+      })
+      .catch((err: unknown) => vigente && setErrorQr(err instanceof Error ? err.message : "No se pudo generar el QR."));
+    return () => {
+      vigente = false;
+      if (url) URL.revokeObjectURL(url);
+    };
+  }, [projectId, arbol?.id, conQr]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Medidas para 3D (mm). El lado incluye el margen blanco del QR.
+  const [lado, setLado] = useState(80);
+  const [base, setBase] = useState(2);
+  const [relieve, setRelieve] = useState(1);
+  const [bajando3d, setBajando3d] = useState<string | null>(null);
+
+  async function descargar3d(clave: string, opciones: OpcionesQrArbol) {
+    if (!arbol) return;
+    setBajando3d(clave);
+    setErrorQr(null);
+    try {
+      const blob = await descargarQrArbol(projectId, arbol.id, { lado_mm: lado, base_mm: base, relieve_mm: relieve, ...opciones });
+      const sufijo = opciones.formato === "stl" ? `-${opciones.modo}.stl` : ".svg";
+      guardar(blob, `qr-${arbol.tree_code}${sufijo}`);
+    } catch (err: unknown) {
+      setErrorQr(err instanceof Error ? err.message : "No se pudo descargar el QR.");
+    } finally {
+      setBajando3d(null);
     }
   }
 
@@ -106,10 +156,16 @@ export function PlacasQr({ projectId, arboles, municipal }: { projectId: string;
 
           <div className="sivu-placa">
             <span className="sivu-placa__brand">Valpo Verde Conecta</span>
-            <div className="sivu-placa__qr" aria-hidden="true">
-              <Icon name="qr" size={54} />
-              <small>El código se imprime en el PDF</small>
-            </div>
+            {svgUrl ? (
+              <div className="sivu-placa__qr sivu-placa__qr--real">
+                <img src={svgUrl} alt={`Código QR de ${arbol.tree_code}`} />
+              </div>
+            ) : (
+              <div className="sivu-placa__qr" aria-hidden="true">
+                <Icon name="qr" size={54} />
+                <small>{conQr ? "Generando el código…" : "El código se imprime en el PDF"}</small>
+              </div>
+            )}
             <strong className="sivu-placa__name">{arbol.nombre_comun ?? arbol.especie_cientifica ?? "Sin especie"}</strong>
             {arbol.nombre_comun && arbol.especie_cientifica && <em className="sivu-placa__sci">{arbol.especie_cientifica}</em>}
             <span className="sivu-placa__code">{arbol.tree_code}</span>
@@ -117,6 +173,49 @@ export function PlacasQr({ projectId, arboles, municipal }: { projectId: string;
 
           {arbol.estado_ciclo_vida !== "activo" && (
             <p className="sivu-state">Este árbol no está activo: el PDF no le genera placa.</p>
+          )}
+
+          {errorQr && (
+            <p className="sivu-state sivu-state--error" role="alert">
+              <Icon name="alert" size={13} /> {errorQr}
+            </p>
+          )}
+
+          {conQr && (
+            <div className="sivu-placas__3d">
+              <div>
+                <span className="sivu-placas__eyebrow">Archivos para 3D</span>
+                <p>
+                  Módulos cuadrados sobre una grilla regular, con 4 módulos de margen blanco. El SVG trae la placa y los módulos
+                  como piezas separadas; el STL es la placa lista para imprimir.
+                </p>
+              </div>
+              <div className="sivu-placas__medidas">
+                <label>
+                  Lado (mm)
+                  <input type="number" min={20} max={300} step={1} value={lado} onChange={(e) => setLado(Number(e.target.value))} />
+                </label>
+                <label>
+                  Base (mm)
+                  <input type="number" min={0.6} max={10} step={0.2} value={base} onChange={(e) => setBase(Number(e.target.value))} />
+                </label>
+                <label>
+                  Relieve (mm)
+                  <input type="number" min={0.4} max={10} step={0.2} value={relieve} onChange={(e) => setRelieve(Number(e.target.value))} />
+                </label>
+              </div>
+              <div className="sivu-placas__botones">
+                <button type="button" className="btn btn-secondary" disabled={!!bajando3d} onClick={() => descargar3d("svg", { formato: "svg" })}>
+                  <Icon name="download" size={14} /> {bajando3d === "svg" ? "Descargando…" : "SVG"}
+                </button>
+                <button type="button" className="btn btn-secondary" disabled={!!bajando3d} onClick={() => descargar3d("relieve", { formato: "stl", modo: "relieve" })}>
+                  <Icon name="download" size={14} /> {bajando3d === "relieve" ? "Descargando…" : "STL en relieve"}
+                </button>
+                <button type="button" className="btn btn-secondary" disabled={!!bajando3d} onClick={() => descargar3d("grabado", { formato: "stl", modo: "grabado" })}>
+                  <Icon name="download" size={14} /> {bajando3d === "grabado" ? "Descargando…" : "STL grabado"}
+                </button>
+              </div>
+            </div>
           )}
 
           {municipal && arbol.qr_token ? (
