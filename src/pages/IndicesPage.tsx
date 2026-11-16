@@ -148,7 +148,7 @@ export default function IndicesPage() {
               {barrio ? ` · ${barrio}` : ""}
             </span>
           </div>
-          <h1 className="bio-head__title">{vista === "proyecto" ? "La huella verde del proyecto" : "Ficha biométrica del árbol"}</h1>
+          <h1 className="bio-head__title">{vista === "proyecto" ? "Indicadores del proyecto" : "Ficha biométrica del árbol"}</h1>
         </div>
 
         <div className="bio-head__tools">
