@@ -84,7 +84,7 @@ function Regla102030({ datos }: { datos: IndicadoresProyecto["diversidad_taxonom
             </div>
             {n.taxones.length === 0 && <p className="bio-empty bio-empty--small">Sin dato en el catálogo para ningún árbol.</p>}
             <ul>
-              {n.taxones.slice(0, 5).map((t) => (
+              {n.taxones.map((t) => (
                 <li key={t.taxon} className={t.supera_umbral ? "is-over" : ""}>
                   <span className={cursiva ? "bio-regla__taxon bio-regla__taxon--it" : "bio-regla__taxon"}>{t.taxon}</span>
                   <span className="bio-bar" style={{ ["--valor" as string]: `${Math.min(100, t.porcentaje ?? 0)}%`, ["--umbral" as string]: `${n.umbral_porcentaje}%` }}>
@@ -97,7 +97,9 @@ function Regla102030({ datos }: { datos: IndicadoresProyecto["diversidad_taxonom
             </ul>
             {n.sin_dato.arboles > 0 && (
               <p className="bio-regla__sindato">
-                {num(n.sin_dato.arboles)} sin dato de {nombre.toLowerCase()} en el catálogo ({pct(n.sin_dato.porcentaje)})
+                {cursiva
+                  ? `${num(n.sin_dato.arboles)} ${n.sin_dato.arboles === 1 ? "árbol" : "árboles"} sin especie identificada (${pct(n.sin_dato.porcentaje)})`
+                  : `${num(n.sin_dato.arboles)} sin dato de ${nombre.toLowerCase()} en el catálogo (${pct(n.sin_dato.porcentaje)})`}
               </p>
             )}
           </div>
@@ -107,6 +109,52 @@ function Regla102030({ datos }: { datos: IndicadoresProyecto["diversidad_taxonom
         <p className="bio-regla__nota">
           El género <em>{generoExcedido.taxon}</em> reúne {num(generoExcedido.arboles)} de {num(datos.denominador)} árboles y supera el máximo de {datos.genero.umbral_porcentaje} %.
         </p>
+      )}
+    </article>
+  );
+}
+
+/**
+ * Diámetro medio de copa y área proyectada (filas 12 y 13): su universo son
+ * solo los presentes con evaluación completa vigente (CC-016), no todo el
+ * proyecto. Van en un bloque propio que dice cuántos árboles cubren, para no
+ * leerse como datos de los presentes (auditoría 2026-11-16, A3).
+ */
+function MedidasEvaluados({ d }: { d: IndicadoresProyecto }) {
+  const copa = d.diametro_medio_copa;
+  const area = d.area_proyectada_copa;
+  const evaluados = d.cobertura.arboles_con_evaluacion_valida ?? copa.denominador_evaluados ?? copa.denominador_presentes ?? 0;
+  const presentes = d.cobertura.arboles_presentes;
+  return (
+    <article className="bio-card bio-medidas" aria-label="Medidas de los árboles evaluados">
+      <header className="bio-medidas__head">
+        <span className="bio-kpi__lbl">Medidas de los árboles evaluados</span>
+        <span className="bio-medidas__chip">
+          {num(evaluados)} de {num(presentes)} árboles
+        </span>
+      </header>
+      <div className="bio-medidas__vals">
+        <div>
+          <span className="bio-kpi__val">
+            {num(copa.valor, 2)}
+            {copa.valor !== null && <small>m</small>}
+          </span>
+          <span className="bio-kpi__note">
+            {copa.valor === null ? "Ningún árbol evaluado tiene la copa medida." : `Diámetro medio de copa · ${num(copa.n_validos)} ${copa.n_validos === 1 ? "árbol" : "árboles"}`}
+          </span>
+        </div>
+        <div>
+          <span className="bio-kpi__val">
+            {num(area.total_m2, 1)}
+            {area.total_m2 !== null && <small>m²</small>}
+          </span>
+          <span className="bio-kpi__note">
+            {area.total_m2 === null ? "Ningún árbol evaluado tiene los dos diámetros de copa." : `Área proyectada de copa · suma de ${num(area.n_con_area)} ${area.n_con_area === 1 ? "árbol" : "árboles"}`}
+          </span>
+        </div>
+      </div>
+      {presentes > evaluados && (
+        <p className="bio-medidas__foot">Los otros {num(presentes - evaluados)} árboles se suman cuando tengan su evaluación completa.</p>
       )}
     </article>
   );
@@ -204,8 +252,6 @@ export function HuellaVerde({ d, aportes }: { d: IndicadoresProyecto; aportes: A
         .slice(0, 3)
     : [];
   const s = d.riqueza_especies.valor;
-  const area = d.area_proyectada_copa;
-  const copa = d.diametro_medio_copa;
 
   return (
     <div className="bio-huella">
@@ -281,23 +327,10 @@ export function HuellaVerde({ d, aportes }: { d: IndicadoresProyecto; aportes: A
           <Kpi
             etiqueta="Diversidad de Shannon (H′)"
             valor={num(d.diversidad_shannon.valor, 2)}
-            nota={s > 1 ? `máximo posible con ${s} especies: ${num(Math.log(s), 2)}` : "requiere más de una especie"}
+            nota={`calculado con ${num(d.diversidad_shannon.n_identificados)} ${d.diversidad_shannon.n_identificados === 1 ? "árbol identificado" : "árboles identificados"} a nivel de especie`}
             motivo={d.diversidad_shannon.valor === null ? "Sin árboles identificados a nivel de especie." : null}
           />
-          <Kpi
-            etiqueta="Diámetro medio de copa"
-            valor={num(copa.valor, 2)}
-            unidad="m"
-            nota={`${num(copa.n_validos)} ${copa.n_validos === 1 ? "árbol" : "árboles"} con copa medida${copa.n_sin_medicion > 0 ? ` · ${num(copa.n_sin_medicion)} sin medición` : ""}`}
-            motivo={copa.valor === null ? "Ningún árbol tiene la copa medida." : null}
-          />
-          <Kpi
-            etiqueta="Área proyectada de copa"
-            valor={num(area.total_m2, 1)}
-            unidad="m²"
-            nota={`suma de ${num(area.n_con_area)} ${area.n_con_area === 1 ? "árbol medido" : "árboles medidos"}`}
-            motivo={area.total_m2 === null ? "Ningún árbol tiene los dos diámetros de copa." : null}
-          />
+          <MedidasEvaluados d={d} />
         </div>
       </section>
 
