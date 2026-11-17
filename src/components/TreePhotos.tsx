@@ -1,21 +1,76 @@
 import { useEffect, useRef, useState } from "react";
+import { ApiError } from "../api/client";
 import { listarDiagnosticos } from "../api/diagnosticos";
+import { listarFotosArbol, type FotoArbol, type OrigenFoto } from "../api/fichaArbol";
 import { listarFotos } from "../api/inspections";
 import { obtenerCatalogos } from "../api/catalogs";
 import type { Diagnostico } from "../types/diagnostico";
-import type { FotoInspeccion } from "../types/inspection";
 import { fechaChile } from "../lib/dates";
 import { Icon } from "./Icons";
-import { PendingNotice } from "./PendingNotice";
 import { TreeDiagnosis } from "./TreeDiagnosis";
 
+/** Lo mínimo que el visor necesita de una foto. */
+interface FotoVisible {
+  id: string;
+  vista: string | null;
+  url: string;
+}
+
+const TITULO_ORIGEN: Record<OrigenFoto, string> = {
+  registro: "Registro del árbol",
+  inspeccion: "Inspección",
+  mantenimiento: "Mantención",
+  incidencia: "Reporte ciudadano",
+};
+
+/** Grupo de la galería: el registro, cada inspección, mantención o reportes. */
+interface Grupo {
+  clave: string;
+  titulo: string;
+  fotos: FotoArbol[];
+}
+
+function agrupar(fotos: FotoArbol[], diag: Diagnostico | null): Grupo[] {
+  const grupos = new Map<string, Grupo>();
+  for (const f of fotos) {
+    const clave = f.origen === "inspeccion" ? `inspeccion:${f.inspection_id}` : f.origen;
+    let titulo = TITULO_ORIGEN[f.origen];
+    if (f.origen === "inspeccion" && diag && f.inspection_id === diag.inspection_id) {
+      titulo = `${diag.tipo_inspeccion?.etiqueta ?? "Inspección"} ${diag.codigo_inspeccion ?? ""}${diag.fecha_inspeccion ? ` · ${fechaChile(diag.fecha_inspeccion)}` : ""}`;
+    }
+    const g = grupos.get(clave) ?? { clave, titulo, fotos: [] };
+    g.fotos.push(f);
+    grupos.set(clave, g);
+  }
+  // La evaluación vigente primero; después el registro y el resto.
+  return [...grupos.values()].sort((a, b) => peso(a.clave, diag) - peso(b.clave, diag));
+}
+
+function peso(clave: string, diag: Diagnostico | null): number {
+  if (diag && clave === `inspeccion:${diag.inspection_id}`) return 0;
+  if (clave === "registro") return 1;
+  if (clave.startsWith("inspeccion:")) return 2;
+  return 3;
+}
+
+/** Backend anterior a la 037 (sin `GET …/trees/:treeId/photos`): solo las fotos de la última inspección finalizada. */
+async function fotosCompatibles(projectId: string, treeId: string, diag: Diagnostico | null): Promise<FotoArbol[]> {
+  try {
+    return await listarFotosArbol(projectId, treeId);
+  } catch (err) {
+    if (!(err instanceof ApiError && err.status === 404) || !diag) throw err;
+    const fotos = await listarFotos(diag.inspection_id);
+    return fotos.map((f) => ({ ...f, origen: "inspeccion" as const, inspection_id: diag.inspection_id, sha256: null }));
+  }
+}
+
 /**
- * Fotografías del árbol en su ficha: las de la última inspección finalizada
- * (D-27, cuatro vistas), leídas con `diagnosticos?tree_id=` → `inspection_id`
- * → `GET /api/sivu/inspections/:id/photos`. Las fotos de inspecciones
- * anteriores esperan la ficha completa del árbol (B2). Las URL son firmadas
- * y de corta duración: se abren tal cual, no se guardan. Al pinchar una
- * foto se abre en un visor sobre el módulo, sin salir de la ficha.
+ * Fotografías del árbol en su ficha (037): todas las del ejemplar —las de
+ * registro, las de cada inspección (D-27 y de detalle), las de mantención y
+ * las de reportes ciudadanos—, agrupadas por origen, con la evaluación
+ * vigente primero. Las URL son firmadas y de corta duración: se abren tal
+ * cual, no se guardan. Al pinchar una foto se abre en un visor sobre el
+ * módulo, sin salir de la ficha.
  */
 export function TreePhotos({
   projectId,
@@ -28,7 +83,7 @@ export function TreePhotos({
   conDiagnostico?: boolean;
 }) {
   const [estado, setEstado] = useState<
-    { treeId: string; diag: Diagnostico | null; fotos: FotoInspeccion[] } | { treeId: string; error: string } | null
+    { treeId: string; diag: Diagnostico | null; fotos: FotoArbol[] } | { treeId: string; error: string } | null
   >(null);
 
   const [vistas, setVistas] = useState<Record<string, string>>({});
@@ -52,7 +107,7 @@ export function TreePhotos({
     listarDiagnosticos(projectId, treeId)
       .then(async (diags) => {
         const diag = diags.find((d) => d.tree_id === treeId) ?? null;
-        const fotos = diag ? await listarFotos(diag.inspection_id) : [];
+        const fotos = await fotosCompatibles(projectId, treeId, diag);
         if (!cancelled) setEstado({ treeId, diag, fotos });
       })
       .catch((err: unknown) => {
@@ -64,7 +119,9 @@ export function TreePhotos({
   }, [projectId, treeId]);
 
   const actual = estado?.treeId === treeId ? estado : null;
-  const [abierta, setAbierta] = useState<number | null>(null);
+  const [abierta, setAbierta] = useState<{ grupo: string; indice: number } | null>(null);
+  const grupos = actual && "fotos" in actual ? agrupar(actual.fotos, actual.diag) : [];
+  const grupoAbierto = abierta ? grupos.find((g) => g.clave === abierta.grupo) : undefined;
 
   return (
     <>
@@ -77,40 +134,36 @@ export function TreePhotos({
           <Icon name="alert" size={13} /> {actual.error}
         </p>
       )}
-      {actual && "diag" in actual && !actual.diag && (
-        <p className="sivu-state">Sin evaluación: el árbol aún no tiene una inspección finalizada ni fotografías.</p>
+      {actual && "fotos" in actual && actual.fotos.length === 0 && (
+        <p className="sivu-state">
+          {actual.diag ? "El árbol no tiene fotografías." : "Sin evaluación: el árbol aún no tiene una inspección finalizada ni fotografías."}
+        </p>
       )}
-      {actual && "diag" in actual && actual.diag && (
-        <>
+      {grupos.map((g) => (
+        <div key={g.clave} className="sivu-treephotos__group">
           <p className="sivu-treephotos__meta">
-            {actual.diag.tipo_inspeccion?.etiqueta ?? "Inspección"} {actual.diag.codigo_inspeccion ?? ""}
-            {actual.diag.fecha_inspeccion ? ` · ${fechaChile(actual.diag.fecha_inspeccion)}` : ""}
+            {g.titulo} · {g.fotos.length} foto{g.fotos.length === 1 ? "" : "s"}
           </p>
-          {actual.fotos.length === 0 ? (
-            <p className="sivu-state">La inspección no tiene fotografías.</p>
-          ) : (
-            <ul className="sivu-treephotos__grid">
-              {actual.fotos.map((f, i) => (
-                <li key={f.id}>
-                  <button type="button" className="sivu-treephotos__open" onClick={() => setAbierta(i)} title="Ver más grande">
-                    <img src={f.url} alt={`${vista(f.vista)} del árbol`} loading="lazy" />
-                  </button>
-                  <span>{vista(f.vista)}</span>
-                </li>
-              ))}
-            </ul>
-          )}
-          <PendingNotice compact what="las fotos de inspecciones anteriores" refs="B2" />
-          {abierta !== null && actual.fotos[abierta] && (
-            <VisorFoto
-              fotos={actual.fotos}
-              indice={abierta}
-              etiqueta={vista}
-              onCambiar={setAbierta}
-              onCerrar={() => setAbierta(null)}
-            />
-          )}
-        </>
+          <ul className="sivu-treephotos__grid">
+            {g.fotos.map((f, i) => (
+              <li key={f.id}>
+                <button type="button" className="sivu-treephotos__open" onClick={() => setAbierta({ grupo: g.clave, indice: i })} title="Ver más grande">
+                  <img src={f.url} alt={`${vista(f.vista)} del árbol`} loading="lazy" />
+                </button>
+                <span>{vista(f.vista)}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ))}
+      {abierta && grupoAbierto?.fotos[abierta.indice] && (
+        <VisorFoto
+          fotos={grupoAbierto.fotos}
+          indice={abierta.indice}
+          etiqueta={vista}
+          onCambiar={(i) => setAbierta({ grupo: abierta.grupo, indice: i })}
+          onCerrar={() => setAbierta(null)}
+        />
       )}
     </section>
     </>
@@ -128,7 +181,7 @@ function VisorFoto({
   onCambiar,
   onCerrar,
 }: {
-  fotos: FotoInspeccion[];
+  fotos: FotoVisible[];
   indice: number;
   etiqueta: (v: string | null) => string;
   onCambiar: (i: number) => void;

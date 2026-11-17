@@ -90,7 +90,8 @@ export interface BorradorResultado {
   estado_registro: string;
 }
 
-export type VistaFoto = "arbol_completo" | "base" | "tronco" | "copa";
+/** D-27: cuatro vistas principales; «detalle» (037) es complementaria y nunca completa D-27. */
+export type VistaFoto = "arbol_completo" | "base" | "tronco" | "copa" | "detalle";
 
 export interface FotoInspeccion {
   id: string;
