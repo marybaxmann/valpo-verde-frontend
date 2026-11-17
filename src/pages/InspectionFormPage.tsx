@@ -47,6 +47,8 @@ import { ordenarParaPresentacion } from "../lib/ordenFormulario";
 
 /** Las cuatro vistas obligatorias de la evaluación completa (D-27); su etiqueta viene del catálogo `vista_foto`. */
 const VISTAS: VistaFoto[] = ["arbol_completo", "base", "tronco", "copa"];
+/** 037: foto complementaria; no cuenta para las cuatro vistas de D-27. */
+const VISTA_DETALLE: VistaFoto = "detalle";
 
 /** Clasificaciones que el Inspector puede ajustar con justificación (D-170 a D-173; CC-044), con su catálogo. */
 const AJUSTABLES: { campo: CampoAjustable; titulo: string; catalogo: string; calculada: string }[] = [
@@ -475,18 +477,19 @@ export default function InspectionFormPage() {
       <section className="card card--pad sivu-insp__section">
         <h2>Fotografías</h2>
         <p className="sivu-insp__intro">
-          Cuatro vistas obligatorias. JPG o PNG, hasta 10 MB. Mientras la inspección esté en borrador, una foto subida por error se puede eliminar.
+          Cuatro vistas obligatorias y, si sirven, fotos de detalle (no reemplazan a ninguna vista). JPG o PNG, hasta 10 MB. Mientras la inspección esté en borrador, una foto subida por error se puede eliminar.
         </p>
         {!inspectionId ? (
           <p className="sivu-state">Guarda el borrador para poder subir las fotos.</p>
         ) : (
           <div className="sivu-insp__photos">
-            {VISTAS.map((v) => {
+            {[...VISTAS, VISTA_DETALLE].map((v) => {
               const deVista = (fotos ?? []).filter((f) => f.vista === v);
               const ultima = deVista[deVista.length - 1];
-              const nombre = etiqueta("vista_foto", v);
+              const opcional = v === VISTA_DETALLE;
+              const nombre = opcional ? `${etiqueta("vista_foto", v)} (opcional)` : etiqueta("vista_foto", v);
               return (
-                <div key={v} className={`sivu-insp__photo ${faltantes.has("fotografias_arbol") && !ultima ? "is-missing" : ""}`}>
+                <div key={v} className={`sivu-insp__photo ${!opcional && faltantes.has("fotografias_arbol") && !ultima ? "is-missing" : ""}`}>
                   <div className="sivu-insp__thumb">
                     {ultima ? <img src={ultima.url} alt={`Foto: ${nombre}`} /> : <Icon name="camera" size={22} />}
                   </div>

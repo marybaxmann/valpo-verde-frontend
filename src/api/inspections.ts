@@ -1,4 +1,5 @@
 import { api } from "./client";
+import { LIMITE_CUERPO_API, subirFirmada } from "./fotosFirmadas";
 import type {
   AjustesBody,
   BorradorBody,
@@ -41,8 +42,15 @@ export function listarFotos(inspectionId: string): Promise<FotoInspeccion[]> {
   return api.get<{ data: FotoInspeccion[] }>(`/api/sivu/inspections/${inspectionId}/photos`).then((res) => res.data);
 }
 
-/** Una foto por llamada (JPG o PNG, hasta 10 MB; lo verifica el backend). */
+/**
+ * Una foto por llamada (JPG o PNG, hasta 10 MB; lo verifica el backend). La
+ * foto del Inspector se envía SIN reducir (es evidencia, CC-049): si supera el
+ * límite del cuerpo en Vercel (~4,5 MB), va por la carga firmada (037).
+ */
 export function subirFoto(inspectionId: string, vista: VistaFoto, archivo: File): Promise<unknown> {
+  if (archivo.size > LIMITE_CUERPO_API) {
+    return subirFirmada(`/api/sivu/inspections/${inspectionId}/photos`, archivo, vista);
+  }
   const form = new FormData();
   form.append("vista", vista);
   form.append("foto", archivo);
