@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
-import { obtenerIncidencia, revisarIncidencia } from "../api/incidencias";
+import { Link, useNavigate, useParams } from "react-router-dom";
+import { borrarIncidencia, obtenerIncidencia, revisarIncidencia } from "../api/incidencias";
 import { obtenerCatalogos } from "../api/catalogs";
 import { listarDiagnosticos } from "../api/diagnosticos";
 import { ApiError } from "../api/client";
@@ -11,6 +11,7 @@ import { Icon } from "../components/Icons";
 import { ClassificationBadge } from "../components/ClassificationBadge";
 import { NewInspectionOrderModal } from "../components/NewInspectionOrderModal";
 import { NewMaintenanceOrderModal } from "../components/NewMaintenanceOrderModal";
+import { Modal } from "../components/Modal";
 import { useAuth } from "../hooks/useAuth";
 import { basePathForRole } from "../lib/roles";
 import { fechaChile, fechaHoraChile } from "../lib/dates";
@@ -63,6 +64,8 @@ export default function IncidenciaPage() {
   const [foto, setFoto] = useState(0);
   const [aviso, setAviso] = useState<string | null>(null);
   const [crear, setCrear] = useState<"inspeccion" | "mantenimiento" | null>(null);
+  const [borrar, setBorrar] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     let cancelled = false;
@@ -295,8 +298,29 @@ export default function IncidenciaPage() {
             />
           )}
           {!isMunicipal && !cerrada && <p className="sivu-inc__muted">La revisión la registra el Usuario municipal.</p>}
+
+          {isMunicipal && (
+            <section className="sivu-panel sivu-incdel" aria-label="Borrar incidencia">
+              <div>
+                <strong>Borrar incidencia</strong>
+                <span>Para reportes de prueba o ingresados por error. Queda un registro con el motivo.</span>
+              </div>
+              <button type="button" className="btn btn-danger btn-sm" onClick={() => setBorrar(true)}>
+                Borrar
+              </button>
+            </section>
+          )}
         </div>
       </div>
+
+      {borrar && (
+        <BorrarIncidencia
+          projectId={projectId}
+          incidencia={i}
+          onCerrar={() => setBorrar(false)}
+          onBorrada={(texto) => navigate(`${basePath}/projects/${projectId}/incidencias`, { state: { aviso: texto } })}
+        />
+      )}
 
       {crear === "inspeccion" && i.arbol && (
         <NewInspectionOrderModal
@@ -519,5 +543,88 @@ function Revision({
         )}
       </div>
     </section>
+  );
+}
+
+/**
+ * Confirmación del borrado (CC-079): dice qué se borra —fotos, nombre y
+ * RUT del reportante y las OT vinculadas— y pide el motivo, que queda en
+ * el registro de trazabilidad. La regla la aplica el backend: si una OT ya
+ * tiene inspección, mantención o evaluación, no se borra nada.
+ */
+function BorrarIncidencia({
+  projectId,
+  incidencia,
+  onCerrar,
+  onBorrada,
+}: {
+  projectId: string;
+  incidencia: IncidenciaDetalle;
+  onCerrar: () => void;
+  onBorrada: (texto: string) => void;
+}) {
+  const [motivo, setMotivo] = useState("");
+  const [enviando, setEnviando] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const ots = incidencia.ot_derivadas ?? [];
+  const valido = motivo.trim().length >= 3;
+
+  async function confirmar() {
+    setEnviando(true);
+    setError(null);
+    try {
+      const r = await borrarIncidencia(projectId, incidencia.id, motivo.trim());
+      const extra = r.ots_borradas.length ? ` junto con ${r.ots_borradas.map((o) => o.codigo_ot).join(", ")}` : "";
+      onBorrada(`${r.codigo_incidencia} se borró${extra}. Quedó registrada con su motivo.`);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "No se pudo borrar la incidencia.");
+      setEnviando(false);
+    }
+  }
+
+  return (
+    <Modal
+      title={`Borrar ${incidencia.codigo_incidencia ?? "incidencia"}`}
+      onClose={enviando ? () => undefined : onCerrar}
+      footer={
+        <>
+          <button type="button" className="btn btn-ghost btn-sm" onClick={onCerrar} disabled={enviando}>
+            Cancelar
+          </button>
+          <button type="button" className="btn btn-danger btn-sm" onClick={confirmar} disabled={!valido || enviando}>
+            {enviando ? "Borrando…" : "Borrar definitivamente"}
+          </button>
+        </>
+      }
+    >
+      <div className="sivu-incdel__body">
+        <p>
+          <strong>No se puede deshacer.</strong> Se borran la incidencia, sus fotos y el nombre y RUT del reportante. El código de seguimiento deja de
+          funcionar.
+        </p>
+        {ots.length > 0 && (
+          <p>
+            También se borra{ots.length > 1 ? "n" : ""} {ots.map((o) => o.codigo_ot ?? "la OT").join(", ")}, vinculada{ots.length > 1 ? "s" : ""} a esta
+            incidencia. Si alguna ya tiene una inspección o mantención registrada, no se borra nada.
+          </p>
+        )}
+        <label className="sivu-incdel__field">
+          <span>Motivo (queda en el registro)</span>
+          <textarea
+            rows={2}
+            maxLength={300}
+            value={motivo}
+            onChange={(e) => setMotivo(e.target.value)}
+            placeholder="Ej.: reporte de prueba del equipo"
+            autoFocus
+          />
+        </label>
+        {error && (
+          <p className="sivu-incdel__error" role="alert">
+            <Icon name="alert" size={13} /> {error}
+          </p>
+        )}
+      </div>
+    </Modal>
   );
 }

@@ -1,5 +1,5 @@
 import { lazy, Suspense, useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { listarIncidencias } from "../api/incidencias";
 import { obtenerCatalogos } from "../api/catalogs";
 import { obtenerResumen } from "../api/resumen";
@@ -28,6 +28,8 @@ const ABIERTAS = ["ingresada", "en_revision", "derivada"];
 export default function IncidentsPage() {
   const { projectId = "" } = useParams();
   const navigate = useNavigate();
+  // Aviso que deja el detalle al borrar una incidencia (CC-079).
+  const avisoBorrado = (useLocation().state as { aviso?: string } | null)?.aviso ?? null;
   const { project } = useCurrentProject();
   const apiKey = getArcgisApiKey();
 
@@ -108,6 +110,11 @@ export default function IncidentsPage() {
             {project && <span>{project.nombre_proyecto} · reportes por QR</span>}
           </div>
           <h1 className="sivu-phead__title">Bandeja de incidencias</h1>
+          {avisoBorrado && (
+            <p className="sivu-phead__meta" role="status">
+              <Icon name="check" size={13} /> {avisoBorrado}
+            </p>
+          )}
           {error && (
             <p className="sivu-phead__meta">
               <span className="sivu-phead__error">

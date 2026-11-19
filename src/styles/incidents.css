@@ -630,3 +630,55 @@
   flex-wrap: wrap;
   gap: 8px;
 }
+
+/* Borrar incidencia (CC-079): acción discreta al final del detalle. */
+.sivu-incdel {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 12px;
+  padding: 12px 14px;
+  border: 1px solid rgba(243, 169, 138, 0.35);
+}
+
+.sivu-incdel strong {
+  display: block;
+  font-size: 13.5px;
+}
+
+.sivu-incdel span {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.sivu-incdel__body {
+  display: grid;
+  gap: 10px;
+  font-size: 13.5px;
+  line-height: 1.45;
+}
+
+.sivu-incdel__body p {
+  margin: 0;
+}
+
+.sivu-incdel__field {
+  display: grid;
+  gap: 4px;
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.sivu-incdel__field textarea {
+  font: inherit;
+  font-weight: 400;
+  resize: none;
+}
+
+.sivu-incdel__error {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #f3a98a;
+}
