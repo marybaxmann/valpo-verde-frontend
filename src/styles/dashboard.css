@@ -630,3 +630,11 @@
 .sivu-bars--infra b { background: linear-gradient(90deg, #5aa9d6, #9cd3f5); }
 .sivu-bars strong { text-align: right; color: var(--text); font-weight: 600; font-variant-numeric: tabular-nums; }
 .sivu-bars--infra li { grid-template-columns: minmax(0, 2.4fr) minmax(0, 1fr) 26px; }
+
+/* Indicadores biométricos en el Dashboard (reemplaza Módulos; 2026-11-19). */
+.sivu-indgrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.sivu-indgrid > div { display: flex; flex-direction: column; gap: 2px; padding: 10px 12px; border-radius: 16px; background: var(--shell-soft); min-width: 0; }
+.sivu-indgrid__lbl { font-size: 11.5px; color: var(--text-muted); }
+.sivu-indgrid strong { font-size: 22px; font-weight: 600; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+.sivu-indgrid strong small { margin-left: 4px; font-size: 12px; font-weight: 500; color: var(--text-muted); letter-spacing: 0; }
+.sivu-indgrid__sub { font-size: 11px; color: var(--text-muted); }

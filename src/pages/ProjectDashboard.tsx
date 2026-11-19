@@ -13,6 +13,8 @@ import type { ResumenProyecto } from "../types/resumen";
 import type { ConteoCatalogo } from "../types/resumen";
 import { getClassificationTone } from "../components/ClassificationBadge";
 import { obtenerInfraestructura } from "../api/infraestructura";
+import { obtenerIndicadores } from "../api/indicadores";
+import type { IndicadoresProyecto } from "../types/indicadores";
 import type { RespuestaInfraestructura } from "../types/infraestructura";
 import { CATEGORIAS_CON_AFECTACION, COMPONENTES } from "../lib/infraestructura";
 
@@ -122,6 +124,22 @@ export default function ProjectDashboard() {
     };
   }, [projectId]);
 
+  // Indicadores biométricos (B19) para el panel compacto del Dashboard.
+  const [indic, setIndic] = useState<{ id: string; data: IndicadoresProyecto } | { id: string; error: string } | null>(null);
+  useEffect(() => {
+    let cancelled = false;
+    obtenerIndicadores(projectId)
+      .then((data) => {
+        if (!cancelled) setIndic({ id: projectId, data });
+      })
+      .catch((err: unknown) => {
+        if (!cancelled) setIndic({ id: projectId, error: err instanceof Error ? err.message : "No se pudieron cargar los indicadores." });
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [projectId]);
+
   // Agenda: fechas sugeridas de los diagnósticos finalizados (no son
   // recordatorios vigentes; esos llegan con B5 al completar la OT).
   const [agenda, setAgenda] = useState<{ id: string; items: { fecha: string; tipo: string; d: Diagnostico }[] } | null>(null);
@@ -193,15 +211,34 @@ export default function ProjectDashboard() {
     },
   ];
 
-  const infraData = infraActual && "data" in infraActual ? infraActual.data : null;
-  const modulos: { to: string; label: string; icon: IconName; info: string }[] = [
-    { to: "mapa", label: "Inventario", icon: "leaf", info: r ? `${r.arboles_total} árboles` : "…" },
-    { to: "inspeccion", label: "Riesgo Arbóreo", icon: "check-square", info: r ? `${r.con_diagnostico} evaluados` : "…" },
-    { to: "infraestructura", label: "Infraestructura", icon: "building", info: infraData ? `${infraData.cobertura.arboles_con_evaluacion_valida} evaluados` : "…" },
-    { to: "mantencion", label: "Mantención", icon: "wrench", info: otAbiertas !== undefined ? `${otAbiertas} OT abiertas` : "…" },
-    { to: "incidencias", label: "Incidencias", icon: "inbox", info: incAbiertas !== undefined ? `${incAbiertas} abiertas` : "…" },
-    { to: "indices", label: "Indicadores", icon: "sort", info: "Indicadores del inventario" },
-  ];
+  const indicActual = indic?.id === projectId ? indic : null;
+  const ind = indicActual && "data" in indicActual ? indicActual.data : null;
+  const num = (v: number | null | undefined, dec = 0) => (v === null || v === undefined ? "—" : v.toLocaleString("es-CL", { maximumFractionDigits: dec, minimumFractionDigits: dec }));
+  const indicadores: { label: string; valor: string; unidad?: string; sub: string; title?: string }[] = ind
+    ? [
+        {
+          label: "Densidad arbórea",
+          valor: num(ind.densidad_arborea.valor, 1),
+          unidad: "árb/ha",
+          sub: ind.densidad_arborea.valor === null ? "sin superficie del sector" : "árboles por hectárea",
+          title: ind.densidad_arborea.motivo ?? undefined,
+        },
+        { label: "Diversidad (Shannon)", valor: num(ind.diversidad_shannon.valor, 2), sub: `${ind.riqueza_especies.valor} especies` },
+        {
+          // No «nativos»: el origen biogeográfico aún falta en buena parte del catálogo de especies.
+          label: "Identificados a especie",
+          valor: num(ind.cobertura_taxonomica.porcentaje_identificados, 0),
+          unidad: "%",
+          sub: `${ind.cobertura_taxonomica.identificados_especie} de ${ind.cobertura_taxonomica.presentes}`,
+        },
+        {
+          label: "Área de copa",
+          valor: num(ind.area_proyectada_copa.total_m2, 0),
+          unidad: "m²",
+          sub: `${ind.area_proyectada_copa.n_con_area} árboles medidos`,
+        },
+      ]
+    : [];
 
   return (
     <div className="sivu-dash">
@@ -386,7 +423,8 @@ export default function ProjectDashboard() {
               {agendaActual && agendaActual.length === 0 && <p className="sivu-state">Sin fechas sugeridas todavía.</p>}
               {agendaActual && agendaActual.length > 0 && (
                 <ul className="sivu-dash__agenda">
-                  {agendaActual.slice(0, 6).map((it) => (
+                  {/* Dashboard compacto: 3 fechas; el resto desde el enlace del encabezado. */}
+                  {agendaActual.slice(0, 3).map((it) => (
                     <li key={`${it.d.tree_id}-${it.tipo}`}>
                       <span className="sivu-dash__agenda-date" title={fechaChile(it.fecha)}>
                         <strong>{it.fecha.slice(8, 10)}</strong>
@@ -402,7 +440,9 @@ export default function ProjectDashboard() {
                   ))}
                 </ul>
               )}
-              <p className="sivu-terr__note">Fechas sugeridas del diagnóstico finalizado.</p>
+              <p className="sivu-terr__note">
+                {agendaActual && agendaActual.length > 3 ? `${agendaActual.length - 3} fechas más · ` : ""}Fechas sugeridas del diagnóstico finalizado.
+              </p>
             </article>
 
             <article className="sivu-panel sivu-dash__infra">
@@ -444,19 +484,30 @@ export default function ProjectDashboard() {
 
             <article className="sivu-panel sivu-dash__mods">
               <div className="sivu-panel__head">
-                <h2>Módulos</h2>
+                <h2>Indicadores biométricos</h2>
+                <Link to="../indices" relative="path" className="sivu-panel__link">
+                  Indicadores <Icon name="arrow-right" size={12} />
+                </Link>
               </div>
-              <div className="sivu-modgrid">
-                {modulos.map((m) => (
-                  <Link key={m.to} to={`../${m.to}`} relative="path" className="sivu-modtile">
-                    <span className="sivu-modtile__icon" aria-hidden="true">
-                      <Icon name={m.icon} size={16} />
-                    </span>
-                    <strong>{m.label}</strong>
-                    <small>{m.info}</small>
-                  </Link>
-                ))}
-              </div>
+              {indicActual === null && <p className="sivu-state">Cargando…</p>}
+              {indicActual && "error" in indicActual && <p className="sivu-state">Sin datos.</p>}
+              {ind && (
+                <>
+                  <div className="sivu-indgrid">
+                    {indicadores.map((x) => (
+                      <div key={x.label} title={x.title}>
+                        <span className="sivu-indgrid__lbl">{x.label}</span>
+                        <strong>
+                          {x.valor}
+                          {x.unidad && x.valor !== "—" && <small>{x.unidad}</small>}
+                        </strong>
+                        <span className="sivu-indgrid__sub">{x.sub}</span>
+                      </div>
+                    ))}
+                  </div>
+                  <p className="sivu-terr__note">Inventario de {ind.cobertura.arboles_presentes} árboles presentes (B19).</p>
+                </>
+              )}
             </article>
           </section>
         </>
