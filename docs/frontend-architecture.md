@@ -332,6 +332,12 @@ email, nunca hardcodeado.
 - Árboles «pendientes» en el mapa: los activos del inventario (B1) que no están en B8. Los números del panel son los de `cobertura` de B8 (árboles presentes, D-28), así que pueden diferir si hay árboles activos ausentes.
 - **No implementado (requiere decisión y cambios en Excel/formulario/backend):** fotos etiquetadas por componente y vinculadas a una medición (hoy D-27 + «detalle», 037); observación por componente (la inspección guarda una observación general).
 
+### Fase 7 · Dashboard con datos reales y compacto como la maqueta
+**Fecha:** 2026-11-19. Pedidos de la responsable (PR #23 y #24, publicados).
+- Sin avisos «pendiente» ya resueltos: incidencias por estado e incidencias abiertas (B7 `incidencias_por_estado`, D-184; abiertas = Ingresada, En revisión, Derivada) e infraestructura por componente (B8).
+- Compacto como la maqueta SIVU Lab: seis indicadores (árboles, georreferenciados, evaluados, especies, OT abiertas, incidencias abiertas), filas de una línea en Composición (3 especies con su %) e Infraestructura, agenda de 3 fechas.
+- Panel «Indicadores biométricos» (B19) en lugar de «Módulos»: densidad, Shannon, identificados a especie y área de copa. No se muestra «árboles nativos» mientras falte el origen en el catálogo.
+
 ## 5. Limitaciones conocidas (revisado 2026-11-19)
 
 - **Agregar miembro** a un proyecto todavía pide el `user_id` (UUID) en un campo de texto. El backend ya expone `GET /api/sivu/projects/:id/available-users`, pero el frontend aún no lo usa: es una mejora pendiente.

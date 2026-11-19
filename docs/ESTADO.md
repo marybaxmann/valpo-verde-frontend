@@ -25,7 +25,10 @@ Las ramas de trabajo salen de `feature/fase7-maqueta-lab` y vuelven a ella por P
 |---|---|
 | **D-27 (CC-077), cierre con dos fotos** | **Publicado en sivu.cl:** #19 (porcentajes de copa) y #20 (dos fotos sin etiquetas) fusionados; el backend y las migraciones 040 y 041 también están publicados. Falta la prueba de cierre real con un Inspector y una OT de prueba. |
 | **Rediseño de Infraestructura** | **Publicado en sivu.cl** el 2026-11-19 (PR #22, `5fd3aa8`): rueda de componentes como filtro, pin «reloj», leyenda única, ficha Resumen/Componentes/Fotos. Verificado en sivu.cl con datos del Piloto. Pendiente: fotos por componente (requiere CC). |
-| Documentación de arranque | PR #21 (este `ESTADO.md` y la bitácora al día) |
+| **Dashboard** | **Publicado en sivu.cl** el 2026-11-19 (PR #23 y #24): sin avisos «pendiente»; compacto como la maqueta SIVU Lab (seis indicadores, filas de una línea, agenda de 3 fechas) y panel de indicadores biométricos (B19) en lugar de «Módulos». |
+| Pendiente de datos | En el catálogo de especies, 9 de 15 no tienen `origen_biogeografico`: por eso el Dashboard no muestra «árboles nativos». Completarlo en el catálogo (CC-053). |
+| **Próximo: Valpo Verde Conecta** (pedido de la responsable, 2026-11-19) | Pantalla `ConectaPage` (pestañas Placas QR y Ficha pública). Hoy la ficha pública muestra «Edición pendiente de aprobación»: los interruptores de datos del ejemplar (D-25, D-19, D-18, D-22), «Mi historia» y la foto propia esperan la **propuesta D6** y su backend. Textos y fotos de especies son provisionales en `src/components/conecta/contenidoEspecie.ts` y `fotosEspecie.ts`. Antes de empezar, leer el relevo de Mari (`../valpo-verde-backend/docs/relevo/RELEVO_2026-11-15_mari.md`, §1.3 decisiones y §3.1 a §3.3 lo que necesita del backend). Decide Mari (Conecta y fichas). |
+| Avisos «pendiente» viejos | Quedan en `TreeSheet` (mediciones e incidencias del árbol), `InventoryPage` (resumen por especie), `WorkOrdersBoard` y `SpeciesCatalogPage`: revisar si ya tienen endpoint (B2, B7). |
 
 ## Cómo correrlo y probarlo
 
