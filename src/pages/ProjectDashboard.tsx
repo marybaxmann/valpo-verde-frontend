@@ -295,7 +295,8 @@ export default function ProjectDashboard() {
                     ))}
                   </div>
                   <h3 className="sivu-dash__sub">Especies más registradas</h3>
-                  {r.especies_top.map((e) => (
+                  {/* Dashboard compacto (pedido de la responsable, 2026-11-19): las 3 principales; el resto en Inventario. */}
+                  {r.especies_top.slice(0, 3).map((e) => (
                     <BarRow
                       key={e.especie_cientifica ?? e.nombre_comun ?? "sin"}
                       label={e.nombre_comun ? `${e.nombre_comun} (${e.especie_cientifica ?? "—"})` : e.especie_cientifica ?? "Sin especie"}
@@ -304,6 +305,11 @@ export default function ProjectDashboard() {
                       tone="#3fb07e"
                     />
                   ))}
+                  {r.especies_distintas > 3 && (
+                    <Link to="../mapa" relative="path" className="sivu-panel__link sivu-dash__more">
+                      Ver las {r.especies_distintas} especies en Inventario <Icon name="arrow-right" size={12} />
+                    </Link>
+                  )}
                 </>
               ) : (
                 <p className="sivu-state">{errorResumen ? "Sin datos." : "Cargando…"}</p>

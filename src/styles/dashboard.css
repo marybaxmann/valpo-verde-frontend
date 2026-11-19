@@ -612,3 +612,11 @@
     align-self: center;
   }
 }
+
+/* Enlace «Ver las N especies en Inventario» bajo el top 3 (Dashboard compacto). */
+.sivu-dash__more {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 10px;
+}
