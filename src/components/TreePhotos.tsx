@@ -10,7 +10,7 @@ import { Icon } from "./Icons";
 import { TreeDiagnosis } from "./TreeDiagnosis";
 
 /** Lo mínimo que el visor necesita de una foto. */
-interface FotoVisible {
+export interface FotoVisible {
   id: string;
   vista: string | null;
   url: string;
@@ -54,7 +54,7 @@ function peso(clave: string, diag: Diagnostico | null): number {
 }
 
 /** Backend anterior a la 037 (sin `GET …/trees/:treeId/photos`): solo las fotos de la última inspección finalizada. */
-async function fotosCompatibles(projectId: string, treeId: string, diag: Diagnostico | null): Promise<FotoArbol[]> {
+export async function fotosCompatibles(projectId: string, treeId: string, diag: Diagnostico | null): Promise<FotoArbol[]> {
   try {
     return await listarFotosArbol(projectId, treeId);
   } catch (err) {
@@ -174,7 +174,7 @@ export function TreePhotos({
  * Foto ampliada en un `<dialog>` modal sobre el módulo: Esc o «Cerrar»
  * vuelven a la ficha; las flechas pasan a la vista anterior o siguiente.
  */
-function VisorFoto({
+export function VisorFoto({
   fotos,
   indice,
   etiqueta,
