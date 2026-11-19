@@ -45,10 +45,12 @@ import {
 import { fechaChile } from "../lib/dates";
 import { ordenarParaPresentacion } from "../lib/ordenFormulario";
 
-/** Las cuatro vistas obligatorias de la evaluación completa (D-27); su etiqueta viene del catálogo `vista_foto`. */
+/** Las cuatro vistas recomendadas de la evaluación completa (D-27); su etiqueta viene del catálogo `vista_foto`. */
 const VISTAS: VistaFoto[] = ["arbol_completo", "base", "tronco", "copa"];
-/** 037: foto complementaria; no cuenta para las cuatro vistas de D-27. */
+/** 037: etiqueta de foto complementaria. */
 const VISTA_DETALLE: VistaFoto = "detalle";
+const SIN_ETIQUETA = "sin_etiqueta";
+type GrupoFoto = VistaFoto | typeof SIN_ETIQUETA;
 
 /** Clasificaciones que el Inspector puede ajustar con justificación (D-170 a D-173; CC-044), con su catálogo. */
 const AJUSTABLES: { campo: CampoAjustable; titulo: string; catalogo: string; calculada: string }[] = [
@@ -123,10 +125,10 @@ export default function InspectionFormPage() {
   const [fotos, setFotos] = useState<FotoInspeccion[] | null>(null);
   const [fotosError, setFotosError] = useState<string | null>(null);
   // Cada vista sube y elimina por su cuenta: una foto en curso no bloquea las otras vistas.
-  const [subiendo, setSubiendo] = useState<ReadonlySet<VistaFoto>>(new Set());
+  const [subiendo, setSubiendo] = useState<ReadonlySet<GrupoFoto>>(new Set());
   const [porEliminar, setPorEliminar] = useState<string | null>(null);
   const [eliminando, setEliminando] = useState<string | null>(null);
-  const [erroresFoto, setErroresFoto] = useState<Partial<Record<VistaFoto, string>>>({});
+  const [erroresFoto, setErroresFoto] = useState<Partial<Record<GrupoFoto, string>>>({});
   const listadoFotos = useRef(0);
   const ediciones = useRef(0);
   const cambiosDesdeCalculo = useRef(0);
@@ -280,16 +282,16 @@ export default function InspectionFormPage() {
     if (n === listadoFotos.current) setFotos(lista);
   }
 
-  function errorFoto(vista: VistaFoto, texto: string | null) {
+  function errorFoto(vista: GrupoFoto, texto: string | null) {
     setErroresFoto((e) => ({ ...e, [vista]: texto ?? undefined }));
   }
 
-  async function subir(vista: VistaFoto, archivo: File | undefined) {
+  async function subir(vista: GrupoFoto, archivo: File | undefined) {
     if (!archivo || !inspectionId) return;
     setSubiendo((s) => new Set(s).add(vista));
     errorFoto(vista, null);
     try {
-      await subirFoto(inspectionId, vista, archivo);
+      await subirFoto(inspectionId, vista === SIN_ETIQUETA ? undefined : vista, archivo);
       invalidarCalculo();
       await recargarFotos(inspectionId);
     } catch (err) {
@@ -303,7 +305,7 @@ export default function InspectionFormPage() {
     }
   }
 
-  async function quitarFoto(vista: VistaFoto, photoId: string) {
+  async function quitarFoto(vista: GrupoFoto, photoId: string) {
     if (!inspectionId) return;
     setEliminando(photoId);
     errorFoto(vista, null);
@@ -477,19 +479,19 @@ export default function InspectionFormPage() {
       <section className="card card--pad sivu-insp__section">
         <h2>Fotografías</h2>
         <p className="sivu-insp__intro">
-          Cuatro vistas obligatorias y, si sirven, fotos de detalle (no reemplazan a ninguna vista). JPG o PNG, hasta 10 MB. Mientras la inspección esté en borrador, una foto subida por error se puede eliminar.
+          Para finalizar una Evaluación inicial, Reevaluación o Levantamiento se requieren al menos dos fotos válidas y distintas de esta inspección. Las vistas de árbol completo, base, tronco y copa son recomendadas. JPG o PNG, hasta 10 MB. Mientras la inspección esté en borrador, una foto subida por error se puede eliminar.
         </p>
         {!inspectionId ? (
           <p className="sivu-state">Guarda el borrador para poder subir las fotos.</p>
         ) : (
           <div className="sivu-insp__photos">
-            {[...VISTAS, VISTA_DETALLE].map((v) => {
-              const deVista = (fotos ?? []).filter((f) => f.vista === v);
+            {([...VISTAS, VISTA_DETALLE, SIN_ETIQUETA] as const).map((v) => {
+              const deVista = (fotos ?? []).filter((f) => f.vista === (v === SIN_ETIQUETA ? null : v));
               const ultima = deVista[deVista.length - 1];
               const opcional = v === VISTA_DETALLE;
-              const nombre = opcional ? `${etiqueta("vista_foto", v)} (opcional)` : etiqueta("vista_foto", v);
+              const nombre = v === SIN_ETIQUETA ? "Sin etiqueta" : opcional ? `${etiqueta("vista_foto", v)} (opcional)` : etiqueta("vista_foto", v);
               return (
-                <div key={v} className={`sivu-insp__photo ${!opcional && faltantes.has("fotografias_arbol") && !ultima ? "is-missing" : ""}`}>
+                <div key={v} className="sivu-insp__photo">
                   <div className="sivu-insp__thumb">
                     {ultima ? <img src={ultima.url} alt={`Foto: ${nombre}`} /> : <Icon name="camera" size={22} />}
                   </div>
@@ -759,6 +761,15 @@ function ResultadoCalculo({
           ? "La inspección está completa y se puede finalizar."
           : `Faltan ${calculo.campos_faltantes.length} dato(s) para finalizar.`}
       </p>
+      {calculo.fotos_validas_d27 != null && (
+        <p>Fotografías válidas y distintas: {calculo.fotos_validas_d27} (mínimo 2).</p>
+      )}
+      {!!calculo.vistas_recomendadas_faltantes?.length && (
+        <p>
+          Vistas recomendadas sin etiqueta registrada:{" "}
+          {calculo.vistas_recomendadas_faltantes.map((vista) => etiqueta("vista_foto", vista)).join(", ")}.
+        </p>
+      )}
       {calculo.campos_faltantes.length > 0 && (
         <ul className="sivu-insp__missing">
           {calculo.campos_faltantes.map((f) => (
