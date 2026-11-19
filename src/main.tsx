@@ -19,6 +19,7 @@ import "./styles/wizard.css";
 import "./styles/loader.css";
 import "./styles/conecta-publica.css";
 import "./styles/indicadores.css";
+import "./styles/infraestructura.css";
 
 /**
  * Tras un despliegue nuevo, una pestaña abierta pide módulos de la versión

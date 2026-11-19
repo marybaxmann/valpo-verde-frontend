@@ -42,6 +42,12 @@ export interface MapPoint {
   label?: string;
   /** Dato del módulo en la etiqueta del seleccionado (p. ej. el nivel de riesgo). */
   detail?: string;
+  /**
+   * Pin dibujado como imagen (p. ej. el «reloj» de componentes de
+   * Infraestructura): reemplaza el círculo. `key` cambia cuando cambia el
+   * dibujo, para redibujar; `size` en píxeles.
+   */
+  icon?: { url: string; size: number; key: string };
 }
 
 /** `#rrggbb` con transparencia, para el halo del pin. */
@@ -152,7 +158,7 @@ export default function ProjectMapView({
   }, [basemap, status]);
 
   // Puntos de la API: se redibujan al cambiar los datos o la selección.
-  const pointsKey = (points ?? []).map((p) => `${p.id}:${p.lng}:${p.lat}:${p.tone ?? ""}:${p.color ?? ""}`).join("|");
+  const pointsKey = (points ?? []).map((p) => `${p.id}:${p.lng}:${p.lat}:${p.tone ?? ""}:${p.color ?? ""}:${p.icon?.key ?? ""}`).join("|");
   useEffect(() => {
     const layer = layerRef.current;
     const view = viewRef.current;
@@ -162,6 +168,12 @@ export default function ProjectMapView({
     for (const p of list) {
       const geometry = new Point({ longitude: p.lng, latitude: p.lat });
       const attributes = { id: p.id };
+      if (p.icon) {
+        // Tamaño de ArcGIS en puntos (1 pt = 4/3 px).
+        const pt = (p.icon.size * 3) / 4;
+        layer.add(new Graphic({ geometry, attributes, symbol: { type: "picture-marker", url: p.icon.url, width: pt, height: pt } }));
+        continue;
+      }
       // Pin de la maqueta SIVU Lab (styles.css `.pin`; CC-058): 14 px con borde
       // blanco de 2 px y un halo de 4 px del mismo color al 28 %. Sin
       // evaluación, gris de la maqueta. En Inventario (sin tono), `.pin--inv`:
