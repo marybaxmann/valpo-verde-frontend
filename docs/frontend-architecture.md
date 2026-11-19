@@ -335,7 +335,7 @@ email, nunca hardcodeado.
 El estado vigente y el orden de trabajo están en **`docs/ESTADO.md`** (no se duplican aquí). Pendientes de producto conocidos al 2026-11-19:
 
 - **D-27 en sivu.cl:** publicado el 2026-11-19 (#19, #20, backend #81 y migraciones 040 y 041). Falta la prueba de cierre real.
-- **Rediseño de Infraestructura:** PR #22 (borrador), para publicar después de D-27.
+- **Rediseño de Infraestructura:** publicado el 2026-11-19 (PR #22).
 - **Fotos por componente** en Infraestructura: requiere un CC (hoy `photos.vista` solo tiene las vistas de D-27 y «detalle»).
 - **Reglas que se flexibilicen** según el inventario del backend (`docs/plan/propuestas/inventario-reglas-bloqueantes-2026-11-18.md`): cada una llega como CC y después se refleja en el formulario.
 
@@ -354,7 +354,7 @@ Resumen por módulo (todos bajo `/api/sivu/…`, salvo la sesión `GET /api/auth
 | Proyectos y miembros | `projects.ts`, `projectMembers.ts` | proyectos, estado, sector, miembros |
 | Inventario y ficha | `inventory.ts`, `fichaArbol.ts`, `treeAlta.ts`, `species.ts` | B1 árboles, B2 ficha, fotos del árbol (037), alta, especies |
 | Riesgo Arbóreo | `diagnosticos.ts` | B18 diagnósticos |
-| Infraestructura | `infraestructura.ts` (PR #22) | B8 |
+| Infraestructura | `infraestructura.ts` | B8 |
 | Inspección | `inspections.ts`, `fotosFirmadas.ts` | esquema B16, borrador, fotos, calcular, finalizar, anular, carga firmada |
 | OT y mantención | `workOrders.ts`, `mantenimiento.ts` | OT del proyecto, mis OT, estados, completar, cancelar, revisiones, ejecuciones |
 | Dashboard, incidencias, indicadores | `resumen.ts`, `incidencias.ts`, `indicadores.ts` | B7, B9, B19 |

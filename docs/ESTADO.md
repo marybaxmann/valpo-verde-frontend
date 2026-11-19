@@ -24,7 +24,7 @@ Las ramas de trabajo salen de `feature/fase7-maqueta-lab` y vuelven a ella por P
 | Qué | Estado (2026-11-19) |
 |---|---|
 | **D-27 (CC-077), cierre con dos fotos** | **Publicado en sivu.cl:** #19 (porcentajes de copa) y #20 (dos fotos sin etiquetas) fusionados; el backend y las migraciones 040 y 041 también están publicados. Falta la prueba de cierre real con un Inspector y una OT de prueba. |
-| **Rediseño de Infraestructura** (`feature/infraestructura-componentes`) | PR #22, en **borrador**: pin «reloj», rueda de componentes como filtro, ficha Resumen/Componentes/Fotos. Aprobado por la responsable y probado con datos reales. Se fusiona después de la prueba de D-27. Fotos por componente: requiere un CC. |
+| **Rediseño de Infraestructura** | **Publicado en sivu.cl** el 2026-11-19 (PR #22, `5fd3aa8`): rueda de componentes como filtro, pin «reloj», leyenda única, ficha Resumen/Componentes/Fotos. Verificado en sivu.cl con datos del Piloto. Pendiente: fotos por componente (requiere CC). |
 | Documentación de arranque | PR #21 (este `ESTADO.md` y la bitácora al día) |
 
 ## Cómo correrlo y probarlo
@@ -41,7 +41,7 @@ Las ramas de trabajo salen de `feature/fase7-maqueta-lab` y vuelven a ella por P
 | Dashboard (`dashboard`) | `ProjectDashboard` | B7 resumen |
 | Inventario (`mapa`) | `InventoryPage` + `TreeSheet` | B1, B2 |
 | Riesgo Arbóreo (`inspeccion`) | `RiskPage` → `DiagnosisModule` | B18 diagnósticos |
-| Infraestructura (`infraestructura`) | `InfrastructurePage` → `InfrastructureModule` + `InfraSheet` (en la rama de arriba) | B8 |
+| Infraestructura (`infraestructura`) | `InfrastructurePage` → `InfrastructureModule` + `InfraSheet` | B8 |
 | Mantención / OT de inspección | `MaintenancePage`, `InspectionOrdersPage`, `InspectionFormPage` | B3, B16, borradores |
 | Incidencias, Conecta, Indicadores | `IncidentsPage`, `ConectaPage`, `IndicesPage` | B9, Conecta, B19 |
 
