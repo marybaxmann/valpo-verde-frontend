@@ -43,7 +43,7 @@ interface Carga<T> {
   error?: string;
 }
 
-function usarCarga<T>(fn: () => Promise<T>, deps: unknown[]): Carga<T> {
+function useCarga<T>(fn: () => Promise<T>, deps: unknown[]): Carga<T> {
   const [c, setC] = useState<Carga<T>>({ estado: "cargando" });
   useEffect(() => {
     let cancelled = false;
@@ -123,17 +123,17 @@ export function InfraSheet({
   }, []);
   const vista = (v: string | null) => (v ? vistas[v] ?? v : "Sin vista");
 
-  const diagC = usarCarga<Diagnostico | null>(
+  const diagC = useCarga<Diagnostico | null>(
     () => listarDiagnosticos(projectId, treeId).then((d) => d.find((x) => x.tree_id === treeId) ?? null),
     [projectId, treeId]
   );
   const diag = diagC.valor ?? null;
-  const fotosC = usarCarga<FotoArbol[]>(
+  const fotosC = useCarga<FotoArbol[]>(
     () => (diagC.estado === "cargando" ? new Promise<FotoArbol[]>(() => undefined) : fotosCompatibles(projectId, treeId, diag)),
     [projectId, treeId, diagC.estado]
   );
   const woId = fila?.evaluacion_vigente.work_order_id ?? null;
-  const inspC = usarCarga<InspeccionDeOt | null>(
+  const inspC = useCarga<InspeccionDeOt | null>(
     () =>
       !woId || diagC.estado === "cargando"
         ? diagC.estado === "cargando" && woId
@@ -145,7 +145,7 @@ export function InfraSheet({
           }),
     [woId, treeId, diagC.estado]
   );
-  const esqC = usarCarga<EsquemaFormulario>(() => esquema(projectId), [projectId]);
+  const esqC = useCarga<EsquemaFormulario>(() => esquema(projectId), [projectId]);
   const campos = new Map((esqC.valor?.variables ?? []).map((c) => [c.identificador, c]));
 
   // Fotos: las de la inspección vigente primero; después el resto.

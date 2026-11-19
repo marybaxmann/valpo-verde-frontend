@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import type { FichaPublica } from "../../types/fichaPublica";
+import type { CampoMedida, FichaPublicaAmpliada, MedidaPublica } from "../../types/fichaPublica";
 import { Icon } from "../Icons";
 import { SivuLogo } from "../SivuLogo";
 import hoja from "../../assets/loader/hoja.webp";
@@ -25,7 +25,59 @@ import { contenidoDeEspecie, estacionActual, type Estacion, type FichaEspecie, t
  *   hasta que exista la foto propia del ejemplar (P2c y P6).
  * - Sin texto de la especie, la ficha queda en su forma mínima: no se
  *   inventa contenido.
+ * - Con la API de CC-078 (`contenido_especie`, `ejemplar`, `foto_principal`,
+ *   `medidas`) la ficha usa lo que guardó el municipio; si la API aún no
+ *   envía esas claves, sigue con el contenido aprobado de `contenidoEspecie.ts`.
  */
+
+/** Ícono del catálogo `icono_aporte` (backend) → trazo propio de la ficha. */
+const ICONO_API: Record<string, IconoAporte> = {
+  sombra: "sombra",
+  frescor: "frescor",
+  aves: "pajaro",
+  polinizadores: "abeja",
+  flores: "flor",
+  siempreverde: "siempreverde",
+  hito: "hito",
+  generaciones: "generaciones",
+};
+
+/** Medidas que el municipio puede activar para el ejemplar (D-297 a D-301). */
+const MEDIDAS: { campo: CampoMedida; etiqueta: string }[] = [
+  { campo: "altura_total_m", etiqueta: "Altura" },
+  { campo: "dap_cm", etiqueta: "Tronco (DAP)" },
+  { campo: "diametro_copa_m", etiqueta: "Copa" },
+  { campo: "rango_edad_estimada_anios", etiqueta: "Edad estimada" },
+  { campo: "clase_edad", etiqueta: "Etapa" },
+];
+
+function valorMedida(m: MedidaPublica): string {
+  return "valor" in m ? `${m.valor.toLocaleString("es-CL")} ${m.unidad}` : m.etiqueta;
+}
+
+/**
+ * Textos de la ficha: los de la API (CC-078) si la respuesta trae la clave
+ * `contenido_especie` —aunque sea `null`, que significa «sin contenido»—;
+ * si no la trae, los aprobados en el frontend.
+ */
+function textosDeFicha(ficha: FichaPublicaAmpliada): FichaEspecie | null {
+  if (ficha.contenido_especie === undefined) return contenidoDeEspecie(ficha.especie_cientifica);
+  const c = ficha.contenido_especie;
+  if (!c) return null;
+  return {
+    nombreComun: ficha.nombre_visualizacion ?? ficha.nombre_comun ?? ficha.especie_cientifica ?? "Árbol de Valparaíso",
+    articulo: ficha.articulo ?? "el",
+    curiosidad: c.curiosidad ?? "",
+    aportes: c.aportes.map((a) => [ICONO_API[a.icono.codigo] ?? "hito", a.titulo] as [IconoAporte, string]),
+    quienSoy: c.quien_soy ?? "",
+    rasgos: c.rasgos.map((r) => ({ etiqueta: r.etiqueta, texto: r.texto, foto: r.foto?.url ?? null })),
+    anio: c.anio_estacional ?? undefined,
+    ciclo: c.ciclo ?? undefined,
+    historia: c.historia_especie ?? "",
+    consejo: c.consejo ?? "",
+    fuentes: [],
+  };
+}
 
 const AHORA = estacionActual();
 
@@ -81,7 +133,7 @@ export function ExperienciaArbol({
   qrToken,
   vistaPrevia = false,
 }: {
-  ficha: FichaPublica;
+  ficha: FichaPublicaAmpliada;
   /** Identifica el árbol en el reporte; en la vista previa no se envía nada. */
   qrToken: string | null;
   vistaPrevia?: boolean;
@@ -89,12 +141,16 @@ export function ExperienciaArbol({
   const [reportando, setReportando] = useState(false);
   const [consultando, setConsultando] = useState(false);
   const [visor, setVisor] = useState<FotoVisor | null>(null);
-  const txt = contenidoDeEspecie(ficha.especie_cientifica);
+  const txt = textosDeFicha(ficha);
+  const conApi = ficha.contenido_especie !== undefined;
   // Sin especie identificada (p. ej. «Sin identificar» en el inventario) no se usa ese rótulo como nombre.
   const sinEspecie = !txt && !ficha.especie_cientifica;
   const nombre = sinEspecie ? "Árbol de Valparaíso" : (txt?.nombreComun ?? ficha.nombre_comun ?? ficha.especie_cientifica ?? "Árbol de Valparaíso");
-  const saludo = txt ? `${txt.articulo} ${nombre}` : sinEspecie ? "un árbol de Valparaíso" : nombre;
-  const foto = fotoDeEspecie(ficha.especie_cientifica);
+  const saludo = txt && !(conApi && !ficha.articulo) ? `${txt.articulo} ${nombre}` : sinEspecie ? "un árbol de Valparaíso" : nombre;
+  // Con la API de CC-078 la foto la decide el backend (la del ejemplar o la referencial de la especie).
+  const fotoApi = ficha.foto_principal;
+  const foto = fotoApi !== undefined ? (fotoApi?.url ?? null) : fotoDeEspecie(ficha.especie_cientifica);
+  const rotuloFoto = fotoApi?.tipo === "ejemplar" ? "Foto de este árbol" : "Foto referencial de la especie";
   const lugar = ubicacionBreve(ficha.ubicacion_descriptiva);
 
   return (
@@ -110,16 +166,16 @@ export function ExperienciaArbol({
             <button
               type="button"
               className="vvc-foto-btn"
-              aria-label={`Ver en grande la foto referencial de ${nombre}`}
-              onClick={() => setVisor({ src: foto, alt: `Foto referencial de ${nombre}`, pie: `${nombre} · Foto referencial de la especie` })}
+              aria-label={`Ver en grande: ${rotuloFoto.toLowerCase()}`}
+              onClick={() => setVisor({ src: foto, alt: `${rotuloFoto} · ${nombre}`, pie: `${nombre} · ${rotuloFoto}` })}
             >
-              <img className="vvc-photo-hero__img" src={foto} alt={`Foto referencial de ${nombre}`} />
+              <img className="vvc-photo-hero__img" src={foto} alt={`${rotuloFoto} · ${nombre}`} />
               <span className="vvc-foto-btn__ampliar" aria-hidden="true">
                 <Icon name="expand" size={15} />
               </span>
             </button>
             <figcaption className="vvc-photo-hero__chip">
-              <Icon name="camera" size={13} /> Foto referencial de la especie
+              <Icon name="camera" size={13} /> {rotuloFoto}
             </figcaption>
           </figure>
         ) : (
@@ -147,26 +203,30 @@ export function ExperienciaArbol({
 
         {txt ? (
           <>
-            <section className="vvc-curio" aria-label="¿Sabías que?">
-              <span className="vvc-curio__ic">
-                <Trazo d={TRAZO.chispa} size={17} />
-              </span>
-              <span className="vvc-curio__k">¿Sabías que…?</span>
-              <p>{txt.curiosidad}</p>
-            </section>
+            {txt.curiosidad && (
+              <section className="vvc-curio" aria-label="¿Sabías que?">
+                <span className="vvc-curio__ic">
+                  <Trazo d={TRAZO.chispa} size={17} />
+                </span>
+                <span className="vvc-curio__k">¿Sabías que…?</span>
+                <p>{txt.curiosidad}</p>
+              </section>
+            )}
 
-            <div className="vvc-aportes" aria-label="Mis aportes a Valparaíso">
-              {txt.aportes.map(([icono, titulo]) => (
-                <div key={titulo} className="vvc-aporte">
-                  <span>
-                    <Trazo d={TRAZO[icono]} size={19} />
-                  </span>
-                  <strong>{titulo}</strong>
-                </div>
-              ))}
-            </div>
+            {txt.aportes.length > 0 && (
+              <div className="vvc-aportes" aria-label="Mis aportes a Valparaíso">
+                {txt.aportes.map(([icono, titulo]) => (
+                  <div key={titulo} className="vvc-aporte">
+                    <span>
+                      <Trazo d={TRAZO[icono]} size={19} />
+                    </span>
+                    <strong>{titulo}</strong>
+                  </div>
+                ))}
+              </div>
+            )}
 
-            <ConoceMas txt={txt} onVer={setVisor} />
+            <ConoceMas txt={txt} ficha={ficha} onVer={setVisor} />
           </>
         ) : (
           <p className="vvc-intro">Soy parte del arbolado urbano de Valparaíso. Si ves algo raro en mí, avísale al municipio.</p>
@@ -203,11 +263,17 @@ export function ExperienciaArbol({
 }
 
 /** «Conoce más sobre mí»: un solo desplegable con mini tarjetas. */
-function ConoceMas({ txt, onVer }: { txt: FichaEspecie; onVer: (f: FotoVisor) => void }) {
+function ConoceMas({ txt, ficha, onVer }: { txt: FichaEspecie; ficha: FichaPublicaAmpliada; onVer: (f: FotoVisor) => void }) {
   const [rasgo, setRasgo] = useState(0);
   const [estacion, setEstacion] = useState<Estacion>(AHORA);
   const [paso, setPaso] = useState(0);
   const r = txt.rasgos[rasgo] ?? txt.rasgos[0];
+  // «Mi historia» es la del ejemplar (D-302) si el municipio la escribió; si no, la de la especie.
+  const historiaEjemplar = ficha.ejemplar?.historia ?? null;
+  const medidas = MEDIDAS.flatMap((m) => {
+    const v = ficha.medidas?.[m.campo];
+    return v ? [{ ...m, valor: valorMedida(v), naturaleza: v.naturaleza.etiqueta }] : [];
+  });
 
   return (
     <details className="vvc-mas">
@@ -215,6 +281,7 @@ function ConoceMas({ txt, onVer }: { txt: FichaEspecie; onVer: (f: FotoVisor) =>
         Conoce más sobre mí <Icon name="chevron-down" size={18} />
       </summary>
       <div className="vvc-bento">
+        {r && (
         <section className="vvc-mini vvc-mini--ancha vvc-reco" aria-label="Reconóceme">
           <div className="vvc-reco__img">
             <span className="vvc-reco__k">
@@ -251,20 +318,50 @@ function ConoceMas({ txt, onVer }: { txt: FichaEspecie; onVer: (f: FotoVisor) =>
             )}
           </div>
         </section>
+        )}
 
-        <section className="vvc-mini" aria-label="Quién soy">
-          <span className="vvc-mini__k">
-            <Trazo d={TRAZO.globo} size={14} /> Quién soy
-          </span>
-          <p>{txt.quienSoy}</p>
-        </section>
+        {txt.quienSoy && (
+          <section className="vvc-mini" aria-label="Quién soy">
+            <span className="vvc-mini__k">
+              <Trazo d={TRAZO.globo} size={14} /> Quién soy
+            </span>
+            <p>{txt.quienSoy}</p>
+          </section>
+        )}
 
-        <section className="vvc-mini vvc-mini--dato" aria-label="Mi historia">
-          <span className="vvc-mini__k">
-            <Trazo d={TRAZO.libro} size={14} /> Mi historia
-          </span>
-          <p>{txt.historia}</p>
-        </section>
+        {(historiaEjemplar || txt.historia) && (
+          <section className="vvc-mini vvc-mini--dato" aria-label="Mi historia">
+            <span className="vvc-mini__k">
+              <Trazo d={TRAZO.libro} size={14} /> Mi historia
+            </span>
+            <p>{historiaEjemplar ?? txt.historia}</p>
+          </section>
+        )}
+
+        {historiaEjemplar && txt.historia && (
+          <section className="vvc-mini" aria-label="Mi especie">
+            <span className="vvc-mini__k">
+              <Trazo d={TRAZO.globo} size={14} /> Mi especie
+            </span>
+            <p>{txt.historia}</p>
+          </section>
+        )}
+
+        {medidas.length > 0 && (
+          <section className="vvc-mini vvc-mini--ancha" aria-label="Mis medidas">
+            <span className="vvc-mini__k">
+              <Icon name="ruler" size={14} /> Mis medidas
+            </span>
+            <dl className="vvc-medidas">
+              {medidas.map((m) => (
+                <div key={m.campo} title={m.naturaleza}>
+                  <dt>{m.etiqueta}</dt>
+                  <dd>{m.valor}</dd>
+                </div>
+              ))}
+            </dl>
+          </section>
+        )}
 
         {txt.ciclo ? (
           <section className="vvc-mini vvc-mini--ancha" aria-label={txt.ciclo.titulo}>
@@ -305,12 +402,14 @@ function ConoceMas({ txt, onVer }: { txt: FichaEspecie; onVer: (f: FotoVisor) =>
           )
         )}
 
-        <section className="vvc-mini vvc-mini--consejo vvc-mini--ancha" aria-label="Cuídame">
-          <span className="vvc-mini__k">
-            <Trazo d={TRAZO.corazon} size={14} /> Cuídame
-          </span>
-          <p>{txt.consejo}</p>
-        </section>
+        {txt.consejo && (
+          <section className="vvc-mini vvc-mini--consejo vvc-mini--ancha" aria-label="Cuídame">
+            <span className="vvc-mini__k">
+              <Trazo d={TRAZO.corazon} size={14} /> Cuídame
+            </span>
+            <p>{txt.consejo}</p>
+          </section>
+        )}
       </div>
     </details>
   );

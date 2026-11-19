@@ -35,7 +35,7 @@ async function getAccessToken(): Promise<string> {
   return data.session.access_token;
 }
 
-type Method = "GET" | "POST" | "PATCH" | "DELETE";
+type Method = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
 
 const SESSION_EXPIRED_MESSAGE = "Tu sesión expiró. Vuelve a iniciar sesión para continuar.";
 
@@ -108,6 +108,7 @@ async function request<T>(method: Method, path: string, body?: unknown): Promise
 export const api = {
   get: <T>(path: string) => request<T>("GET", path),
   post: <T>(path: string, body?: unknown) => request<T>("POST", path, body),
+  put: <T>(path: string, body?: unknown) => request<T>("PUT", path, body),
   patch: <T>(path: string, body?: unknown) => request<T>("PATCH", path, body),
   delete: <T = void>(path: string) => request<T>("DELETE", path),
   /** Archivo binario con sesión (p. ej. el PDF de placas QR). */

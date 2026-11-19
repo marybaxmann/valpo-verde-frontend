@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { buscarEspeciesCatalogo } from "../../api/species";
 import type { ArbolInventario } from "../../types/inventory";
-import type { FichaPublica } from "../../types/fichaPublica";
+import type { FichaPublica, FichaPublicaAmpliada } from "../../types/fichaPublica";
 import { ExperienciaArbol } from "./ExperienciaArbol";
 
 /**
@@ -12,7 +12,16 @@ import { ExperienciaArbol } from "./ExperienciaArbol";
  * catálogo de la especie. El origen, el follaje y el tipo de hoja llegan
  * como códigos sin etiqueta (B20): no se muestran hasta tener la etiqueta.
  */
-export function VistaPreviaCiudadana({ projectId, arbol }: { projectId: string; arbol: ArbolInventario }) {
+export function VistaPreviaCiudadana({
+  projectId,
+  arbol,
+  publicada,
+}: {
+  projectId: string;
+  arbol: ArbolInventario;
+  /** Ficha tal como la entrega el backend (CC-078, `vista_previa`); si existe, manda. */
+  publicada?: FichaPublicaAmpliada | null;
+}) {
   const [especie, setEspecie] = useState<{ id: string; genero: string | null; familia: string | null } | null>(null);
 
   useEffect(() => {
@@ -48,7 +57,7 @@ export function VistaPreviaCiudadana({ projectId, arbol }: { projectId: string; 
   return (
     <div className="vvc-preview" aria-label="Vista previa en un teléfono">
       <div className="vvc-preview__screen">
-        <ExperienciaArbol key={arbol.id} ficha={ficha} qrToken={null} vistaPrevia />
+        <ExperienciaArbol key={arbol.id} ficha={publicada ?? ficha} qrToken={null} vistaPrevia />
       </div>
     </div>
   );

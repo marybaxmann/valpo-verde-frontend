@@ -338,6 +338,15 @@ email, nunca hardcodeado.
 - Compacto como la maqueta SIVU Lab: seis indicadores (árboles, georreferenciados, evaluados, especies, OT abiertas, incidencias abiertas), filas de una línea en Composición (3 especies con su %) e Infraestructura, agenda de 3 fechas.
 - Panel «Indicadores biométricos» (B19) en lugar de «Módulos»: densidad, Shannon, identificados a especie y área de copa. No se muestra «árboles nativos» mientras falte el origen en el catálogo.
 
+### Fase 7 · Conecta: ficha pública editable (CC-078)
+**Fecha:** 2026-11-19. Rama `feature/conecta-ficha-editable`; backend en el PR #84 del backend (sin publicar). **Aprobado por la responsable el 2026-11-19** tras probarlo en local.
+- `FichaPublicaEditor`: interruptores de las medidas vigentes (D-25, D-19, D-18, D-22, D-26), «Mi historia» con su fuente, foto propia (subir, reemplazar, quitar) y «Guardar y publicar». Editan el Usuario municipal y el Administrador; el resto, solo lectura. Avisa antes de cambiar de árbol con cambios sin guardar.
+- La vista previa y la ficha del QR (`ExperienciaArbol`) usan las claves de CC-078 (`contenido_especie`, `ejemplar`, `foto_principal`, `medidas`) cuando la API las trae; si no, siguen con `contenidoEspecie.ts`, así que la API publicada de hoy no cambia nada en sivu.cl. Nuevo bloque «Mis medidas».
+- Vista previa del borrador: con cambios sin guardar, el teléfono muestra «Borrador» (marco punteado y aviso «Borrador sin publicar») o «Publicada». El borrador se arma en el navegador con la misma regla de la base (medida visible si su interruptor está en Sí y tiene valor vigente); no se envía nada hasta «Guardar y publicar».
+- `api/client.ts` suma `put`; `api/fichaPublica.ts` y tipos en `types/fichaPublica.ts`.
+- Probado en local (API de la rama en :3100 y frontend en :5181, base de pruebas), proyecto QA Fase 7, A-000346: guardar crea solo una fila en `tree_public_content`; la huella completa de `trees` (109 filas), códigos y QR, fotos y evaluaciones quedó idéntica. La fila de prueba se borró al terminar.
+- De paso: `usarCarga` → `useCarga` en `InfraSheet.tsx` (regla de hooks del lint).
+
 ## 5. Limitaciones conocidas (revisado 2026-11-19)
 
 - **Agregar miembro** a un proyecto todavía pide el `user_id` (UUID) en un campo de texto. El backend ya expone `GET /api/sivu/projects/:id/available-users`, pero el frontend aún no lo usa: es una mejora pendiente.
