@@ -32,7 +32,10 @@ parte del contexto antes de empezar. Busca la sección que necesitas
 (`grep -n "^### "`, `grep -n "^## PR-0"`) y lee solo esas líneas.
 
 **Al terminar** un trabajo, actualiza `docs/ESTADO.md` (corto) y agrega el
-detalle a la bitácora de `docs/frontend-architecture.md`.
+detalle a la bitácora de `docs/frontend-architecture.md`. Si además se
+registraron árboles, se cargaron evaluaciones o fotos, o se publicó algo,
+anótalo **en el momento** en `../valpo-verde-backend/docs/ESTADO.md`
+(tabla «Cuándo hay que documentar»): los datos son de todos.
 
 Según la tarea (fuentes canónicas, en el repositorio backend; leer solo la
 sección pertinente):
