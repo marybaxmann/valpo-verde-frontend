@@ -2,7 +2,7 @@
 
 > **Leer esto primero.** Es lo único que una sesión nueva necesita para empezar. Todo lo demás se consulta **por sección** cuando la tarea lo pide (tabla «Qué leer y cuándo»). Al terminar un trabajo, actualiza este archivo: es corto a propósito (máximo ~100 líneas); el detalle va en la bitácora.
 >
-> Última actualización: 2026-11-18.
+> Última actualización: 2026-11-19.
 
 ## Qué es
 
@@ -21,9 +21,11 @@ Las ramas de trabajo salen de `feature/fase7-maqueta-lab` y vuelven a ella por P
 
 ## Trabajo en curso
 
-| Rama | Estado |
+| Qué | Estado (2026-11-19) |
 |---|---|
-| `feature/infraestructura-componentes` | Rediseño del módulo Infraestructura **aprobado por la responsable** (2026-11-18): pin «reloj», rueda de componentes como filtro, ficha Resumen/Componentes/Fotos. Probado con datos reales de Piloto Valparaíso. Detalle en la bitácora, «Rediseño del módulo Infraestructura». Pendiente: commit, PR y fotos por componente (requiere CC). |
+| **D-27 (CC-077), cierre con dos fotos** | **Publicado en sivu.cl:** #19 (porcentajes de copa) y #20 (dos fotos sin etiquetas) fusionados; el backend y las migraciones 040 y 041 también están publicados. Falta la prueba de cierre real con un Inspector y una OT de prueba. |
+| **Rediseño de Infraestructura** (`feature/infraestructura-componentes`) | PR #22, en **borrador**: pin «reloj», rueda de componentes como filtro, ficha Resumen/Componentes/Fotos. Aprobado por la responsable y probado con datos reales. Se fusiona después de la prueba de D-27. Fotos por componente: requiere un CC. |
+| Documentación de arranque | PR #21 (este `ESTADO.md` y la bitácora al día) |
 
 ## Cómo correrlo y probarlo
 

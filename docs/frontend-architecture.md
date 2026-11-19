@@ -322,58 +322,45 @@ email, nunca hardcodeado.
 - `fotosEspecie.ts`: portada de Araucaria (A-000504) y Ginkgo (A-000505) con fotos de esos ejemplares tomadas por la responsable en Plaza Victoria; Olmo con una foto **genérica de la especie, de terceros** (marca de agua «Serbal»), común a los 36 olmos.
 - **Pendiente:** una foto por cada individuo (hoy la foto es por especie; requiere la foto por árbol en el backend, propuesta D6); confirmar el permiso de uso de la foto genérica del Olmo.
 
-## 5. Limitaciones conocidas
+## 5. Limitaciones conocidas (revisado 2026-11-19)
 
-- **No existe ningún endpoint para listar usuarios municipales disponibles** (`GET /api/users` o equivalente no existe en el backend — confirmado contra `valpo-verde-backend/src/routes/index.ts`, que solo monta `/auth` y `/projects`). Por eso, "Agregar miembro" en F7 pide el `user_id` (UUID) directamente en un campo de texto — es una **interfaz provisional**: cuando ese endpoint exista, se reemplaza por un selector real de usuarios.
-- **No existe `DELETE /api/projects/:id`.** El proyecto de prueba creado en F6 ("QA F6 - Proyecto de prueba frontend", `bfd3dc89-c140-43f5-bbc6-3ea9c8ed1195") no pudo eliminarse por ningún medio soportado y permanece en el entorno de desarrollo/pruebas, claramente identificado como dato de QA.
-- **El POST de creación de membresía no devuelve el nombre del usuario** (solo las columnas de `project_members`, sin el join a `user_profiles` que sí trae el GET) — no afecta la UI hoy porque se recarga la lista completa tras cada cambio.
-- **Sidebar con navegación mínima:** solo el ítem "Proyectos" existe en ambos roles — no hay enlaces a Inventario/Dashboard/etc. porque esas rutas no existen todavía.
-- **Sin framework de tests para frontend** — decisión diferida, no tomada todavía (igual estado que tuvo el backend hasta que se resolvió en su propia fase F1).
+- **Agregar miembro** a un proyecto todavía pide el `user_id` (UUID) en un campo de texto. El backend ya expone `GET /api/sivu/projects/:id/available-users`, pero el frontend aún no lo usa: es una mejora pendiente.
+- **Sin framework de pruebas** en el frontend. Las verificaciones son `npx tsc -b`, `npm run build`, `npm run lint` (oxlint) y la prueba en el navegador. El PR #19 agrega una primera prueba con `node --test` (`tests/inspectionForm.estacionalidad.test.mjs`).
+- **Diseño en teléfono** no verificado de forma sistemática (hallazgo A3 de la auditoría de octubre). Las pantallas con mapa tienen su vista angosta (`territory.css`, corte en 860 px), pero no hay una revisión completa.
+- **Contenido ciudadano provisional:** los textos y fotos de las especies de Conecta viven en el frontend (`src/components/conecta/contenidoEspecie.ts`, `fotosEspecie.ts`) hasta que el backend tenga su lugar (relevo de Mari del 2026-11-15, §3.1).
+- El proyecto QA de F6 sigue en la base de pruebas, porque no existe una forma soportada de eliminar proyectos.
 
-## 6. Pendiente / no implementado
+## 6. Pendiente
 
-Edición de árboles y de ubicación, filtros y capas temáticas del mapa,
-dashboard real, inspección técnica, infraestructura, priorización,
-mantención, incidencias, indicadores. Ninguno de estos módulos tiene
-endpoints en el backend todavía — el frontend no puede construirlos sin
-inventar un contrato que no existe. El mapa de inventario de solo
-lectura existe desde SIG-1.
+El estado vigente y el orden de trabajo están en **`docs/ESTADO.md`** (no se duplican aquí). Pendientes de producto conocidos al 2026-11-19:
 
-## 7. Endpoints consumidos hoy (8/8 de los disponibles)
+- **D-27 en sivu.cl:** publicado el 2026-11-19 (#19, #20, backend #81 y migraciones 040 y 041). Falta la prueba de cierre real.
+- **Rediseño de Infraestructura:** PR #22 (borrador), para publicar después de D-27.
+- **Fotos por componente** en Infraestructura: requiere un CC (hoy `photos.vista` solo tiene las vistas de D-27 y «detalle»).
+- **Reglas que se flexibilicen** según el inventario del backend (`docs/plan/propuestas/inventario-reglas-bloqueantes-2026-11-18.md`): cada una llega como CC y después se refleja en el formulario.
 
-| Endpoint | Consumido desde |
-|---|---|
-| `GET /api/auth/me` | `src/hooks/useAuth.tsx` (F4) |
-| `GET /api/projects` | `src/api/projects.ts` (F6) |
-| `POST /api/sivu/projects` | `src/api/projects.ts` (Fase 7, Paso 5; antes la demo `POST /api/projects`) |
-| `POST /api/sivu/projects/sector-preview` | `src/api/projects.ts` (Fase 7, Paso 5) |
-| `GET /api/projects/:id` | `src/api/projects.ts` (F6) |
-| `GET /api/sivu/projects/:id/members` | `src/api/projectMembers.ts` (Fase 7, Paso 4) |
-| `POST /api/sivu/projects/:id/members` | `src/api/projectMembers.ts` (Fase 7, Paso 4) |
-| `DELETE /api/sivu/projects/:id/members/:userId` | `src/api/projectMembers.ts` (Fase 7, Paso 4) |
-| `PATCH /api/sivu/projects/:id` | `src/api/projects.ts` (Fase 7, Paso 4) |
-| `PATCH /api/sivu/projects/:id/estado` | `src/api/projects.ts` (Fase 7, Paso 4) |
-| `GET /api/projects/:id/trees` | `src/api/trees.ts` (SIG-1) |
-| `GET /api/sivu/projects/:id/inspection-form-schema` | `src/api/inspections.ts` (Fase 7, formulario) |
-| `POST /api/sivu/work-orders/:id/inspections` | `src/api/inspections.ts` (Fase 7, formulario) |
-| `PATCH /api/sivu/inspections/:id` | `src/api/inspections.ts` (Fase 7, formulario) |
-| `GET/POST /api/sivu/inspections/:id/photos` | `src/api/inspections.ts` (Fase 7, formulario) |
-| `POST /api/sivu/inspections/:id/calcular` | `src/api/inspections.ts` (Fase 7, formulario) |
-| `POST /api/sivu/inspections/:id/finalizar` | `src/api/inspections.ts` (Fase 7, formulario) |
-| `GET /api/sivu/projects/:id/species` | `src/api/species.ts`, `src/api/treeAlta.ts` (Fase 7) |
-| `PATCH /api/sivu/projects/:id/species/:speciesId` | `src/api/species.ts` (Fase 7, catálogo de especies) |
-| `PATCH /api/sivu/projects/:id/species/:speciesId/nombre` | `src/api/species.ts` (Fase 7, catálogo de especies) |
+## 7. Endpoints que consume el frontend
 
-## 8. Roadmap (F8 en adelante)
+La lista exacta se obtiene del código, para que no quede desactualizada:
 
-El alcance exacto de F8 todavía no está definido — este documento no lo
-anticipa. Lo único que se sabe con certeza hoy:
+```bash
+grep -rnoE "api\.(get|post|patch|put|delete)[^(]*\(\s*[\`\"][^\`\"]+" src/api
+```
 
-- Cualquier módulo de inventario/árboles/inspección/etc. depende de que
-  el backend implemente primero sus endpoints (ver §6) — no es una
-  tarea que el frontend pueda adelantar por su cuenta sin inventar
-  contrato.
-- La interfaz provisional de "agregar miembro" (§5) se reemplaza cuando
-  exista un endpoint de listado de usuarios — no antes.
-- El proyecto QA de F6 sigue pendiente de una decisión sobre qué hacer
-  con él (no hay forma soportada de eliminarlo hoy).
+Resumen por módulo (todos bajo `/api/sivu/…`, salvo la sesión `GET /api/auth/me`):
+
+| Módulo | Cliente | Endpoints principales |
+|---|---|---|
+| Proyectos y miembros | `projects.ts`, `projectMembers.ts` | proyectos, estado, sector, miembros |
+| Inventario y ficha | `inventory.ts`, `fichaArbol.ts`, `treeAlta.ts`, `species.ts` | B1 árboles, B2 ficha, fotos del árbol (037), alta, especies |
+| Riesgo Arbóreo | `diagnosticos.ts` | B18 diagnósticos |
+| Infraestructura | `infraestructura.ts` (PR #22) | B8 |
+| Inspección | `inspections.ts`, `fotosFirmadas.ts` | esquema B16, borrador, fotos, calcular, finalizar, anular, carga firmada |
+| OT y mantención | `workOrders.ts`, `mantenimiento.ts` | OT del proyecto, mis OT, estados, completar, cancelar, revisiones, ejecuciones |
+| Dashboard, incidencias, indicadores | `resumen.ts`, `incidencias.ts`, `indicadores.ts` | B7, B9, B19 |
+| Conecta (público) | `publico.ts` | ficha pública por QR, catálogo público |
+| Catálogos | `catalogs.ts`, `cache.ts` | catálogos con caché |
+
+## 8. Roadmap
+
+Lo que sigue se decide en `docs/ESTADO.md` (frontend) y en `../valpo-verde-backend/docs/ESTADO.md` (backend, metodología y datos). El frontend no adelanta módulos sin endpoint ni contrato del backend.
