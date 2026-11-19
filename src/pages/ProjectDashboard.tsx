@@ -13,6 +13,9 @@ import type { ResumenProyecto } from "../types/resumen";
 import { BarRow } from "../components/BarRow";
 import type { ConteoCatalogo } from "../types/resumen";
 import { getClassificationTone } from "../components/ClassificationBadge";
+import { obtenerInfraestructura } from "../api/infraestructura";
+import type { RespuestaInfraestructura } from "../types/infraestructura";
+import { CATEGORIAS_CON_AFECTACION, COMPONENTES } from "../lib/infraestructura";
 
 /**
  * Dashboard del proyecto (Fase 7, Paso 4): composición de la maqueta
@@ -104,6 +107,22 @@ export default function ProjectDashboard() {
     };
   }, [projectId]);
 
+  // Infraestructura (B8): cobertura y árboles con afectación por componente, contados por el backend.
+  const [infra, setInfra] = useState<{ id: string; data: RespuestaInfraestructura } | { id: string; error: string } | null>(null);
+  useEffect(() => {
+    let cancelled = false;
+    obtenerInfraestructura(projectId)
+      .then((data) => {
+        if (!cancelled) setInfra({ id: projectId, data });
+      })
+      .catch((err: unknown) => {
+        if (!cancelled) setInfra({ id: projectId, error: err instanceof Error ? err.message : "No se pudo cargar la infraestructura." });
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [projectId]);
+
   // Agenda: fechas sugeridas de los diagnósticos finalizados (no son
   // recordatorios vigentes; esos llegan con B5 al completar la OT).
   const [agenda, setAgenda] = useState<{ id: string; items: { fecha: string; tipo: string; d: Diagnostico }[] } | null>(null);
@@ -148,6 +167,7 @@ export default function ProjectDashboard() {
   const project = detail?.proyecto;
   const sector = detail?.sector;
   const agendaActual = agenda?.id === projectId ? agenda.items : null;
+  const infraActual = infra?.id === projectId ? infra : null;
   const actual = resumen?.id === projectId ? resumen : null;
   const r = actual && "data" in actual ? actual.data : null;
   const errorResumen = actual && "error" in actual ? actual.error : null;
@@ -213,8 +233,13 @@ export default function ProjectDashboard() {
                 <Icon name="inbox" size={16} />
               </span>
               <span className="sivu-kpi__lbl">Incidencias abiertas</span>
-              <span className="sivu-kpi__val">Pendiente</span>
-              <span className="sivu-kpi__sub">en desarrollo</span>
+              {/* Suma de los conteos de B7 en los estados no cerrados de D-184 (no Resuelta ni Descartada). */}
+              <span className="sivu-kpi__val">
+                {r?.incidencias_por_estado
+                  ? r.incidencias_por_estado.filter((c) => c.codigo !== "resuelta" && c.codigo !== "descartada").reduce((s, c) => s + c.total, 0)
+                  : "—"}
+              </span>
+              <span className="sivu-kpi__sub">{r?.incidencias_por_estado ? "ingresadas, en revisión o derivadas" : "sin datos del resumen"}</span>
             </div>
           </section>
 
@@ -304,7 +329,28 @@ export default function ProjectDashboard() {
                 </>
               )}
               {r && r.ot_por_estado.length === 0 && <p className="sivu-state">El proyecto no tiene órdenes de trabajo.</p>}
-              <PendingNotice what="las incidencias por estado" refs="B9" compact />
+              {/* Incidencias por estado: conteos de B7 (D-184). Un backend anterior que no los envía muestra el aviso. */}
+              {r && r.incidencias_por_estado && r.incidencias_por_estado.length > 0 && (
+                <>
+                  <span className="sivu-panel__sub">
+                    Incidencias por estado ·{" "}
+                    <Link to="../incidencias" relative="path" className="sivu-panel__link">
+                      Ver incidencias
+                    </Link>
+                  </span>
+                  <ul className="sivu-statelist">
+                    {r.incidencias_por_estado.map((c) => (
+                      <li key={c.codigo ?? "sin"}>
+                        <i style={{ background: "var(--incidencia)" }} />
+                        <span>{c.etiqueta ?? c.codigo ?? "—"}</span>
+                        <strong>{c.total}</strong>
+                      </li>
+                    ))}
+                  </ul>
+                </>
+              )}
+              {r && r.incidencias_por_estado && r.incidencias_por_estado.length === 0 && <p className="sivu-state">El proyecto no tiene incidencias.</p>}
+              {r && !r.incidencias_por_estado && <PendingNotice what="las incidencias por estado" refs="B7 · incidencias_por_estado" compact />}
             </article>
 
             <article className="sivu-panel sivu-dash__next">
@@ -344,7 +390,29 @@ export default function ProjectDashboard() {
                   Infraestructura <Icon name="arrow-right" size={12} />
                 </Link>
               </div>
-              <PendingNotice what="las evaluaciones de infraestructura por componente" refs="B8" />
+              {infraActual === null && <p className="sivu-state">Cargando…</p>}
+              {infraActual && "error" in infraActual && <p className="sivu-state">Sin datos.</p>}
+              {infraActual && "data" in infraActual && (
+                <>
+                  <span className="sivu-panel__sub">
+                    {infraActual.data.cobertura.arboles_con_evaluacion_valida} de {infraActual.data.cobertura.arboles_presentes} árboles con evaluación vigente · árboles con afectación por componente
+                  </span>
+                  {COMPONENTES.map((c) => {
+                    const comp = infraActual.data.resumen.por_componente.find((p) => p.componente.codigo === c.codigo);
+                    const afectados = CATEGORIAS_CON_AFECTACION.reduce((s, k) => s + (comp?.categorias.find((x) => x.codigo === k)?.arboles ?? 0), 0);
+                    return (
+                      <BarRow
+                        key={c.codigo}
+                        label={c.nombre}
+                        value={afectados}
+                        total={Math.max(1, infraActual.data.cobertura.arboles_con_evaluacion_valida)}
+                        tone="#4FA3E0"
+                      />
+                    );
+                  })}
+                  <p className="sivu-terr__note">Afectación leve, moderada o severa en la evaluación vigente (M04).</p>
+                </>
+              )}
             </article>
 
           </section>
