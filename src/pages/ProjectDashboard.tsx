@@ -10,10 +10,11 @@ import { listarDiagnosticos } from "../api/diagnosticos";
 import type { Diagnostico } from "../types/diagnostico";
 import { fechaChile } from "../lib/dates";
 import type { ResumenProyecto } from "../types/resumen";
-import { BarRow } from "../components/BarRow";
 import type { ConteoCatalogo } from "../types/resumen";
 import { getClassificationTone } from "../components/ClassificationBadge";
 import { obtenerInfraestructura } from "../api/infraestructura";
+import { obtenerIndicadores } from "../api/indicadores";
+import type { IndicadoresProyecto } from "../types/indicadores";
 import type { RespuestaInfraestructura } from "../types/infraestructura";
 import { CATEGORIAS_CON_AFECTACION, COMPONENTES } from "../lib/infraestructura";
 
@@ -123,6 +124,22 @@ export default function ProjectDashboard() {
     };
   }, [projectId]);
 
+  // Indicadores biométricos (B19) para el panel compacto del Dashboard.
+  const [indic, setIndic] = useState<{ id: string; data: IndicadoresProyecto } | { id: string; error: string } | null>(null);
+  useEffect(() => {
+    let cancelled = false;
+    obtenerIndicadores(projectId)
+      .then((data) => {
+        if (!cancelled) setIndic({ id: projectId, data });
+      })
+      .catch((err: unknown) => {
+        if (!cancelled) setIndic({ id: projectId, error: err instanceof Error ? err.message : "No se pudieron cargar los indicadores." });
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [projectId]);
+
   // Agenda: fechas sugeridas de los diagnósticos finalizados (no son
   // recordatorios vigentes; esos llegan con B5 al completar la OT).
   const [agenda, setAgenda] = useState<{ id: string; items: { fecha: string; tipo: string; d: Diagnostico }[] } | null>(null);
@@ -172,13 +189,56 @@ export default function ProjectDashboard() {
   const r = actual && "data" in actual ? actual.data : null;
   const errorResumen = actual && "error" in actual ? actual.error : null;
   // Íconos y tonos de la maqueta (`Kpi`): menta por defecto; el tono propio tiñe el ícono y su fondo.
+  // Seis indicadores como la maqueta SIVU Lab (Dashboard compacto, 2026-11-19). Solo se suman conteos de B7.
+  const otAbiertas = r ? r.ot_por_estado.filter((c) => c.codigo !== "completada" && c.codigo !== "cancelada").reduce((s, c) => s + c.total, 0) : undefined;
+  const otEnEjecucion = r?.ot_por_estado.find((c) => c.codigo === "en_ejecucion")?.total ?? 0;
+  const incAbiertas = r?.incidencias_por_estado
+    ? r.incidencias_por_estado.filter((c) => c.codigo !== "resuelta" && c.codigo !== "descartada").reduce((s, c) => s + c.total, 0)
+    : undefined;
+  const incSinRevisar = r?.incidencias_por_estado?.find((c) => c.codigo === "ingresada")?.total ?? 0;
   const kpis: { label: string; icon: IconName; value: number | undefined; sub: string; tone?: string }[] = [
     { label: "Árboles registrados", icon: "leaf", value: r?.arboles_total, sub: "en el inventario" },
-    { label: "Georreferenciados", icon: "pin", value: r?.georreferenciados, sub: r ? `${r.sin_georreferenciar} sin ubicación` : "" },
-    { label: "Con diagnóstico", icon: "clipboard", value: r?.con_diagnostico, sub: "inspección finalizada" },
-    { label: "Sin evaluación", icon: "clock", value: r?.sin_evaluacion, sub: "aún no inspeccionados", tone: "var(--ot-programada)" },
-    { label: "Especies", icon: "sparkle", value: r?.especies_distintas, sub: "distintas" },
+    { label: "Georreferenciados", icon: "pin", value: r?.georreferenciados, sub: r ? `${r.sin_georreferenciar} sin georreferenciar` : "" },
+    { label: "Árboles evaluados", icon: "clipboard", value: r?.con_diagnostico, sub: r ? `${r.sin_evaluacion} sin evaluación` : "" },
+    { label: "Especies", icon: "sparkle", value: r?.especies_distintas, sub: "en el inventario" },
+    { label: "OT abiertas", icon: "wrench", value: otAbiertas, sub: r ? `${otEnEjecucion} en ejecución` : "", tone: "var(--ot-programada)" },
+    {
+      label: "Incidencias abiertas",
+      icon: "inbox",
+      value: incAbiertas,
+      sub: r?.incidencias_por_estado ? `${incSinRevisar} sin revisar` : "sin datos del resumen",
+      tone: "var(--incidencia)",
+    },
   ];
+
+  const indicActual = indic?.id === projectId ? indic : null;
+  const ind = indicActual && "data" in indicActual ? indicActual.data : null;
+  const num = (v: number | null | undefined, dec = 0) => (v === null || v === undefined ? "—" : v.toLocaleString("es-CL", { maximumFractionDigits: dec, minimumFractionDigits: dec }));
+  const indicadores: { label: string; valor: string; unidad?: string; sub: string; title?: string }[] = ind
+    ? [
+        {
+          label: "Densidad arbórea",
+          valor: num(ind.densidad_arborea.valor, 1),
+          unidad: "árb/ha",
+          sub: ind.densidad_arborea.valor === null ? "sin superficie del sector" : "árboles por hectárea",
+          title: ind.densidad_arborea.motivo ?? undefined,
+        },
+        { label: "Diversidad (Shannon)", valor: num(ind.diversidad_shannon.valor, 2), sub: `${ind.riqueza_especies.valor} especies` },
+        {
+          // No «nativos»: el origen biogeográfico aún falta en buena parte del catálogo de especies.
+          label: "Identificados a especie",
+          valor: num(ind.cobertura_taxonomica.porcentaje_identificados, 0),
+          unidad: "%",
+          sub: `${ind.cobertura_taxonomica.identificados_especie} de ${ind.cobertura_taxonomica.presentes}`,
+        },
+        {
+          label: "Área de copa",
+          valor: num(ind.area_proyectada_copa.total_m2, 0),
+          unidad: "m²",
+          sub: `${ind.area_proyectada_copa.n_con_area} árboles medidos`,
+        },
+      ]
+    : [];
 
   return (
     <div className="sivu-dash">
@@ -224,23 +284,10 @@ export default function ProjectDashboard() {
                   <Icon name={k.icon} size={16} />
                 </span>
                 <span className="sivu-kpi__lbl">{k.label}</span>
-                <span className="sivu-kpi__val">{r ? k.value : errorResumen ? "—" : "…"}</span>
+                <span className="sivu-kpi__val">{r ? (k.value ?? "—") : errorResumen ? "—" : "…"}</span>
                 <span className="sivu-kpi__sub">{k.sub}</span>
               </div>
             ))}
-            <div className="sivu-kpi sivu-kpi--pending" data-refs="B9">
-              <span className="sivu-kpi__icon sivu-kpi__icon--tono" aria-hidden="true" style={{ ["--tono" as string]: "var(--incidencia)" }}>
-                <Icon name="inbox" size={16} />
-              </span>
-              <span className="sivu-kpi__lbl">Incidencias abiertas</span>
-              {/* Suma de los conteos de B7 en los estados no cerrados de D-184 (no Resuelta ni Descartada). */}
-              <span className="sivu-kpi__val">
-                {r?.incidencias_por_estado
-                  ? r.incidencias_por_estado.filter((c) => c.codigo !== "resuelta" && c.codigo !== "descartada").reduce((s, c) => s + c.total, 0)
-                  : "—"}
-              </span>
-              <span className="sivu-kpi__sub">{r?.incidencias_por_estado ? "ingresadas, en revisión o derivadas" : "sin datos del resumen"}</span>
-            </div>
           </section>
 
           <section className="sivu-dash__grid">
@@ -294,16 +341,28 @@ export default function ProjectDashboard() {
                       </div>
                     ))}
                   </div>
-                  <h3 className="sivu-dash__sub">Especies más registradas</h3>
-                  {r.especies_top.map((e) => (
-                    <BarRow
-                      key={e.especie_cientifica ?? e.nombre_comun ?? "sin"}
-                      label={e.nombre_comun ? `${e.nombre_comun} (${e.especie_cientifica ?? "—"})` : e.especie_cientifica ?? "Sin especie"}
-                      value={e.total}
-                      total={r.arboles_total}
-                      tone="#3fb07e"
-                    />
-                  ))}
+                  <span className="sivu-panel__sub">Especies más registradas</span>
+                  {/* Como la maqueta: las 3 principales en filas de una línea, % sobre el total de árboles (B7). */}
+                  <ul className="sivu-bars">
+                    {r.especies_top.slice(0, 3).map((e) => {
+                      const pct = r.arboles_total > 0 ? Math.round((e.total / r.arboles_total) * 100) : 0;
+                      const max = r.especies_top[0]?.total || 1;
+                      return (
+                        <li key={e.especie_cientifica ?? e.nombre_comun ?? "sin"} title={`${e.especie_cientifica ?? ""} · ${e.total} árboles`}>
+                          <span>{e.nombre_comun ?? e.especie_cientifica ?? "Sin especie"}</span>
+                          <i>
+                            <b style={{ width: `${(e.total / max) * 100}%` }} />
+                          </i>
+                          <strong>{pct}%</strong>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                  {r.especies_distintas > 3 && (
+                    <Link to="../mapa" relative="path" className="sivu-panel__link sivu-dash__more">
+                      Ver las {r.especies_distintas} especies <Icon name="arrow-right" size={12} />
+                    </Link>
+                  )}
                 </>
               ) : (
                 <p className="sivu-state">{errorResumen ? "Sin datos." : "Cargando…"}</p>
@@ -364,7 +423,8 @@ export default function ProjectDashboard() {
               {agendaActual && agendaActual.length === 0 && <p className="sivu-state">Sin fechas sugeridas todavía.</p>}
               {agendaActual && agendaActual.length > 0 && (
                 <ul className="sivu-dash__agenda">
-                  {agendaActual.slice(0, 6).map((it) => (
+                  {/* Dashboard compacto: 3 fechas; el resto desde el enlace del encabezado. */}
+                  {agendaActual.slice(0, 3).map((it) => (
                     <li key={`${it.d.tree_id}-${it.tipo}`}>
                       <span className="sivu-dash__agenda-date" title={fechaChile(it.fecha)}>
                         <strong>{it.fecha.slice(8, 10)}</strong>
@@ -380,41 +440,75 @@ export default function ProjectDashboard() {
                   ))}
                 </ul>
               )}
-              <p className="sivu-terr__note">Fechas sugeridas del diagnóstico finalizado.</p>
+              <p className="sivu-terr__note">
+                {agendaActual && agendaActual.length > 3 ? `${agendaActual.length - 3} fechas más · ` : ""}Fechas sugeridas del diagnóstico finalizado.
+              </p>
             </article>
 
             <article className="sivu-panel sivu-dash__infra">
               <div className="sivu-panel__head">
                 <h2>Infraestructura con daño o interferencia</h2>
                 <Link to="../infraestructura" relative="path" className="sivu-panel__link">
-                  Infraestructura <Icon name="arrow-right" size={12} />
+                  Mapa <Icon name="arrow-right" size={12} />
                 </Link>
               </div>
               {infraActual === null && <p className="sivu-state">Cargando…</p>}
               {infraActual && "error" in infraActual && <p className="sivu-state">Sin datos.</p>}
               {infraActual && "data" in infraActual && (
                 <>
-                  <span className="sivu-panel__sub">
-                    {infraActual.data.cobertura.arboles_con_evaluacion_valida} de {infraActual.data.cobertura.arboles_presentes} árboles con evaluación vigente · árboles con afectación por componente
-                  </span>
-                  {COMPONENTES.map((c) => {
-                    const comp = infraActual.data.resumen.por_componente.find((p) => p.componente.codigo === c.codigo);
-                    const afectados = CATEGORIAS_CON_AFECTACION.reduce((s, k) => s + (comp?.categorias.find((x) => x.codigo === k)?.arboles ?? 0), 0);
-                    return (
-                      <BarRow
-                        key={c.codigo}
-                        label={c.nombre}
-                        value={afectados}
-                        total={Math.max(1, infraActual.data.cobertura.arboles_con_evaluacion_valida)}
-                        tone="#4FA3E0"
-                      />
-                    );
-                  })}
-                  <p className="sivu-terr__note">Afectación leve, moderada o severa en la evaluación vigente (M04).</p>
+                  {/* Como la maqueta: filas de una línea con los árboles con afectación de cada componente (B8). */}
+                  <ul className="sivu-bars sivu-bars--infra">
+                    {(() => {
+                      const filas = COMPONENTES.map((c) => {
+                        const comp = infraActual.data.resumen.por_componente.find((p) => p.componente.codigo === c.codigo);
+                        return { c, n: CATEGORIAS_CON_AFECTACION.reduce((s, k) => s + (comp?.categorias.find((x) => x.codigo === k)?.arboles ?? 0), 0) };
+                      });
+                      const max = Math.max(1, ...filas.map((f) => f.n));
+                      return filas.map(({ c, n }) => (
+                        <li key={c.codigo}>
+                          <span>{c.nombre}</span>
+                          <i>
+                            <b style={{ width: `${(n / max) * 100}%` }} />
+                          </i>
+                          <strong>{n}</strong>
+                        </li>
+                      ));
+                    })()}
+                  </ul>
+                  <p className="sivu-terr__note">
+                    {infraActual.data.cobertura.arboles_con_evaluacion_valida} árboles con evaluación · {infraActual.data.cobertura.arboles_sin_evaluacion_valida} sin evaluación
+                  </p>
                 </>
               )}
             </article>
 
+            <article className="sivu-panel sivu-dash__mods">
+              <div className="sivu-panel__head">
+                <h2>Indicadores biométricos</h2>
+                <Link to="../indices" relative="path" className="sivu-panel__link">
+                  Indicadores <Icon name="arrow-right" size={12} />
+                </Link>
+              </div>
+              {indicActual === null && <p className="sivu-state">Cargando…</p>}
+              {indicActual && "error" in indicActual && <p className="sivu-state">Sin datos.</p>}
+              {ind && (
+                <>
+                  <div className="sivu-indgrid">
+                    {indicadores.map((x) => (
+                      <div key={x.label} title={x.title}>
+                        <span className="sivu-indgrid__lbl">{x.label}</span>
+                        <strong>
+                          {x.valor}
+                          {x.unidad && x.valor !== "—" && <small>{x.unidad}</small>}
+                        </strong>
+                        <span className="sivu-indgrid__sub">{x.sub}</span>
+                      </div>
+                    ))}
+                  </div>
+                  <p className="sivu-terr__note">Inventario de {ind.cobertura.arboles_presentes} árboles presentes (B19).</p>
+                </>
+              )}
+            </article>
           </section>
         </>
       )}
