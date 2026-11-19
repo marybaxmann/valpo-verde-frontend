@@ -339,7 +339,7 @@ email, nunca hardcodeado.
 - Panel «Indicadores biométricos» (B19) en lugar de «Módulos»: densidad, Shannon, identificados a especie y área de copa. No se muestra «árboles nativos» mientras falte el origen en el catálogo.
 
 ### Fase 7 · Conecta: ficha pública editable (CC-078)
-**Fecha:** 2026-11-19. Rama `feature/conecta-ficha-editable`; backend en el PR #84 del backend (sin publicar). **Aprobado por la responsable el 2026-11-19** tras probarlo en local.
+**Fecha:** 2026-11-19. Rama `feature/conecta-ficha-editable`; backend en el PR #84 del backend (sin publicar). **Aprobado por la responsable el 2026-11-19** tras probarlo en local. **Publicado en sivu.cl el 2026-11-19** (PR #26; backend #84 y #85).
 - `FichaPublicaEditor`: interruptores de las medidas vigentes (D-25, D-19, D-18, D-22, D-26), «Mi historia» con su fuente, foto propia (subir, reemplazar, quitar) y «Guardar y publicar». Editan el Usuario municipal y el Administrador; el resto, solo lectura. Avisa antes de cambiar de árbol con cambios sin guardar.
 - La vista previa y la ficha del QR (`ExperienciaArbol`) usan las claves de CC-078 (`contenido_especie`, `ejemplar`, `foto_principal`, `medidas`) cuando la API las trae; si no, siguen con `contenidoEspecie.ts`, así que la API publicada de hoy no cambia nada en sivu.cl. Nuevo bloque «Mis medidas».
 - Vista previa del borrador: con cambios sin guardar, el teléfono muestra «Borrador» (marco punteado y aviso «Borrador sin publicar») o «Publicada». El borrador se arma en el navegador con la misma regla de la base (medida visible si su interruptor está en Sí y tiene valor vigente); no se envía nada hasta «Guardar y publicar».
