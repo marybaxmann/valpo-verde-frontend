@@ -620,3 +620,13 @@
   gap: 4px;
   margin-top: 10px;
 }
+
+/* Filas de una línea: nombre · barra · valor (maqueta SIVU Lab: .bars; Dashboard compacto, 2026-11-19). */
+.sivu-bars { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 9px; font-size: 12.5px; }
+.sivu-bars li { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr) 40px; align-items: center; gap: 10px; color: var(--text-muted); }
+.sivu-bars li span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sivu-bars i { height: 6px; border-radius: 999px; background: var(--shell-soft); overflow: hidden; }
+.sivu-bars b { display: block; height: 100%; border-radius: 999px; background: linear-gradient(90deg, #5fbf8f, var(--sivu-accent)); }
+.sivu-bars--infra b { background: linear-gradient(90deg, #5aa9d6, #9cd3f5); }
+.sivu-bars strong { text-align: right; color: var(--text); font-weight: 600; font-variant-numeric: tabular-nums; }
+.sivu-bars--infra li { grid-template-columns: minmax(0, 2.4fr) minmax(0, 1fr) 26px; }
