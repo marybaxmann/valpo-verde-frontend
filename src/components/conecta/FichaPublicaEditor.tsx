@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import type { ArbolInventario } from "../../types/inventory";
-import type { CodigoEtiquetaPublico, RespuestaFichaArbol } from "../../types/fichaPublica";
+import type { CampoMedida, CodigoEtiquetaPublico, FichaPublicaAmpliada, MedidaPublica, RespuestaFichaArbol } from "../../types/fichaPublica";
 import {
   guardarFichaPublicaArbol,
   quitarFotoFichaPublica,
@@ -61,6 +61,42 @@ function normalizar(b: GuardarFichaArbol): GuardarFichaArbol {
   return { ...b, historia, historia_fuente: fuente };
 }
 
+/**
+ * Naturaleza y unidad de cada medida, igual que la ficha pública de la base
+ * (`fn_ficha_publica_arbol`, 037) y sus rótulos en el backend (CC-078).
+ */
+const NATURALEZA = {
+  medicion_o_estimacion: { codigo: "medicion_o_estimacion", etiqueta: "Medida en terreno o estimada con escala" },
+  estimacion: { codigo: "estimacion", etiqueta: "Estimación" },
+  clasificacion: { codigo: "clasificacion", etiqueta: "Clasificación del Inspector" },
+};
+const REGLA_MEDIDA: Record<Medida, { interruptor: Interruptor; unidad?: string; naturaleza: keyof typeof NATURALEZA }> = {
+  clase_edad: { interruptor: "mostrar_clase_edad", naturaleza: "clasificacion" },
+  altura_total_m: { interruptor: "mostrar_altura_total", unidad: "m", naturaleza: "medicion_o_estimacion" },
+  dap_cm: { interruptor: "mostrar_dap", unidad: "cm", naturaleza: "medicion_o_estimacion" },
+  diametro_copa_m: { interruptor: "mostrar_diametro_copa", unidad: "m", naturaleza: "medicion_o_estimacion" },
+  rango_edad_estimada_anios: { interruptor: "mostrar_rango_edad", naturaleza: "estimacion" },
+};
+
+/**
+ * Vista previa del borrador: la ficha publicada con lo que aún no se guarda
+ * («Mi historia» y las medidas activadas). Solo se dibuja aquí; no se envía
+ * nada hasta «Guardar y publicar». Misma regla que la base: una medida se
+ * muestra si su interruptor está en Sí y tiene valor vigente.
+ */
+function fichaBorrador(r: RespuestaFichaArbol, b: GuardarFichaArbol): FichaPublicaAmpliada {
+  const n = normalizar(b);
+  const medidas: Partial<Record<CampoMedida, MedidaPublica>> = {};
+  for (const campo of Object.keys(REGLA_MEDIDA) as Medida[]) {
+    const regla = REGLA_MEDIDA[campo];
+    const v = r.medidas_vigentes[campo];
+    if (!n[regla.interruptor] || v === null || v === undefined) continue;
+    const naturaleza = NATURALEZA[regla.naturaleza];
+    medidas[campo] = typeof v === "object" ? { ...v, naturaleza } : { valor: Number(v), unidad: regla.unidad ?? "", naturaleza };
+  }
+  return { ...r.vista_previa, ejemplar: { historia: n.historia, historia_fuente: n.historia_fuente }, medidas };
+}
+
 const mismo = (a: GuardarFichaArbol, b: GuardarFichaArbol) => JSON.stringify(normalizar(a)) === JSON.stringify(normalizar(b));
 
 function mensajeError(err: unknown): string {
@@ -99,6 +135,8 @@ export function FichaPublicaEditor({
   const [borrador, setBorrador] = useState<GuardarFichaArbol | null>(null);
   const [ocupado, setOcupado] = useState<null | "guardar" | "foto">(null);
   const [aviso, setAviso] = useState<{ tipo: "ok" | "error"; texto: string } | null>(null);
+  // Vista previa: el borrador (lo que se está editando) o lo publicado.
+  const [verPublicada, setVerPublicada] = useState(false);
   const archivo = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -122,16 +160,20 @@ export function FichaPublicaEditor({
   const cambios = !!(r && b && !mismo(b, borradorDe(r)));
   const editable = puedeEditar && !!r && !ocupado;
   const nombre = arbol.nombre_comun ?? arbol.especie_cientifica ?? "este árbol";
+  const mostrarBorrador = cambios && !verPublicada;
+  const previa = r ? (mostrarBorrador && b ? fichaBorrador(r, b) : r.vista_previa) : null;
 
   function irA(i: number) {
     if (cambios && !window.confirm("Hay cambios sin guardar en esta ficha. ¿Descartarlos?")) return;
     setAviso(null);
+    setVerPublicada(false);
     setIndice(i);
   }
 
   function aplicar(r2: RespuestaFichaArbol, texto: string) {
     setDatos({ id: arbol.id, r: r2 });
     setBorrador(borradorDe(r2));
+    setVerPublicada(false);
     setAviso({ tipo: "ok", texto });
   }
 
@@ -390,9 +432,38 @@ export function FichaPublicaEditor({
       <aside className="sivu-panel sivu-fpe__preview">
         <div className="sivu-fpe__phead">
           <h2>Vista previa</h2>
-          <span>{cambios ? "Lo publicado · guarda para ver tus cambios" : "Así se ve al escanear su placa"}</span>
+          {cambios ? (
+            <div className="sivu-seg sivu-fpe__pseg" role="tablist" aria-label="Qué versión ver">
+              {(
+                [
+                  [false, "Borrador"],
+                  [true, "Publicada"],
+                ] as [boolean, string][]
+              ).map(([pub, label]) => (
+                <button
+                  key={label}
+                  type="button"
+                  role="tab"
+                  aria-selected={verPublicada === pub}
+                  className={`sivu-seg__opt ${verPublicada === pub ? "is-on" : ""}`}
+                  onClick={() => setVerPublicada(pub)}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          ) : (
+            <span>Así se ve al escanear su placa</span>
+          )}
         </div>
-        <VistaPreviaCiudadana projectId={projectId} arbol={arbol} publicada={r?.vista_previa ?? null} />
+        {mostrarBorrador && (
+          <p className="sivu-fpe__draft" role="status">
+            <Icon name="edit" size={13} /> Borrador sin publicar: así quedará al guardar.
+          </p>
+        )}
+        <div className={mostrarBorrador ? "sivu-fpe__frame is-draft" : "sivu-fpe__frame"}>
+          <VistaPreviaCiudadana projectId={projectId} arbol={arbol} publicada={previa} />
+        </div>
       </aside>
     </div>
   );

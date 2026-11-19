@@ -1537,6 +1537,42 @@ button.sivu-fpe__switch:disabled {
   color: #b5541e;
 }
 
+/* Vista previa: borrador (sin publicar) o publicada. */
+.sivu-fpe__pseg {
+  margin: 0;
+}
+
+.sivu-fpe__pseg .sivu-seg__opt {
+  padding: 4px 12px;
+  font-size: 12px;
+}
+
+.sivu-fpe__draft {
+  justify-self: stretch;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  padding: 6px 10px;
+  border-radius: 10px;
+  background: rgba(176, 140, 60, 0.14);
+  color: #c9a24a;
+  font-size: 12px;
+}
+
+.sivu-fpe__frame {
+  display: grid;
+  justify-items: center;
+  justify-self: stretch;
+  border-radius: 28px;
+  padding: 4px;
+  border: 1.5px dashed transparent;
+}
+
+.sivu-fpe__frame.is-draft {
+  border-color: rgba(201, 162, 74, 0.6);
+}
+
 .sivu-fpe__content {
   display: grid;
   grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
