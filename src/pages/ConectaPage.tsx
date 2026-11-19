@@ -24,6 +24,8 @@ export default function ConectaPage() {
   const [error, setError] = useState<string | null>(null);
   const { profile } = useAuth();
   const municipal = profile?.role === "usuario_municipal";
+  // Ficha pública (CC-078, PR-004 v8.0): editan el Usuario municipal y el Administrador.
+  const editaFicha = municipal || profile?.role === "admin";
 
   useEffect(() => {
     let cancelled = false;
@@ -94,7 +96,7 @@ export default function ConectaPage() {
           )}
           {!arboles && !error && <p className="sivu-state">Cargando árboles…</p>}
           {arboles && arboles.length === 0 && <p className="sivu-state">El proyecto no tiene árboles registrados.</p>}
-          {arboles && arboles.length > 0 && <FichaPublicaEditor projectId={projectId} arboles={arboles} />}
+          {arboles && arboles.length > 0 && <FichaPublicaEditor projectId={projectId} arboles={arboles} puedeEditar={editaFicha} />}
         </>
       )}
     </div>
