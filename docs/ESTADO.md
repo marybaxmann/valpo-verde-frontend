@@ -25,7 +25,9 @@ Las ramas de trabajo salen de `feature/fase7-maqueta-lab` y vuelven a ella por P
 |---|---|
 | **D-27 (CC-077), cierre con dos fotos** | **Publicado en sivu.cl:** #19 (porcentajes de copa) y #20 (dos fotos sin etiquetas) fusionados; el backend y las migraciones 040 y 041 también están publicados. Falta la prueba de cierre real con un Inspector y una OT de prueba. |
 | **Rediseño de Infraestructura** | **Publicado en sivu.cl** el 2026-11-19 (PR #22, `5fd3aa8`): rueda de componentes como filtro, pin «reloj», leyenda única, ficha Resumen/Componentes/Fotos. Verificado en sivu.cl con datos del Piloto. Pendiente: fotos por componente (requiere CC). |
-| Documentación de arranque | PR #21 (este `ESTADO.md` y la bitácora al día) |
+| **Dashboard** | **Publicado en sivu.cl** el 2026-11-19 (PR #23 y #24): sin avisos «pendiente»; compacto como la maqueta SIVU Lab (seis indicadores, filas de una línea, agenda de 3 fechas) y panel de indicadores biométricos (B19) en lugar de «Módulos». |
+| Pendiente de datos | En el catálogo de especies, 9 de 15 no tienen `origen_biogeografico`: por eso el Dashboard no muestra «árboles nativos». Completarlo en el catálogo (CC-053). |
+| Avisos «pendiente» viejos | Quedan en `TreeSheet` (mediciones e incidencias del árbol), `InventoryPage` (resumen por especie), `WorkOrdersBoard` y `SpeciesCatalogPage`: revisar si ya tienen endpoint (B2, B7). |
 
 ## Cómo correrlo y probarlo
 
