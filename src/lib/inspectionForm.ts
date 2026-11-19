@@ -108,6 +108,8 @@ export function ordenar(campos: CampoFormulario[]): CampoFormulario[] {
 export function valoresConvertidos(campos: CampoFormulario[], crudos: ValoresCrudos): Record<string, ValorCampo | undefined> {
   const out: Record<string, ValorCampo | undefined> = {};
   for (const c of campos) out[c.identificador] = convertir(c, crudos[c.identificador]);
+  // La casilla oculta no puede activar porcentajes desde un No retenido en el formulario.
+  if (out.copa_no_presenta === true) out.sin_follaje_estacional = undefined;
   return out;
 }
 
