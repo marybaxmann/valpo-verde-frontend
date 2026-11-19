@@ -18,14 +18,24 @@ proyecto, "Valpo Verde".
 
 ## Antes de trabajar — orden de lectura
 
-Siempre:
+Siempre, y nada más al arrancar:
 
 1. este archivo;
-2. `../valpo-verde-backend/HANDOFF.md` — estado actual, cambios recientes
-   y bloqueos (relevo entre agentes; único para ambos repositorios);
-3. `docs/frontend-architecture.md` — arquitectura y bitácora del frontend.
+2. **`docs/ESTADO.md`** — estado actual del frontend en menos de 100 líneas:
+   ramas, despliegue, trabajo en curso, cómo probar y qué leer para cada
+   tarea.
 
-Según la tarea (fuentes canónicas, en el repositorio backend):
+**No leas completos** al arrancar `../valpo-verde-backend/HANDOFF.md`
+(~166 KB), `docs/frontend-architecture.md` (~60 KB) ni
+`../valpo-verde-backend/docs/project-rules.md` (~158 KB): consume buena
+parte del contexto antes de empezar. Busca la sección que necesitas
+(`grep -n "^### "`, `grep -n "^## PR-0"`) y lee solo esas líneas.
+
+**Al terminar** un trabajo, actualiza `docs/ESTADO.md` (corto) y agrega el
+detalle a la bitácora de `docs/frontend-architecture.md`.
+
+Según la tarea (fuentes canónicas, en el repositorio backend; leer solo la
+sección pertinente):
 
 | Necesito saber… | Fuente |
 |---|---|
@@ -95,7 +105,7 @@ Supabase) → backend. Detalle en `docs/frontend-architecture.md`.
 
 ## Antes de entregar
 
-`npx tsc -b`, `npm run build`, prueba en el navegador de la funcionalidad
+`npx tsc -b`, `npm run build`, `npm run lint` (oxlint), prueba en el navegador de la funcionalidad
 tocada (incluidos los estados de error y vacío) y verificación de que no
 se versiona ningún secreto.
 
@@ -105,7 +115,10 @@ se versiona ningún secreto.
 experiencia de SIVU. Para revisar la consistencia puede usarse el agente
 `qa` del backend.
 
-## Handoff
+## Relevo
 
-Mismo protocolo que el backend: leer y actualizar
-`../valpo-verde-backend/HANDOFF.md`.
+El estado vigente vive en `docs/ESTADO.md` (frontend) y en
+`../valpo-verde-backend/docs/ESTADO.md` (backend y bases de datos). Al
+cerrar un trabajo se actualiza el `ESTADO.md` del repositorio tocado. El
+`HANDOFF.md` del backend queda como historial: se consulta por sección,
+no se lee entero.

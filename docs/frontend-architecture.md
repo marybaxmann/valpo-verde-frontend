@@ -1,5 +1,7 @@
 # Arquitectura y bitácora de desarrollo — valpo-verde-frontend
 
+> **No leer entero** (~60 KB). El estado vigente está en `docs/ESTADO.md`. Para una fase o módulo: `grep -n "^### " docs/frontend-architecture.md` y lee solo esa sección.
+
 ## Propósito de este documento
 
 Documento técnico persistente para continuidad de desarrollo y
