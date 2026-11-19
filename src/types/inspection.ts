@@ -90,7 +90,7 @@ export interface BorradorResultado {
   estado_registro: string;
 }
 
-/** D-27: cuatro vistas principales; «detalle» (037) es complementaria y nunca completa D-27. */
+/** D-27: cuatro vistas recomendadas; «detalle» (037) es una etiqueta complementaria. */
 export type VistaFoto = "arbol_completo" | "base" | "tronco" | "copa" | "detalle";
 
 export interface FotoInspeccion {
@@ -131,6 +131,8 @@ export interface CalculoRespuesta {
   fecha_proxima_inspeccion_vigente: string | null;
   valores_no_permitidos: string[];
   campos_faltantes: CampoFaltante[];
+  fotos_validas_d27?: number | null;
+  vistas_recomendadas_faltantes?: string[];
   puede_finalizar: boolean;
   huella: string;
 }

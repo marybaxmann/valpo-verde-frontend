@@ -47,12 +47,12 @@ export function listarFotos(inspectionId: string): Promise<FotoInspeccion[]> {
  * foto del Inspector se envía SIN reducir (es evidencia, CC-049): si supera el
  * límite del cuerpo en Vercel (~4,5 MB), va por la carga firmada (037).
  */
-export function subirFoto(inspectionId: string, vista: VistaFoto, archivo: File): Promise<unknown> {
+export function subirFoto(inspectionId: string, vista: VistaFoto | undefined, archivo: File): Promise<unknown> {
   if (archivo.size > LIMITE_CUERPO_API) {
     return subirFirmada(`/api/sivu/inspections/${inspectionId}/photos`, archivo, vista);
   }
   const form = new FormData();
-  form.append("vista", vista);
+  if (vista !== undefined) form.append("vista", vista);
   form.append("foto", archivo);
   return api.post(`/api/sivu/inspections/${inspectionId}/photos`, form);
 }

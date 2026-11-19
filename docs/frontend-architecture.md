@@ -322,6 +322,16 @@ email, nunca hardcodeado.
 - `fotosEspecie.ts`: portada de Araucaria (A-000504) y Ginkgo (A-000505) con fotos de esos ejemplares tomadas por la responsable en Plaza Victoria; Olmo con una foto **genérica de la especie, de terceros** (marca de agua «Serbal»), común a los 36 olmos.
 - **Pendiente:** una foto por cada individuo (hoy la foto es por especie; requiere la foto por árbol en el backend, propuesta D6); confirmar el permiso de uso de la foto genérica del Olmo.
 
+### Fase 7 · Rediseño del módulo Infraestructura
+**Fecha:** 2026-11-17. Maqueta aprobada por la responsable (v2.1, con la lente bajo la leyenda). Rama `feature/infraestructura-componentes`; **publicado en sivu.cl el 2026-11-19** (PR #22, `5fd3aa8`).
+- Infraestructura deja de usar `DiagnosisModule` (compartido con Riesgo) y pasa a `InfrastructureModule`, sobre la misma composición de `TerritorialModule`. Datos de **B8** (`GET …/infraestructura`): cobertura, resumen por clasificación y por componente, y por árbol la categoría, `regla_id` y `motivo` de cada componente. El frontend no calcula ni reclasifica.
+- **Mapa:** vista por componente (Todos o uno de los seis; se elige en la rueda del resumen). En «Todos», pin «reloj» de seis sectores con la clasificación general al centro; por componente, punto con su categoría. «No aplica» punteado, «No determinado» rayado, árbol sin evaluación vigente gris con «?». `ProjectMapView` acepta ahora `icon` (pin como imagen) sin cambiar los demás módulos.
+- **Ficha** (`InfraSheet`): Resumen (clasificación con su porqué y la escalera Bajo–Crítico; ícono **pendiente de definir**, recuadro «?»), Componentes (categoría, regla, motivo y las variables de la inspección vigente leídas de `GET /work-orders/:id/inspections`, con etiquetas y unidades de B16) y Fotos (037; las de la inspección vigente primero, visor de `TreePhotos`).
+- **Sin repetir datos** (pedido de la responsable, 2026-11-18): la tarjeta de resumen muestra el total evaluado y la barra de clasificación; los conteos por nivel están solo en la leyenda. En la ficha, el nivel va en la etiqueta y en la escalera, no repetido en grande.
+- **Rueda de componentes** (opción A elegida por la responsable, 2026-11-18): reemplaza la barra de lente que iba bajo la leyenda; queda un solo filtro por componente. Está en la tarjeta de resumen, con la forma del pin: un sector por componente, coloreado por la categoría más grave presente (conteos de `resumen.por_componente`), con los árboles con afectación; tocar un sector filtra el mapa y el centro vuelve a «Todos». Con teclado: Tab y Enter.
+- Árboles «pendientes» en el mapa: los activos del inventario (B1) que no están en B8. Los números del panel son los de `cobertura` de B8 (árboles presentes, D-28), así que pueden diferir si hay árboles activos ausentes.
+- **No implementado (requiere decisión y cambios en Excel/formulario/backend):** fotos etiquetadas por componente y vinculadas a una medición (hoy D-27 + «detalle», 037); observación por componente (la inspección guarda una observación general).
+
 ## 5. Limitaciones conocidas (revisado 2026-11-19)
 
 - **Agregar miembro** a un proyecto todavía pide el `user_id` (UUID) en un campo de texto. El backend ya expone `GET /api/sivu/projects/:id/available-users`, pero el frontend aún no lo usa: es una mejora pendiente.
