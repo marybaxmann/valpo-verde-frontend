@@ -28,3 +28,21 @@ export function revisarIncidencia(projectId: string, incidentId: string, body: R
     .patch<{ data: unknown }>(`/api/sivu/projects/${projectId}/incidencias/${incidentId}/revision`, body)
     .then((res) => res.data);
 }
+
+/** Resultado del borrado (CC-079): lo que se borró junto con la incidencia. */
+export interface BorradoIncidencia {
+  codigo_incidencia: string;
+  ots_borradas: { codigo_ot: string; tipo_ot: string; estado_ot: string }[];
+  fotos_borradas: number;
+}
+
+/**
+ * Borra la incidencia con sus fotos, los datos del reportante y sus OT
+ * (CC-079). Solo el Usuario municipal; queda un registro con el motivo.
+ * El backend rechaza (409) si alguna OT ya tiene trabajo registrado.
+ */
+export function borrarIncidencia(projectId: string, incidentId: string, motivo: string): Promise<BorradoIncidencia> {
+  return api
+    .delete<{ data: BorradoIncidencia }>(`/api/sivu/projects/${projectId}/incidencias/${incidentId}`, { motivo })
+    .then((res) => res.data);
+}
