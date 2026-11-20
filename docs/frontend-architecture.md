@@ -347,6 +347,11 @@ email, nunca hardcodeado.
 - Probado en local (API de la rama en :3100 y frontend en :5181, base de pruebas), proyecto QA Fase 7, A-000346: guardar crea solo una fila en `tree_public_content`; la huella completa de `trees` (109 filas), códigos y QR, fotos y evaluaciones quedó idéntica. La fila de prueba se borró al terminar.
 - De paso: `usarCarga` → `useCarga` en `InfraSheet.tsx` (regla de hooks del lint).
 
+### Fase 7 · Borrar incidencias (CC-079)
+**Fecha:** 2026-11-19. Pedido de la responsable; publicado (PR #28; backend #87 y #88, migración 042).
+- `IncidenciaPage`: panel «Borrar incidencia» solo para el Usuario municipal y ventana de confirmación (`BorrarIncidencia`) que nombra las OT vinculadas y pide el motivo (3 a 300). Al borrar navega a la bandeja con `state.aviso`, que `IncidentsPage` muestra bajo el título.
+- `api/incidencias.ts`: `borrarIncidencia`; `api.delete` acepta cuerpo. El backend rechaza (409) si una OT ya tiene inspección, mantención o evaluación.
+
 ## 5. Limitaciones conocidas (revisado 2026-11-19)
 
 - **Agregar miembro** a un proyecto todavía pide el `user_id` (UUID) en un campo de texto. El backend ya expone `GET /api/sivu/projects/:id/available-users`, pero el frontend aún no lo usa: es una mejora pendiente.
