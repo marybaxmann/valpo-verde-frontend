@@ -10,6 +10,7 @@ import type { Diagnostico } from "../types/diagnostico";
 import type { OtListada } from "../types/workOrder";
 import type { FichaArbol, VersionHistorial } from "../types/fichaArbol";
 import { colorEstadoInc } from "../lib/incidencias";
+import { motivoParaUsuario } from "../lib/textoUsuario";
 import { ClassificationBadge, getClassificationTone } from "./ClassificationBadge";
 import { Icon } from "./Icons";
 import { TreeDiagnosis, TreeGlyph } from "./TreeDiagnosis";
@@ -256,7 +257,7 @@ export function TreeSheet({
                       </span>
                       <span>
                         <strong>{nombre}</strong>
-                        <small>{cat ? categorias[cat] ?? cat : "Sin registro"}{ind?.motivo ? ` · ${ind.motivo}` : ""}</small>
+                        <small>{cat ? categorias[cat] ?? cat : "Sin registro"}{motivoParaUsuario(ind?.motivo) ? ` · ${motivoParaUsuario(ind?.motivo)}` : ""}</small>
                       </span>
                     </li>
                   );
@@ -316,8 +317,6 @@ export function TreeSheet({
 /** Pestaña «Medición»: medidas vigentes del árbol (B2) y cómo cambiaron en cada versión vigente. */
 function Medicion({ ficha }: { ficha: FichaArbol }) {
   const a = ficha.arbol;
-  const ns = conUnidad(a.diametro_copa_ns_m, "m");
-  const eo = conUnidad(a.diametro_copa_eo_m, "m");
   const copa = conUnidad(a.diametro_copa_m, "m");
   const fustes = num(a.numero_fustes);
   const hist = historialMedidas(ficha.historial);
@@ -329,7 +328,14 @@ function Medicion({ ficha }: { ficha: FichaArbol }) {
         <Fila label={a.multifustal ? "DAP equivalente" : "DAP"} valor={conUnidad(a.dap_cm, "cm") ?? "Sin registro"} />
         {a.multifustal === true && <Fila label="Fustes" valor={fustes !== null ? String(fustes) : "Sin registro"} />}
         <Fila label="Altura total" valor={conUnidad(a.altura_total_m, "m") ?? "Sin registro"} />
-        <Fila label="Diámetro de copa" valor={copa ? `${copa}${ns && eo ? ` (N-S ${ns} · E-O ${eo})` : ""}` : "Sin registro"} />
+        {/* Dos filas cortas: el promedio vigente y lo medido en terreno (el texto junto no cabía y se cortaba). */}
+        <Fila label="Diámetro de copa" valor={copa ?? "Sin registro"} />
+        {num(a.diametro_copa_ns_m) !== null && num(a.diametro_copa_eo_m) !== null && (
+          <Fila
+            label="Copa N-S × E-O"
+            valor={`${num(a.diametro_copa_ns_m)!.toLocaleString("es-CL")} × ${num(a.diametro_copa_eo_m)!.toLocaleString("es-CL")} m`}
+          />
+        )}
         <Fila label="Clase de edad" valor={etiqueta(a.clase_edad) ?? "Sin registro"} />
         <Fila label="Edad estimada" valor={etiqueta(a.rango_edad_estimada_anios) ?? "Sin registro"} />
       </div>
