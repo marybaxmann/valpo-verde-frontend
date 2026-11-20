@@ -366,7 +366,7 @@ email, nunca hardcodeado.
 **Fecha:** 2026-11-19. Pedido de la responsable: los códigos de la documentación (CC, D-n, reglas de REGLAS_INDICADORES, nombres de campo) no se muestran a quien usa la plataforma.
 - `lib/textoUsuario.ts` (`motivoParaUsuario`): limpia los motivos del motor (quita «(CC-043)», «(IN-RSU-02)», «(D-27)»; si el motivo nombra un campo interno como `red_subterranea_presente = …`, no se muestra y queda solo la categoría). Se usa en la ficha (Infra.) y en el panel de Infraestructura, donde además se quitó «Regla IN-…».
 - Quitados de la vista: los D-n del editor de la ficha pública, «(CC-078)», «(CC-069)», la etiqueta «CC-069 v1» y «(D-13)» del catálogo. Las referencias siguen en los comentarios del código.
-- Ficha → Medición: el diámetro de copa y las medidas N-S × E-O en filas separadas (juntas no cabían y se cortaban).
+- Ficha → Medición: solo el diámetro de copa resuelto por la plataforma (D-22), sin N-S × E-O. En el historial, la versión más reciente toma el valor vigente; las anteriores no tienen el dato resuelto y muestran «—» (no se calcula en el navegador).
 
 ## 5. Limitaciones conocidas (revisado 2026-11-19)
 
