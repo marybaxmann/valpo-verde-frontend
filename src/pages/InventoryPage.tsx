@@ -10,7 +10,8 @@ import { listarDiagnosticos } from "../api/diagnosticos";
 import type { EvaluacionVigente } from "../types/diagnostico";
 import { ClassificationBadge } from "../components/ClassificationBadge";
 import { Icon } from "../components/Icons";
-import { PendingNotice } from "../components/PendingNotice";
+import { obtenerResumen } from "../api/resumen";
+import type { ResumenProyecto } from "../types/resumen";
 import { TreeSheet } from "../components/TreeSheet";
 import { NewTreeModal } from "../components/NewTreeModal";
 import { useAuth } from "../hooks/useAuth";
@@ -90,6 +91,19 @@ export default function InventoryPage() {
     };
   }, []);
   const ciclo = (codigo: string) => cicloLabel[codigo] ?? codigo;
+
+  // Composición por especie del proyecto (B7 `especies_top`, las 10 con más árboles).
+  const [resumen, setResumen] = useState<ResumenProyecto | null>(null);
+  const [errorResumen, setErrorResumen] = useState(false);
+  useEffect(() => {
+    let cancelled = false;
+    obtenerResumen(projectId)
+      .then((r) => !cancelled && setResumen(r))
+      .catch(() => !cancelled && setErrorResumen(true));
+    return () => {
+      cancelled = true;
+    };
+  }, [projectId, version]);
 
   useEffect(() => {
     let cancelled = false;
@@ -265,8 +279,6 @@ export default function InventoryPage() {
               </div>
             </div>
 
-            <p className="sivu-inv__pending-cols">El DAP y la altura se agregarán al listado en una próxima etapa.</p>
-
             <div className="sivu-table-scroll">
               <table className="sivu-table">
                 <thead>
@@ -275,6 +287,8 @@ export default function InventoryPage() {
                     <th>Especie</th>
                     <th>Ciclo de vida</th>
                     <th>Riesgo vigente</th>
+                    <th className="sivu-table__num" title="Diámetro a la altura del pecho; en el multifustal, el equivalente">DAP</th>
+                    <th className="sivu-table__num">Altura</th>
                     <th>Sector</th>
                     <th>Ubicación</th>
                     <th>Registro</th>
@@ -284,21 +298,21 @@ export default function InventoryPage() {
                 <tbody>
                   {!pagina && !listError && (
                     <tr>
-                      <td colSpan={8} className="sivu-inv__state">
+                      <td colSpan={10} className="sivu-inv__state">
                         Cargando inventario…
                       </td>
                     </tr>
                   )}
                   {listError && (
                     <tr>
-                      <td colSpan={8} className="sivu-inv__state sivu-inv__state--error">
+                      <td colSpan={10} className="sivu-inv__state sivu-inv__state--error">
                         <Icon name="alert" size={13} /> {listError}
                       </td>
                     </tr>
                   )}
                   {pagina && !listError && pagina.data.length === 0 && (
                     <tr>
-                      <td colSpan={8} className="sivu-inv__state">
+                      <td colSpan={10} className="sivu-inv__state">
                         {filtrando ? "Ningún árbol coincide con la búsqueda o el filtro." : "El proyecto todavía no tiene árboles registrados."}
                       </td>
                     </tr>
@@ -328,6 +342,11 @@ export default function InventoryPage() {
                             <span className="status-pill">{vigentes ? "Pendiente" : "…"}</span>
                           )}
                         </td>
+                        <td className="sivu-table__num">
+                          {a.dap_cm != null ? `${a.dap_cm.toLocaleString("es-CL")} cm` : "—"}
+                          {a.multifustal && a.numero_fustes ? <small className="sivu-inv__fustes">{a.numero_fustes} fustes</small> : null}
+                        </td>
+                        <td className="sivu-table__num">{a.altura_total_m != null ? `${a.altura_total_m.toLocaleString("es-CL")} m` : "—"}</td>
                         <td>{a.sector ?? "—"}</td>
                         <td className="sivu-inv__place">{a.ubicacion_descriptiva ?? "—"}</td>
                         <td className="sivu-table__num">{fechaChile(a.fecha_registro)}</td>
@@ -368,13 +387,7 @@ export default function InventoryPage() {
           </article>
 
           <aside className="sivu-inv__side">
-            <article className="sivu-panel">
-              <div className="sivu-panel__head">
-                <h2>Especies</h2>
-              </div>
-              <PendingNotice what="el resumen por especie del inventario" refs="B7" compact />
-            </article>
-            <article className="sivu-panel">
+            <article className="sivu-panel sivu-inv__map-panel">
               <div className="sivu-panel__head">
                 <h2>Mapa</h2>
                 {todos && <span className="sivu-mant__count">{puntos.length} con ubicación</span>}
@@ -397,6 +410,43 @@ export default function InventoryPage() {
                   <p className="sivu-mant__muted">El mapa no está configurado en este entorno.</p>
                 )}
               </div>
+            </article>
+            <article className="sivu-panel sivu-inv__species-panel">
+              <div className="sivu-panel__head">
+                <h2>Especies</h2>
+                {resumen && <span className="sivu-mant__count">{resumen.especies_distintas} en el proyecto</span>}
+              </div>
+              {resumen ? (
+                resumen.especies_top.length > 0 ? (
+                  <>
+                    {/* % sobre el total de árboles del proyecto (B7), igual que el Dashboard. */}
+                    <ul className="sivu-bars">
+                      {resumen.especies_top.map((e) => {
+                        const pct = resumen.arboles_total > 0 ? Math.round((e.total / resumen.arboles_total) * 100) : 0;
+                        const max = resumen.especies_top[0]?.total || 1;
+                        return (
+                          <li key={e.especie_cientifica ?? e.nombre_comun ?? "sin"} title={`${e.especie_cientifica ?? "Sin especie"} · ${e.total} árboles`}>
+                            <span>{e.nombre_comun ?? e.especie_cientifica ?? "Sin especie"}</span>
+                            <i>
+                              <b style={{ width: `${(e.total / max) * 100}%` }} />
+                            </i>
+                            <strong>{pct}%</strong>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                    {resumen.especies_distintas > resumen.especies_top.length && (
+                      <p className="sivu-mant__muted">
+                        Se muestran las {resumen.especies_top.length} especies con más árboles de {resumen.especies_distintas}.
+                      </p>
+                    )}
+                  </>
+                ) : (
+                  <p className="sivu-mant__muted">El proyecto todavía no tiene árboles con especie.</p>
+                )
+              ) : (
+                <p className="sivu-mant__muted">{errorResumen ? "No se pudo cargar la composición por especie." : "Cargando…"}</p>
+              )}
             </article>
           </aside>
         </div>

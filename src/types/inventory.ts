@@ -2,9 +2,9 @@
  * Árbol del inventario tal como lo entrega B1 (GET /api/sivu/projects/:id/trees;
  * `ArbolInventario` en valpo-verde-backend/src/services/sivu/inventory.service.ts,
  * rama feature/fase6-consultas-frontend). Sin campos agregados ni inferidos.
- * Aprobados pero aún no expuestos (pendientes de integración, no se simulan):
- * etiqueta del ciclo de vida, DAP (equivalente en el multifustal), multifustal,
- * número de fustes, altura total, riesgo efectivo y fecha de vigencia.
+ * DAP, altura, multifustal y número de fustes llegan con el valor vigente
+ * (D-18, D-19); `null` = sin registro. Riesgo efectivo y fecha de vigencia
+ * vienen de B18, no de B1.
  */
 export interface ArbolInventario {
   id: string;
@@ -24,6 +24,12 @@ export interface ArbolInventario {
   fecha_registro: string;
   /** Token de la placa QR; B1 lo entrega solo al Usuario municipal. */
   qr_token?: string;
+  /** D-18: DAP vigente en cm; en el multifustal, el equivalente que calcula la plataforma. */
+  dap_cm?: number | null;
+  /** D-19: altura total vigente en m. */
+  altura_total_m?: number | null;
+  multifustal?: boolean | null;
+  numero_fustes?: number | null;
 }
 
 export interface ListadoInventario {

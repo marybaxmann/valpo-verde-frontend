@@ -352,6 +352,13 @@ email, nunca hardcodeado.
 - `IncidenciaPage`: panel «Borrar incidencia» solo para el Usuario municipal y ventana de confirmación (`BorrarIncidencia`) que nombra las OT vinculadas y pide el motivo (3 a 300). Al borrar navega a la bandeja con `state.aviso`, que `IncidentsPage` muestra bajo el título.
 - `api/incidencias.ts`: `borrarIncidencia`; `api.delete` acepta cuerpo. El backend rechaza (409) si una OT ya tiene inspección, mantención o evaluación.
 
+### Fase 7 · Inventario: mapa a la vista y ficha sin pendientes
+**Fecha:** 2026-11-19. Pedido de la responsable (rama `fix/inventario-mapa-ficha`).
+- Mapa: la columna lateral es `sticky` y el mapa va primero. Con la ficha abierta (901–1599 px) o en una columna (≤ 1100 px), mapa y especies pasan arriba de la tabla, lado a lado; antes bajaban al final.
+- Tabla: columnas DAP (con el número de fustes del multifustal) y Altura desde B1, que ya las entregaba; se quitó el aviso «próxima etapa».
+- Especies: las 10 especies con más árboles de B7 (`especies_top`), con % sobre el total, como el Dashboard.
+- Ficha (`TreeSheet`): carga B2 en lugar de las OT del proyecto. «Medición»: DAP (equivalente en el multifustal), altura, copa (con N-S y E-O), clase y edad estimada vigentes, e historial por versión vigente (la versión guarda N-S y E-O; el promedio solo existe como valor vigente, no se calcula). «Gestión»: incidencias del árbol enlazadas a su detalle.
+
 ## 5. Limitaciones conocidas (revisado 2026-11-19)
 
 - **Agregar miembro** a un proyecto todavía pide el `user_id` (UUID) en un campo de texto. El backend ya expone `GET /api/sivu/projects/:id/available-users`, pero el frontend aún no lo usa: es una mejora pendiente.
