@@ -362,6 +362,12 @@ email, nunca hardcodeado.
 ### Fase 7 · Ícono de la pestaña (favicon)
 **Fecha:** 2026-11-19. Pedido de la responsable: la «S» del logo de SIVU (recortada de `src/assets/sivu-logo-olive.png`), oliva sobre fondo claro redondeado. Archivos en `public/` (`favicon.ico` 16/32/48, `sivu-icono-32.png`, `apple-touch-icon.png` 180) y declarados en `index.html`, con `theme-color` oliva. Vercel sirve los archivos de `public/` antes de la regla que reescribe todo a `index.html`.
 
+### Fase 7 · Sin códigos internos en pantalla y copa en dos filas
+**Fecha:** 2026-11-19. Pedido de la responsable: los códigos de la documentación (CC, D-n, reglas de REGLAS_INDICADORES, nombres de campo) no se muestran a quien usa la plataforma.
+- `lib/textoUsuario.ts` (`motivoParaUsuario`): limpia los motivos del motor (quita «(CC-043)», «(IN-RSU-02)», «(D-27)»; si el motivo nombra un campo interno como `red_subterranea_presente = …`, no se muestra y queda solo la categoría). Se usa en la ficha (Infra.) y en el panel de Infraestructura, donde además se quitó «Regla IN-…».
+- Quitados de la vista: los D-n del editor de la ficha pública, «(CC-078)», «(CC-069)», la etiqueta «CC-069 v1» y «(D-13)» del catálogo. Las referencias siguen en los comentarios del código.
+- Ficha → Medición: solo el diámetro de copa resuelto por la plataforma (D-22), sin N-S × E-O. En el historial, la versión más reciente toma el valor vigente; las anteriores no tienen el dato resuelto y muestran «—» (no se calcula en el navegador).
+
 ## 5. Limitaciones conocidas (revisado 2026-11-19)
 
 - **Agregar miembro** a un proyecto todavía pide el `user_id` (UUID) en un campo de texto. El backend ya expone `GET /api/sivu/projects/:id/available-users`, pero el frontend aún no lo usa: es una mejora pendiente.

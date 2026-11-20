@@ -143,7 +143,7 @@ export function FichaBiometrica({ ficha }: { ficha: FichaArbol }) {
           </span>
           <span className="bio-co2__sub">
             {carbono === undefined
-              ? "La estimación por árbol (CC-069) aún no está publicada en la API."
+              ? "La estimación por árbol todavía no está disponible."
               : carbono.valor
                 ? `Carbono aéreo leñoso ${num(carbono.valor.carbono_kg, 0)} kg C · modelo ${carbono.valor.modelo.id}`
                 : carbono.detalle}

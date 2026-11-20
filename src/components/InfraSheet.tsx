@@ -14,6 +14,7 @@ import { PendingNotice } from "./PendingNotice";
 import { fotosCompatibles, VisorFoto } from "./TreePhotos";
 import { IconoComponente } from "./InfraIcons";
 import { aspectoCategoria, colorClasificacion, COMPONENTES, ORDEN_CATEGORIAS, svgDataUrl, svgReloj, type DefComponente } from "../lib/infraestructura";
+import { motivoParaUsuario } from "../lib/textoUsuario";
 
 type Tab = "resumen" | "componentes" | "fotos";
 
@@ -490,10 +491,8 @@ function DetalleComponente({
           {a === "sin" && <span className="sivu-infra-note">Sin afectación: existe, se evaluó y no tiene daño. Sí cuenta en la clasificación.</span>}
         </>
       )}
-      {r?.motivo && <span className="sivu-infra-note">Motivo del motor: {r.motivo}</span>}
-      <span className="sivu-infra-note sivu-infra-mono" title="Regla de REGLAS_INDICADORES que produjo el resultado (M04)">
-        {r?.regla_id ? `Regla ${r.regla_id}` : `Reglas ${def.familia} · sin regla específica`}
-      </span>
+      {/* Sin códigos internos en pantalla (regla, CC, campo): solo el motivo en palabras, si lo hay. */}
+      {motivoParaUsuario(r?.motivo) && <span className="sivu-infra-note">Motivo: {motivoParaUsuario(r?.motivo)}</span>}
     </div>
   );
 }

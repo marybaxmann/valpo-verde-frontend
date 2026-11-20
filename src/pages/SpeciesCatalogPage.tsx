@@ -251,7 +251,7 @@ function SpeciesSheet({
         err instanceof ApiError && err.status === 409
           ? "Ya existe una especie con ese nombre en el catálogo."
           : err instanceof ApiError && err.status === 400
-            ? "Ese nombre no es válido: el catálogo no admite «Género sp.» ni «No determinado» (D-13)."
+            ? "Ese nombre no es válido: el catálogo no admite «Género sp.» ni «No determinado»."
             : mensajeError(err, "No se pudo corregir el nombre.")
       );
       setRenombrando(false);

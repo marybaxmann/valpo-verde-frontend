@@ -10,6 +10,7 @@ import type { Diagnostico } from "../types/diagnostico";
 import type { OtListada } from "../types/workOrder";
 import type { FichaArbol, VersionHistorial } from "../types/fichaArbol";
 import { colorEstadoInc } from "../lib/incidencias";
+import { motivoParaUsuario } from "../lib/textoUsuario";
 import { ClassificationBadge, getClassificationTone } from "./ClassificationBadge";
 import { Icon } from "./Icons";
 import { TreeDiagnosis, TreeGlyph } from "./TreeDiagnosis";
@@ -54,8 +55,8 @@ const conUnidad = (v: unknown, unidad: string) => {
 const etiqueta = (v: unknown) => (v && typeof v === "object" && "etiqueta" in v ? ((v as { etiqueta: string | null }).etiqueta ?? null) : null);
 
 /** Versiones (alta o inspección vigente) que registraron DAP, altura o copa, de la más reciente a la más antigua. */
-function historialMedidas(h: VersionHistorial[]) {
-  return [...h]
+function historialMedidas(h: VersionHistorial[], copaVigente: string | null) {
+  const filas = [...h]
     .reverse()
     .map((v) => ({
       clave: `${v.origen}-${v.inspection_id ?? v.vigente_desde ?? ""}`,
@@ -63,14 +64,15 @@ function historialMedidas(h: VersionHistorial[]) {
       origen: v.origen === "alta" ? "Alta" : v.codigo_inspeccion ?? "Inspección",
       dap: conUnidad(v.valores.dap_cm, "cm"),
       altura: conUnidad(v.valores.altura_total_m, "m"),
-      // La versión guarda lo observado (N-S y E-O); el diámetro promedio solo existe como valor vigente.
-      copa:
-        conUnidad(v.valores.diametro_copa_m, "m") ??
-        (num(v.valores.diametro_copa_ns_m) !== null && num(v.valores.diametro_copa_eo_m) !== null
-          ? `${num(v.valores.diametro_copa_ns_m)!.toLocaleString("es-CL")} × ${num(v.valores.diametro_copa_eo_m)!.toLocaleString("es-CL")} m`
-          : null),
+      // Solo el diámetro de copa resuelto por la plataforma (D-22), nunca N-S × E-O ni un cálculo propio.
+      copa: conUnidad(v.valores.diametro_copa_m, "m"),
+      midioCopa: num(v.valores.diametro_copa_ns_m) !== null || num(v.valores.diametro_copa_eo_m) !== null,
     }))
-    .filter((v) => v.dap || v.altura || v.copa);
+    .filter((v) => v.dap || v.altura || v.copa || v.midioCopa);
+  // La versión guarda lo medido (N-S y E-O); el diámetro resuelto llega solo como valor vigente,
+  // que corresponde a la versión más reciente.
+  if (filas[0] && !filas[0].copa && filas[0].midioCopa) filas[0].copa = copaVigente;
+  return filas;
 }
 
 /**
@@ -256,7 +258,7 @@ export function TreeSheet({
                       </span>
                       <span>
                         <strong>{nombre}</strong>
-                        <small>{cat ? categorias[cat] ?? cat : "Sin registro"}{ind?.motivo ? ` · ${ind.motivo}` : ""}</small>
+                        <small>{cat ? categorias[cat] ?? cat : "Sin registro"}{motivoParaUsuario(ind?.motivo) ? ` · ${motivoParaUsuario(ind?.motivo)}` : ""}</small>
                       </span>
                     </li>
                   );
@@ -316,11 +318,9 @@ export function TreeSheet({
 /** Pestaña «Medición»: medidas vigentes del árbol (B2) y cómo cambiaron en cada versión vigente. */
 function Medicion({ ficha }: { ficha: FichaArbol }) {
   const a = ficha.arbol;
-  const ns = conUnidad(a.diametro_copa_ns_m, "m");
-  const eo = conUnidad(a.diametro_copa_eo_m, "m");
   const copa = conUnidad(a.diametro_copa_m, "m");
   const fustes = num(a.numero_fustes);
-  const hist = historialMedidas(ficha.historial);
+  const hist = historialMedidas(ficha.historial, copa);
   const desde = ficha.evaluacion_vigente?.desde ?? null;
   return (
     <>
@@ -329,7 +329,8 @@ function Medicion({ ficha }: { ficha: FichaArbol }) {
         <Fila label={a.multifustal ? "DAP equivalente" : "DAP"} valor={conUnidad(a.dap_cm, "cm") ?? "Sin registro"} />
         {a.multifustal === true && <Fila label="Fustes" valor={fustes !== null ? String(fustes) : "Sin registro"} />}
         <Fila label="Altura total" valor={conUnidad(a.altura_total_m, "m") ?? "Sin registro"} />
-        <Fila label="Diámetro de copa" valor={copa ? `${copa}${ns && eo ? ` (N-S ${ns} · E-O ${eo})` : ""}` : "Sin registro"} />
+        {/* Solo el dato resuelto (D-22); las medidas N-S y E-O no se muestran (pedido de la responsable). */}
+        <Fila label="Diámetro de copa" valor={copa ?? "Sin registro"} />
         <Fila label="Clase de edad" valor={etiqueta(a.clase_edad) ?? "Sin registro"} />
         <Fila label="Edad estimada" valor={etiqueta(a.rango_edad_estimada_anios) ?? "Sin registro"} />
       </div>

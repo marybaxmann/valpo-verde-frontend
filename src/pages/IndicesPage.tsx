@@ -91,7 +91,7 @@ export default function IndicesPage() {
     if (!listaEvaluados || !porArbol) return { estado: "cargando" };
     const fichasLeidas = [...porArbol.values()].filter((f): f is FichaArbol => f !== null);
     if (fichasLeidas.length > 0 && fichasLeidas.every((f) => f.estimacion_carbono_aereo_lenoso === undefined)) {
-      return { estado: "no_disponible", motivo: "La estimación de carbono por árbol (CC-069) todavía no está publicada en la API de la plataforma." };
+      return { estado: "no_disponible", motivo: "La estimación de carbono por árbol todavía no está disponible." };
     }
     const arboles = listaEvaluados
       .flatMap((a) => {

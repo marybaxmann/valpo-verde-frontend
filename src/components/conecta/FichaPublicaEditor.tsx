@@ -100,7 +100,7 @@ function fichaBorrador(r: RespuestaFichaArbol, b: GuardarFichaArbol): FichaPubli
 const mismo = (a: GuardarFichaArbol, b: GuardarFichaArbol) => JSON.stringify(normalizar(a)) === JSON.stringify(normalizar(b));
 
 function mensajeError(err: unknown): string {
-  if (err instanceof ApiError && err.status === 404) return "La API conectada todavía no tiene la ficha pública editable (CC-078).";
+  if (err instanceof ApiError && err.status === 404) return "La plataforma todavía no tiene disponible la edición de la ficha pública.";
   if (err instanceof ApiError && err.status === 403) return "Tu rol puede ver la ficha, pero no editarla.";
   return err instanceof Error ? err.message : "No se pudo completar la operación.";
 }
@@ -291,7 +291,6 @@ export function FichaPublicaEditor({
                 <strong>{f.etiqueta}</strong>
                 <span className={f.italica ? "is-italic" : ""}>{f.valor ?? "Sin registro"}</span>
               </div>
-              <code>{f.dn}</code>
             </li>
           ))}
           <li className="sivu-fpe__row">
@@ -302,7 +301,6 @@ export function FichaPublicaEditor({
               <strong>Contenido de la especie</strong>
               <span>Curiosidad, aportes, reconóceme, mi año y cuidados</span>
             </div>
-            <code>D-280–295</code>
           </li>
         </ul>
 
@@ -328,7 +326,6 @@ export function FichaPublicaEditor({
                     {!r && !error ? "Cargando…" : v ? `Vigente: ${v}` : on ? "Sin registro: no se mostrará" : "Sin registro en el inventario"}
                   </span>
                 </div>
-                <code>{o.dn}</code>
               </li>
             );
           })}
