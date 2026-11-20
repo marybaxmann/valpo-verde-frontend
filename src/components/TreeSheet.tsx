@@ -3,15 +3,15 @@ import { Link } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 import { basePathForRole } from "../lib/roles";
 import { listarDiagnosticos } from "../api/diagnosticos";
-import { listarOtsProyecto } from "../api/workOrders";
+import { obtenerFichaArbol } from "../api/fichaArbol";
 import { obtenerCatalogos } from "../api/catalogs";
 import type { ArbolInventario } from "../types/inventory";
 import type { Diagnostico } from "../types/diagnostico";
 import type { OtListada } from "../types/workOrder";
-import { ESTADOS_OT_ABIERTOS, ESTADOS_OT_CERRADOS } from "../types/workOrder";
+import type { FichaArbol, VersionHistorial } from "../types/fichaArbol";
+import { colorEstadoInc } from "../lib/incidencias";
 import { ClassificationBadge, getClassificationTone } from "./ClassificationBadge";
 import { Icon } from "./Icons";
-import { PendingNotice } from "./PendingNotice";
 import { TreeDiagnosis, TreeGlyph } from "./TreeDiagnosis";
 import { TreePhotos } from "./TreePhotos";
 import { fechaChile } from "../lib/dates";
@@ -39,14 +39,46 @@ const COMPONENTES_INFRA: [string, string][] = [
 
 type IndicadorInfra = { categoria?: string | null; motivo?: string | null } | undefined;
 
-type Datos = { treeId: string; diag: Diagnostico | null; ots: OtListada[] } | { treeId: string; error: string };
+type Datos = { treeId: string; diag: Diagnostico | null; ficha: FichaArbol } | { treeId: string; error: string };
+
+/** Número de un valor de la ficha (la API puede entregar numeric como texto). */
+function num(v: unknown): number | null {
+  if (typeof v === "number") return Number.isFinite(v) ? v : null;
+  if (typeof v === "string" && v.trim() !== "" && !Number.isNaN(Number(v))) return Number(v);
+  return null;
+}
+const conUnidad = (v: unknown, unidad: string) => {
+  const n = num(v);
+  return n === null ? null : `${n.toLocaleString("es-CL")} ${unidad}`;
+};
+const etiqueta = (v: unknown) => (v && typeof v === "object" && "etiqueta" in v ? ((v as { etiqueta: string | null }).etiqueta ?? null) : null);
+
+/** Versiones (alta o inspección vigente) que registraron DAP, altura o copa, de la más reciente a la más antigua. */
+function historialMedidas(h: VersionHistorial[]) {
+  return [...h]
+    .reverse()
+    .map((v) => ({
+      clave: `${v.origen}-${v.inspection_id ?? v.vigente_desde ?? ""}`,
+      fecha: v.fecha_inspeccion ?? v.vigente_desde,
+      origen: v.origen === "alta" ? "Alta" : v.codigo_inspeccion ?? "Inspección",
+      dap: conUnidad(v.valores.dap_cm, "cm"),
+      altura: conUnidad(v.valores.altura_total_m, "m"),
+      // La versión guarda lo observado (N-S y E-O); el diámetro promedio solo existe como valor vigente.
+      copa:
+        conUnidad(v.valores.diametro_copa_m, "m") ??
+        (num(v.valores.diametro_copa_ns_m) !== null && num(v.valores.diametro_copa_eo_m) !== null
+          ? `${num(v.valores.diametro_copa_ns_m)!.toLocaleString("es-CL")} × ${num(v.valores.diametro_copa_eo_m)!.toLocaleString("es-CL")} m`
+          : null),
+    }))
+    .filter((v) => v.dap || v.altura || v.copa);
+}
 
 /**
  * Ficha del árbol con pestañas (maqueta SIVU Lab: `TreeSheet`; CC-057,
  * reescrita con datos según CC-058). Cada pestaña muestra lo que entrega la
- * API: el árbol (B1), su evaluación vigente (B18), sus fotos y las OT del
- * proyecto (B3) que son de este árbol. Las mediciones esperan la ficha
- * completa del árbol (B2) y se muestran como pendientes, sin valores.
+ * API: el árbol (B1), su evaluación vigente (B18), sus fotos y, de la ficha
+ * completa (B2), las medidas vigentes con su historial, las OT y las
+ * incidencias del árbol. Sin valor se muestra «Sin registro»: no se simula.
  */
 export function TreeSheet({
   projectId,
@@ -88,17 +120,10 @@ export function TreeSheet({
 
   useEffect(() => {
     let cancelled = false;
-    Promise.all([
-      listarDiagnosticos(projectId, arbol.id),
-      listarOtsProyecto(projectId, { estado: [...ESTADOS_OT_ABIERTOS, ...ESTADOS_OT_CERRADOS], limit: 100 }),
-    ])
-      .then(([diags, ots]) => {
+    Promise.all([listarDiagnosticos(projectId, arbol.id), obtenerFichaArbol(projectId, arbol.id)])
+      .then(([diags, ficha]) => {
         if (cancelled) return;
-        setDatos({
-          treeId: arbol.id,
-          diag: diags.find((d) => d.tree_id === arbol.id) ?? null,
-          ots: ots.data.filter((o) => o.arbol?.id === arbol.id),
-        });
+        setDatos({ treeId: arbol.id, diag: diags.find((d) => d.tree_id === arbol.id) ?? null, ficha });
       })
       .catch((err: unknown) => {
         if (!cancelled) setDatos({ treeId: arbol.id, error: err instanceof Error ? err.message : "No se pudo cargar la ficha." });
@@ -110,7 +135,10 @@ export function TreeSheet({
 
   const actual = datos?.treeId === arbol.id ? datos : null;
   const diag = actual && "diag" in actual ? actual.diag : null;
-  const ots = actual && "ots" in actual ? actual.ots : null;
+  const ficha = actual && "ficha" in actual ? actual.ficha : null;
+  const ots: OtListada[] | null = ficha ? ficha.ordenes_trabajo : null;
+  const incidencias = ficha?.incidencias ?? [];
+  const base = `${basePathForRole(profile?.role)}/projects/${projectId}`;
   const vigente = diag?.vigente ?? null;
   const nivel = vigente?.resultado.clasificacion_riesgo ?? null;
   const tono = nivel ? getClassificationTone(nivel.etiqueta) : "neutral";
@@ -196,9 +224,7 @@ export function TreeSheet({
           </>
         )}
 
-        {actual && "diag" in actual && tab === "medicion" && (
-          <PendingNotice what="las mediciones del árbol (DAP, altura y copa) y su historial" refs="B2" />
-        )}
+        {ficha && tab === "medicion" && <Medicion ficha={ficha} />}
 
         {actual && "diag" in actual && tab === "riesgo" &&
           (diag ? (
@@ -245,7 +271,28 @@ export function TreeSheet({
           <div className="sivu-sheet__card">
             <span className="sivu-sheet__eyebrow">Órdenes de trabajo</span>
             {ots && ots.length > 0 ? ots.map((o) => <TrabajoOt key={o.id} ot={o} />) : <span className="sivu-sheet__why">El árbol no tiene órdenes de trabajo.</span>}
-            <PendingNotice what="las incidencias del árbol" refs="B9" compact />
+            <span className="sivu-sheet__eyebrow sivu-sheet__eyebrow--sep">Incidencias</span>
+            {incidencias.length > 0 ? (
+              incidencias.map((i) => (
+                <Link key={i.id} to={`${base}/incidencias/${i.id}`} className="sivu-sheet__work sivu-sheet__work--link">
+                  <span className="sivu-sheet__work-icon">
+                    <Icon name="alert" size={15} />
+                  </span>
+                  <span className="sivu-sheet__work-text">
+                    <strong>{i.tipo_incidencia?.etiqueta ?? "Incidencia"}</strong>
+                    <span>
+                      {i.codigo_incidencia ?? "—"}
+                      {i.fecha_reporte ? ` · ${fechaChile(i.fecha_reporte)}` : ""}
+                    </span>
+                  </span>
+                  <span className="sivu-sheet__work-state" style={{ ["--c" as string]: colorEstadoInc(i.estado_incidencia.codigo) }}>
+                    {i.estado_incidencia.etiqueta}
+                  </span>
+                </Link>
+              ))
+            ) : (
+              <span className="sivu-sheet__why">El árbol no tiene incidencias.</span>
+            )}
           </div>
         )}
 
@@ -263,6 +310,56 @@ export function TreeSheet({
         <Icon name="arrow-right" size={14} /> Ver ficha completa e historial
       </Link>
     </aside>
+  );
+}
+
+/** Pestaña «Medición»: medidas vigentes del árbol (B2) y cómo cambiaron en cada versión vigente. */
+function Medicion({ ficha }: { ficha: FichaArbol }) {
+  const a = ficha.arbol;
+  const ns = conUnidad(a.diametro_copa_ns_m, "m");
+  const eo = conUnidad(a.diametro_copa_eo_m, "m");
+  const copa = conUnidad(a.diametro_copa_m, "m");
+  const fustes = num(a.numero_fustes);
+  const hist = historialMedidas(ficha.historial);
+  const desde = ficha.evaluacion_vigente?.desde ?? null;
+  return (
+    <>
+      <div className="sivu-sheet__card">
+        <span className="sivu-sheet__eyebrow">Medidas vigentes{desde ? ` · desde ${fechaChile(desde)}` : ""}</span>
+        <Fila label={a.multifustal ? "DAP equivalente" : "DAP"} valor={conUnidad(a.dap_cm, "cm") ?? "Sin registro"} />
+        {a.multifustal === true && <Fila label="Fustes" valor={fustes !== null ? String(fustes) : "Sin registro"} />}
+        <Fila label="Altura total" valor={conUnidad(a.altura_total_m, "m") ?? "Sin registro"} />
+        <Fila label="Diámetro de copa" valor={copa ? `${copa}${ns && eo ? ` (N-S ${ns} · E-O ${eo})` : ""}` : "Sin registro"} />
+        <Fila label="Clase de edad" valor={etiqueta(a.clase_edad) ?? "Sin registro"} />
+        <Fila label="Edad estimada" valor={etiqueta(a.rango_edad_estimada_anios) ?? "Sin registro"} />
+      </div>
+      <div className="sivu-sheet__card">
+        <span className="sivu-sheet__eyebrow">Historial de medidas</span>
+        {hist.length > 0 ? (
+          <div className="sivu-sheet__hist" role="table" aria-label="Historial de medidas">
+            <div className="sivu-sheet__hist-row sivu-sheet__hist-head" role="row">
+              <span role="columnheader">Fecha</span>
+              <span role="columnheader">DAP</span>
+              <span role="columnheader">Altura</span>
+              <span role="columnheader">Copa</span>
+            </div>
+            {hist.map((v) => (
+              <div key={v.clave} className="sivu-sheet__hist-row" role="row">
+                <span role="cell">
+                  {v.fecha ? fechaChile(v.fecha) : "—"}
+                  <small>{v.origen}</small>
+                </span>
+                <span role="cell">{v.dap ?? "—"}</span>
+                <span role="cell">{v.altura ?? "—"}</span>
+                <span role="cell">{v.copa ?? "—"}</span>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <span className="sivu-sheet__why">Aún no hay medidas registradas en una inspección vigente.</span>
+        )}
+      </div>
+    </>
   );
 }
 
