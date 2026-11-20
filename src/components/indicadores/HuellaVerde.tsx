@@ -1,5 +1,5 @@
 import type { IndicadoresProyecto, NivelTaxonomico } from "../../types/indicadores";
-import { masa, num, pct } from "./formato";
+import { co2Anual, masa, MOTIVO_SECUESTRO, num, pct } from "./formato";
 
 /**
  * Vista del proyecto de Indicadores biométricos, compacta como el Dashboard
@@ -142,7 +142,48 @@ function Origen({ d }: { d: IndicadoresProyecto }) {
   );
 }
 
-/** Lo que aún no tiene método cerrado: carbono en validación y servicios del arbolado. */
+/**
+ * Secuestro anual de CO₂ (decisiones A a C, 2026-11-20): el total suma solo
+ * estimaciones fundamentadas. Las simulaciones solo se cuentan; su rango
+ * está en la ficha de cada árbol.
+ */
+function Secuestro({ d }: { d: IndicadoresProyecto }) {
+  const s = d.estimacion_secuestro_anual;
+  if (!s) {
+    return (
+      <div>
+        <span className="bio-tag bio-tag--pendiente">Método en definición</span>
+        <strong>Secuestro anual de CO₂</strong>
+        <span>La estimación todavía no está disponible en esta versión de la API.</span>
+      </div>
+    );
+  }
+  const c = s.cobertura;
+  const motivoPrincipal = Object.entries(c.motivos)
+    .filter(([m]) => m !== "sin_evaluacion_valida" && m !== "no_presente")
+    .sort((a, b) => b[1] - a[1])[0];
+  const fundamentado = s.total_fundamentado.co2_kg_anio;
+  const motivo = motivoPrincipal ? `, sobre todo por ${(MOTIVO_SECUESTRO[motivoPrincipal[0]] ?? motivoPrincipal[0]).toLowerCase()}` : "";
+  return (
+    <div>
+      {fundamentado !== null ? (
+        <span className="bio-tag bio-tag--resuelto">Estimación</span>
+      ) : (
+        <span className="bio-tag bio-tag--simulacion">Sin estimación fundamentada</span>
+      )}
+      <strong>
+        Secuestro anual de CO₂
+        {fundamentado !== null && ` · ${co2Anual(fundamentado)} kg CO₂/año en ${num(c.estimacion_fundamentada)} árboles`}
+      </strong>
+      <span>
+        De {num(c.universo_calculo)} evaluados: {num(c.simulacion_exploratoria)} con simulación exploratoria (rango en su ficha; no se suma) y {num(c.no_estimable)} no
+        estimables{motivo}.
+      </span>
+    </div>
+  );
+}
+
+/** Lo que aún no tiene método cerrado: carbono en validación, secuestro y servicios del arbolado. */
 function EnDefinicion({ d }: { d: IndicadoresProyecto }) {
   const carbono = d.estimacion_carbono_aereo_lenoso;
   const c = carbono ? masa(carbono.total.carbono_t) : null;
@@ -157,6 +198,7 @@ function EnDefinicion({ d }: { d: IndicadoresProyecto }) {
             : "El método de cálculo sigue pendiente en la metodología."}
         </span>
       </div>
+      <Secuestro d={d} />
       <div>
         <span className="bio-tag bio-tag--pendiente">Método en definición</span>
         <strong>Servicios del arbolado</strong>

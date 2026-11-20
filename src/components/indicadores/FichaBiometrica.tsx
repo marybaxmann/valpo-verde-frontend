@@ -1,7 +1,8 @@
 import type { FichaArbol } from "../../types/fichaArbol";
 import type { CodigoEtiqueta } from "../../types/diagnostico";
 import { fechaChile } from "../../lib/dates";
-import { num, MOTIVO_CARBONO } from "./formato";
+import { co2Anual, num, MOTIVO_CARBONO, MOTIVO_SECUESTRO } from "./formato";
+import type { SecuestroArbol } from "../../types/indicadores";
 
 /**
  * Ficha biométrica del árbol (maqueta «Ficha biométrica del árbol»), con
@@ -10,6 +11,51 @@ import { num, MOTIVO_CARBONO } from "./formato";
  * escorrentía, captura anual y proyección de crecimiento no tienen método
  * aprobado (CC-016: filas «Pendiente»): se muestran sin número.
  */
+
+/**
+ * Captura anual de CO₂ del árbol (decisiones A a C, 2026-11-20): valor si la
+ * especie tiene una categoría de crecimiento aprobada; si no, un rango
+ * exploratorio rotulado como simulación; o el motivo por el que no se estima.
+ */
+function CapturaAnual({ s }: { s: SecuestroArbol | undefined }) {
+  if (!s) {
+    return <span className="bio-tag bio-tag--pendiente">Captura anual: método en definición</span>;
+  }
+  if (s.tipo === "estimacion_fundamentada") {
+    return (
+      <div className="bio-anual">
+        <span className="bio-anual__lbl">Captura anual de CO₂</span>
+        <strong className="bio-anual__val">
+          {co2Anual(s.valor.co2_kg_anio)} <small>kg CO₂/año</small>
+        </strong>
+        <span className="bio-tag bio-tag--resuelto">Estimación</span>
+        <span className="bio-anual__nota">Crecimiento según la categoría aprobada para la especie ({s.fuente_categoria}). Altura constante.</span>
+      </div>
+    );
+  }
+  if (s.tipo === "simulacion_exploratoria") {
+    return (
+      <div className="bio-anual">
+        <span className="bio-anual__lbl">Captura anual de CO₂</span>
+        <strong className="bio-anual__val">
+          {co2Anual(s.rango.co2_kg_anio_min)} a {co2Anual(s.rango.co2_kg_anio_max)} <small>kg CO₂/año</small>
+        </strong>
+        <span className="bio-tag bio-tag--simulacion">Simulación exploratoria</span>
+        <span className="bio-anual__nota">
+          Rango con las categorías de crecimiento lento a rápido de i-Tree Eco, ajustadas por la luz que recibe la copa y su muerte regresiva. La
+          especie no tiene una tasa de crecimiento aprobada: no es una medición ni una estimación validada y no se suma a los totales.
+        </span>
+      </div>
+    );
+  }
+  return (
+    <div className="bio-anual">
+      <span className="bio-anual__lbl">Captura anual de CO₂</span>
+      <strong className="bio-anual__val">No estimable</strong>
+      <span className="bio-anual__nota">{MOTIVO_SECUESTRO[s.motivo] ?? s.detalle}</span>
+    </div>
+  );
+}
 
 const n = (v: unknown): number | null => (typeof v === "number" && Number.isFinite(v) ? v : null);
 
@@ -148,7 +194,7 @@ export function FichaBiometrica({ ficha }: { ficha: FichaArbol }) {
                 ? `Carbono aéreo leñoso ${num(carbono.valor.carbono_kg, 0)} kg C · modelo ${carbono.valor.modelo.id}`
                 : carbono.detalle}
           </span>
-          <span className="bio-tag bio-tag--pendiente">Captura anual: método en definición</span>
+          <CapturaAnual s={ficha.secuestro_anual} />
         </article>
 
         <article className="bio-card bio-crece">

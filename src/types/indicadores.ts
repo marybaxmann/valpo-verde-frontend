@@ -114,7 +114,57 @@ export interface IndicadoresProyecto {
   proporcion_origen: { denominador: number; nativos: Parte; introducidos: Parte; origen_no_determinado: Parte };
   /** CC-069 v1; ausente en la API publicada hasta que se despliegue `e57d8fd`. */
   estimacion_carbono_aereo_lenoso?: CarbonoAgregado;
+  /** Secuestro anual (decisiones A a C, 2026-11-20); ausente en la API publicada hasta su despliegue. */
+  estimacion_secuestro_anual?: SecuestroAgregado;
 }
+
+/** Secuestro anual del ámbito: el total suma solo estimaciones fundamentadas; las simulaciones solo se cuentan. */
+export interface SecuestroAgregado {
+  indicador: "estimacion_secuestro_anual";
+  metodo: MetodoSecuestro;
+  supuestos_simulacion: string[];
+  cobertura: {
+    presentes: number;
+    universo_calculo: number;
+    estimacion_fundamentada: number;
+    simulacion_exploratoria: number;
+    no_estimable: number;
+    motivos: Record<string, number>;
+  };
+  /** null (no 0) si ningún árbol tiene estimación fundamentada. */
+  total_fundamentado: { co2_kg_anio: number | null; co2_t_anio: number | null };
+}
+
+export interface MetodoSecuestro {
+  version: string;
+  estado: string;
+  base_carbono: string;
+  altura: string;
+  unidad: string;
+}
+
+interface SecuestroComun {
+  unidad: string;
+  modelo: { id: string; fuente: string; confianza: string; especie_ecuacion: string };
+  entradas: { dap_cm: number; altura_total_m: number | null; cle: number; muerte_regresiva_pct: number };
+  factores: { factor_cle: number; factor_condicion: number };
+  supuestos: string[];
+  metodo: MetodoSecuestro;
+}
+
+export interface SecuestroCategoria {
+  categoria: "lento" | "moderado" | "rapido";
+  tasa_base_cm_anio: number;
+  delta_dap_cm: number;
+  dap_proyectado_cm: number;
+  co2_kg_anio: number;
+}
+
+/** Secuestro de un árbol (B2): fundamentado (un valor), simulación (rango) o no estimable (motivo). */
+export type SecuestroArbol =
+  | (SecuestroComun & { tipo: "estimacion_fundamentada"; valor: SecuestroCategoria; fuente_categoria: string })
+  | (SecuestroComun & { tipo: "simulacion_exploratoria"; rango: { co2_kg_anio_min: number; co2_kg_anio_max: number }; por_categoria: SecuestroCategoria[] })
+  | { tipo: "no_estimable" | "fuera_del_universo"; motivo: string; categoria_motivo: string; detalle: string; metodo: MetodoSecuestro };
 
 /** Carbono de un árbol (B2, CC-069 v1): valor, o null con categoría, motivo y detalle. */
 export type CarbonoArbol =
