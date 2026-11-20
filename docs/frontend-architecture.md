@@ -359,6 +359,9 @@ email, nunca hardcodeado.
 - Especies: se quitó el panel del Inventario (pedido de la responsable); la composición por especie está en el Dashboard e Indicadores biométricos.
 - Ficha (`TreeSheet`): carga B2 en lugar de las OT del proyecto. «Medición»: DAP (equivalente en el multifustal), altura, copa (con N-S y E-O), clase y edad estimada vigentes, e historial por versión vigente (la versión guarda N-S y E-O; el promedio solo existe como valor vigente, no se calcula). «Gestión»: incidencias del árbol enlazadas a su detalle.
 
+### Fase 7 · Ícono de la pestaña (favicon)
+**Fecha:** 2026-11-19. Pedido de la responsable: la «S» del logo de SIVU (recortada de `src/assets/sivu-logo-olive.png`), oliva sobre fondo claro redondeado. Archivos en `public/` (`favicon.ico` 16/32/48, `sivu-icono-32.png`, `apple-touch-icon.png` 180) y declarados en `index.html`, con `theme-color` oliva. Vercel sirve los archivos de `public/` antes de la regla que reescribe todo a `index.html`.
+
 ## 5. Limitaciones conocidas (revisado 2026-11-19)
 
 - **Agregar miembro** a un proyecto todavía pide el `user_id` (UUID) en un campo de texto. El backend ya expone `GET /api/sivu/projects/:id/available-users`, pero el frontend aún no lo usa: es una mejora pendiente.
