@@ -353,7 +353,7 @@ email, nunca hardcodeado.
 - `api/incidencias.ts`: `borrarIncidencia`; `api.delete` acepta cuerpo. El backend rechaza (409) si una OT ya tiene inspección, mantención o evaluación.
 
 ### Fase 7 · Inventario: mapa a la vista y ficha sin pendientes
-**Fecha:** 2026-11-19. Pedido de la responsable (rama `fix/inventario-mapa-ficha`).
+**Fecha:** 2026-11-19. Pedido de la responsable; publicado en sivu.cl (PR #30, `ddf5525`).
 - Mapa: la columna lateral (solo el mapa) es `sticky`. Con la ficha abierta (901–1599 px) o en una columna (≤ 1100 px), el mapa pasa arriba de la tabla; antes bajaba al final.
 - Tabla: columnas DAP (con el número de fustes del multifustal) y Altura desde B1, que ya las entregaba; se quitó el aviso «próxima etapa».
 - Especies: se quitó el panel del Inventario (pedido de la responsable); la composición por especie está en el Dashboard e Indicadores biométricos.
