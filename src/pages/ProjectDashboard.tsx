@@ -358,10 +358,9 @@ export default function ProjectDashboard() {
                       );
                     })}
                   </ul>
+                  {/* El Inventario ya no tiene el panel de especies (2026-11-19): solo se informa el total. */}
                   {r.especies_distintas > 3 && (
-                    <Link to="../mapa" relative="path" className="sivu-panel__link sivu-dash__more">
-                      Ver las {r.especies_distintas} especies <Icon name="arrow-right" size={12} />
-                    </Link>
+                    <span className="sivu-panel__sub sivu-dash__more">3 de {r.especies_distintas} especies en el proyecto</span>
                   )}
                 </>
               ) : (
