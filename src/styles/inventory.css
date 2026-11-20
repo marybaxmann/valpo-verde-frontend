@@ -239,19 +239,10 @@ section > .sivu-picker__state {
   .sivu-inv__layout {
     grid-template-columns: minmax(0, 1fr);
   }
-  /* En una columna, el mapa y las especies van arriba de la tabla. */
+  /* En una columna, el mapa va arriba de la tabla. */
   .sivu-inv__side {
     order: -1;
     position: static;
-    display: grid;
-    grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
-    align-items: stretch;
-  }
-}
-
-@media (max-width: 640px) {
-  .sivu-inv__side {
-    grid-template-columns: minmax(0, 1fr);
   }
 }
 
@@ -1157,9 +1148,9 @@ a.sivu-sheet__work--link:focus-visible .sivu-sheet__work-text strong {
   }
 }
 
-/* Con la ficha abierta, la tabla ocupa todo el ancho disponible y el mapa y las
-   especies pasan ARRIBA de la tabla, uno al lado del otro, para que el árbol
-   elegido siga a la vista (antes bajaban al final de la tabla). */
+/* Con la ficha abierta, la tabla ocupa todo el ancho disponible y el mapa pasa
+   ARRIBA de la tabla, para que el árbol elegido siga a la vista (antes bajaba
+   al final de la tabla). */
 @media (min-width: 901px) and (max-width: 1599px) {
   .sivu-inv.has-sheet .sivu-inv__layout {
     grid-template-columns: minmax(0, 1fr);
@@ -1167,13 +1158,6 @@ a.sivu-sheet__work--link:focus-visible .sivu-sheet__work-text strong {
   .sivu-inv.has-sheet .sivu-inv__side {
     order: -1;
     position: static;
-    display: grid;
-    grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
-    align-items: stretch;
-  }
-  .sivu-inv.has-sheet .sivu-inv__species-panel {
-    max-height: 330px;
-    overflow-y: auto;
   }
 }
 

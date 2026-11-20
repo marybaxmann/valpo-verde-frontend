@@ -354,9 +354,9 @@ email, nunca hardcodeado.
 
 ### Fase 7 · Inventario: mapa a la vista y ficha sin pendientes
 **Fecha:** 2026-11-19. Pedido de la responsable (rama `fix/inventario-mapa-ficha`).
-- Mapa: la columna lateral es `sticky` y el mapa va primero. Con la ficha abierta (901–1599 px) o en una columna (≤ 1100 px), mapa y especies pasan arriba de la tabla, lado a lado; antes bajaban al final.
+- Mapa: la columna lateral (solo el mapa) es `sticky`. Con la ficha abierta (901–1599 px) o en una columna (≤ 1100 px), el mapa pasa arriba de la tabla; antes bajaba al final.
 - Tabla: columnas DAP (con el número de fustes del multifustal) y Altura desde B1, que ya las entregaba; se quitó el aviso «próxima etapa».
-- Especies: las 10 especies con más árboles de B7 (`especies_top`), con % sobre el total, como el Dashboard.
+- Especies: se quitó el panel del Inventario (pedido de la responsable); la composición por especie está en el Dashboard e Indicadores biométricos.
 - Ficha (`TreeSheet`): carga B2 en lugar de las OT del proyecto. «Medición»: DAP (equivalente en el multifustal), altura, copa (con N-S y E-O), clase y edad estimada vigentes, e historial por versión vigente (la versión guarda N-S y E-O; el promedio solo existe como valor vigente, no se calcula). «Gestión»: incidencias del árbol enlazadas a su detalle.
 
 ## 5. Limitaciones conocidas (revisado 2026-11-19)

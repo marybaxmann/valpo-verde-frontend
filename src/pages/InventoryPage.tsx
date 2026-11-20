@@ -10,8 +10,6 @@ import { listarDiagnosticos } from "../api/diagnosticos";
 import type { EvaluacionVigente } from "../types/diagnostico";
 import { ClassificationBadge } from "../components/ClassificationBadge";
 import { Icon } from "../components/Icons";
-import { obtenerResumen } from "../api/resumen";
-import type { ResumenProyecto } from "../types/resumen";
 import { TreeSheet } from "../components/TreeSheet";
 import { NewTreeModal } from "../components/NewTreeModal";
 import { useAuth } from "../hooks/useAuth";
@@ -92,18 +90,6 @@ export default function InventoryPage() {
   }, []);
   const ciclo = (codigo: string) => cicloLabel[codigo] ?? codigo;
 
-  // Composición por especie del proyecto (B7 `especies_top`, las 10 con más árboles).
-  const [resumen, setResumen] = useState<ResumenProyecto | null>(null);
-  const [errorResumen, setErrorResumen] = useState(false);
-  useEffect(() => {
-    let cancelled = false;
-    obtenerResumen(projectId)
-      .then((r) => !cancelled && setResumen(r))
-      .catch(() => !cancelled && setErrorResumen(true));
-    return () => {
-      cancelled = true;
-    };
-  }, [projectId, version]);
 
   useEffect(() => {
     let cancelled = false;
@@ -410,43 +396,6 @@ export default function InventoryPage() {
                   <p className="sivu-mant__muted">El mapa no está configurado en este entorno.</p>
                 )}
               </div>
-            </article>
-            <article className="sivu-panel sivu-inv__species-panel">
-              <div className="sivu-panel__head">
-                <h2>Especies</h2>
-                {resumen && <span className="sivu-mant__count">{resumen.especies_distintas} en el proyecto</span>}
-              </div>
-              {resumen ? (
-                resumen.especies_top.length > 0 ? (
-                  <>
-                    {/* % sobre el total de árboles del proyecto (B7), igual que el Dashboard. */}
-                    <ul className="sivu-bars">
-                      {resumen.especies_top.map((e) => {
-                        const pct = resumen.arboles_total > 0 ? Math.round((e.total / resumen.arboles_total) * 100) : 0;
-                        const max = resumen.especies_top[0]?.total || 1;
-                        return (
-                          <li key={e.especie_cientifica ?? e.nombre_comun ?? "sin"} title={`${e.especie_cientifica ?? "Sin especie"} · ${e.total} árboles`}>
-                            <span>{e.nombre_comun ?? e.especie_cientifica ?? "Sin especie"}</span>
-                            <i>
-                              <b style={{ width: `${(e.total / max) * 100}%` }} />
-                            </i>
-                            <strong>{pct}%</strong>
-                          </li>
-                        );
-                      })}
-                    </ul>
-                    {resumen.especies_distintas > resumen.especies_top.length && (
-                      <p className="sivu-mant__muted">
-                        Se muestran las {resumen.especies_top.length} especies con más árboles de {resumen.especies_distintas}.
-                      </p>
-                    )}
-                  </>
-                ) : (
-                  <p className="sivu-mant__muted">El proyecto todavía no tiene árboles con especie.</p>
-                )
-              ) : (
-                <p className="sivu-mant__muted">{errorResumen ? "No se pudo cargar la composición por especie." : "Cargando…"}</p>
-              )}
             </article>
           </aside>
         </div>
