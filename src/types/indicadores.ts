@@ -118,7 +118,45 @@ export interface IndicadoresProyecto {
   estimacion_carbono_aereo_lenoso?: CarbonoAgregado;
   /** Secuestro anual (decisiones A a C, 2026-11-20); ausente en la API publicada hasta su despliegue. */
   estimacion_secuestro_anual?: SecuestroAgregado;
+  /** Carbono aéreo total con hojas (carbono directo, 2026-11-21): solo cobertura; ausente en la API publicada. */
+  estimacion_carbono_aereo_total?: CarbonoAereoTotalAgregado;
 }
+
+/**
+ * Carbono aéreo total del ámbito (carbono directo, 2026-11-21). Otro
+ * componente que el leñoso: nunca se suman. Con modelos exploratorios el
+ * total es null (sin total oficial) y solo se informa la cobertura.
+ */
+export interface CarbonoAereoTotalAgregado {
+  indicador: "estimacion_carbono_aereo_total";
+  limitaciones: string[];
+  cobertura: {
+    presentes: number;
+    universo_calculo: number;
+    con_resultado: number;
+    con_resultado_exploratorio: number;
+    por_modelo: Record<string, number>;
+    por_categoria: Record<CategoriaSinCarbono, number>;
+    motivos: Record<string, number>;
+  };
+  total: { carbono_t: number | null; co2e_t: number | null };
+}
+
+/** Carbono aéreo total de un árbol (B2, carbono directo, 2026-11-21): incluye hojas, sin raíces. */
+export type CarbonoAereoTotalArbol =
+  | {
+      valor: {
+        carbono_kg: number;
+        co2e_kg: number;
+        componente: { codigo: "aerea_total"; incluye: string[]; excluye: string[] };
+        modelo: { id: string; fuente: string; doi: string; estado: "aprobado" | "exploratorio"; confianza: string; especie_ecuacion: string; limitaciones_modelo: string[] };
+      };
+      categoria: null;
+      motivo: null;
+      detalle: null;
+      limitaciones: string[];
+    }
+  | { valor: null; categoria: CategoriaSinCarbono; motivo: string; detalle: string; limitaciones: string[] };
 
 /** Secuestro anual del ámbito: el total suma solo estimaciones fundamentadas; las simulaciones solo se cuentan. */
 export interface SecuestroAgregado {

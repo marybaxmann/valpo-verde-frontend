@@ -2027,6 +2027,33 @@
   color: var(--bio-muted);
   letter-spacing: 0;
 }
+.bx-kpi__head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.bx-kpi__comp {
+  display: grid;
+  gap: 2px;
+  margin: 4px 0 2px;
+  font-size: 12px;
+}
+.bx-kpi__comp div {
+  display: flex;
+  gap: 6px;
+}
+.bx-kpi__comp dt {
+  color: var(--bio-muted);
+  min-width: 52px;
+}
+.bx-kpi__comp dd {
+  margin: 0;
+}
+.bx-carbono__extra {
+  margin-top: 10px;
+  line-height: 1.5;
+}
 .bx-kpi__sub {
   font-size: 12px;
   color: var(--bio-muted);
