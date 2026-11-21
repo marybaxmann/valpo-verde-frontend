@@ -1,11 +1,11 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams, useSearchParams } from "react-router-dom";
 import { obtenerIndicadores } from "../api/indicadores";
 import { listarDiagnosticos } from "../api/diagnosticos";
 import { obtenerFichaArbol } from "../api/fichaArbol";
 import { useCurrentProject } from "../hooks/useCurrentProject";
 import { SivuLoader } from "../components/SivuLoader";
-import { HuellaVerde, type Aportes } from "../components/indicadores/HuellaVerde";
+import { HuellaVerde } from "../components/indicadores/HuellaVerde";
 import { FichaBiometrica } from "../components/indicadores/FichaBiometrica";
 import { fechaHoraChile } from "../lib/dates";
 import type { IndicadoresProyecto } from "../types/indicadores";
@@ -13,13 +13,10 @@ import type { FichaArbol } from "../types/fichaArbol";
 
 /**
  * Indicadores biométricos (CC-060; hoja INDICES filas 3 a 13, CC-016;
- * carbono aéreo leñoso, CC-069 v1). Dos vistas de la maqueta: el
- * proyecto («La huella verde») y la ficha biométrica de cada árbol. El
+ * carbono aéreo leñoso, CC-069 v1). Dos vistas: el proyecto, compacta como
+ * el Dashboard (2026-11-19), y la ficha biométrica de cada árbol. El
  * frontend no calcula indicadores: los lee de B19 y de B2.
  */
-
-/** Tope de fichas que se leen para ordenar «Los que más aportan» (un pedido por árbol evaluado). */
-const MAX_FICHAS = 60;
 
 type Carga<T> = { estado: "cargando" } | { estado: "listo"; datos: T } | { estado: "error"; mensaje: string };
 
@@ -51,7 +48,7 @@ export default function IndicesPage() {
     };
   }, [projectId, barrio, clave]);
 
-  // Árboles con evaluación vigente (B18): los de la ficha y los candidatos de «Los que más aportan».
+  // Árboles con evaluación vigente (B18): los que se pueden abrir en la vista «Por árbol».
   const [evaluados, setEvaluados] = useState<{ id: string; carga: Carga<ArbolEvaluado[]> } | null>(null);
   useEffect(() => {
     let cancelado = false;
@@ -71,42 +68,11 @@ export default function IndicesPage() {
   }, [projectId]);
   const listaEvaluados = evaluados?.id === projectId && evaluados.carga.estado === "listo" ? evaluados.carga.datos : null;
 
-  // Fichas (B2) de los árboles evaluados: carbono por árbol para el orden y la ficha seleccionada.
-  const [fichas, setFichas] = useState<{ id: string; porArbol: Map<string, FichaArbol | null> } | null>(null);
-  useEffect(() => {
-    if (!listaEvaluados) return;
-    let cancelado = false;
-    const candidatos = listaEvaluados.slice(0, MAX_FICHAS);
-    Promise.all(candidatos.map((a) => obtenerFichaArbol(projectId, a.tree_id).then((f) => [a.tree_id, f] as const, () => [a.tree_id, null] as const))).then(
-      (pares) => !cancelado && setFichas({ id: projectId, porArbol: new Map(pares) })
-    );
-    return () => {
-      cancelado = true;
-    };
-  }, [projectId, listaEvaluados]);
-  const porArbol = fichas?.id === projectId ? fichas.porArbol : null;
-
-  const aportes: Aportes = useMemo(() => {
-    if (evaluados?.id === projectId && evaluados.carga.estado === "error") return { estado: "no_disponible", motivo: "No se pudo leer la lista de árboles evaluados." };
-    if (!listaEvaluados || !porArbol) return { estado: "cargando" };
-    const fichasLeidas = [...porArbol.values()].filter((f): f is FichaArbol => f !== null);
-    if (fichasLeidas.length > 0 && fichasLeidas.every((f) => f.estimacion_carbono_aereo_lenoso === undefined)) {
-      return { estado: "no_disponible", motivo: "La estimación de carbono por árbol todavía no está disponible." };
-    }
-    const arboles = listaEvaluados
-      .flatMap((a) => {
-        const c = porArbol.get(a.tree_id)?.estimacion_carbono_aereo_lenoso;
-        return c?.valor ? [{ ...a, carbono_kg: c.valor.carbono_kg }] : [];
-      })
-      .sort((x, y) => y.carbono_kg - x.carbono_kg);
-    return { estado: "listo", arboles, evaluados: listaEvaluados.length };
-  }, [evaluados, projectId, listaEvaluados, porArbol]);
-
   const arbolSel = arbolParam ?? listaEvaluados?.[0]?.tree_id ?? null;
   const [fichaSuelta, setFichaSuelta] = useState<{ id: string; carga: Carga<FichaArbol> } | null>(null);
-  const fichaEnCache = arbolSel && porArbol ? porArbol.get(arbolSel) : undefined;
+  // La ficha (B2) se pide solo al abrir un árbol; ya no se leen todas para ordenar el carbono.
   useEffect(() => {
-    if (vista !== "arbol" || !arbolSel || fichaEnCache) return;
+    if (vista !== "arbol" || !arbolSel) return;
     let cancelado = false;
     obtenerFichaArbol(projectId, arbolSel)
       .then((datos) => !cancelado && setFichaSuelta({ id: arbolSel, carga: { estado: "listo", datos } }))
@@ -114,14 +80,8 @@ export default function IndicesPage() {
     return () => {
       cancelado = true;
     };
-  }, [vista, arbolSel, fichaEnCache, projectId]);
-  const ficha: Carga<FichaArbol> | null = !arbolSel
-    ? null
-    : fichaEnCache
-      ? { estado: "listo", datos: fichaEnCache }
-      : fichaSuelta?.id === arbolSel
-        ? fichaSuelta.carga
-        : { estado: "cargando" };
+  }, [vista, arbolSel, projectId]);
+  const ficha: Carga<FichaArbol> | null = !arbolSel ? null : fichaSuelta?.id === arbolSel ? fichaSuelta.carga : { estado: "cargando" };
 
   const actualizar = (cambios: Record<string, string | null>) => {
     const p = new URLSearchParams(params);
@@ -206,7 +166,7 @@ export default function IndicesPage() {
           )}
           {datos && datos.cobertura.arboles_presentes > 0 && (
             <>
-              <HuellaVerde d={datos} aportes={aportes} />
+              <HuellaVerde d={datos} />
               <p className="bio-pie">
                 {datos.cobertura.arboles_presentes} presentes de {datos.cobertura.arboles_registrados} registrados
                 {datos.cobertura.arboles_con_evaluacion_valida !== undefined && ` · ${datos.cobertura.arboles_con_evaluacion_valida} con evaluación completa vigente`} ·

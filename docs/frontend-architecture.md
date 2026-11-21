@@ -368,6 +368,12 @@ email, nunca hardcodeado.
 - Quitados de la vista: los D-n del editor de la ficha pública, «(CC-078)», «(CC-069)», la etiqueta «CC-069 v1» y «(D-13)» del catálogo. Las referencias siguen en los comentarios del código.
 - Ficha → Medición: solo el diámetro de copa resuelto por la plataforma (D-22), sin N-S × E-O. En el historial, la versión más reciente toma el valor vigente; las anteriores no tienen el dato resuelto y muestran «—» (no se calcula en el navegador).
 
+### Fase 7 · Indicadores biométricos compactos
+**Fecha:** 2026-11-19. Pedido de la responsable: compactar como el Dashboard, sin listas extensas.
+- Vista «Proyecto» (`HuellaVerde`): franja de 6 indicadores (árboles, riqueza, Shannon, densidad, diámetro medio y área de copa con cuántos evaluados cubren), tres paneles (10-20-30 con solo el taxón dominante por nivel; perfil de tamaños sin la barra «sin evaluación»; origen) y una franja con lo que no tiene método cerrado. Cabe en una pantalla de 1440 × 900.
+- Veracidad: el carbono deja de ser la tarjeta principal (fila 14 de INDICES sigue «Pendiente»; 3 de 98 árboles) y va «En validación»; el origen se marca «Dato incompleto» cuando hay árboles de especies sin origen en el catálogo (en el Piloto, 31 de 98: el 0 % de nativos no es un dato cerrado).
+- Se quitó «Los que más aportan» y la carga de hasta 60 fichas para ordenar el carbono; la ficha (B2) se pide solo al abrir un árbol en «Por árbol».
+
 ## 5. Limitaciones conocidas (revisado 2026-11-19)
 
 - **Agregar miembro** a un proyecto todavía pide el `user_id` (UUID) en un campo de texto. El backend ya expone `GET /api/sivu/projects/:id/available-users`, pero el frontend aún no lo usa: es una mejora pendiente.
