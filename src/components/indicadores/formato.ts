@@ -47,3 +47,6 @@ export function co2Anual(v: number | null | undefined): string {
   if (v === null || v === undefined || !Number.isFinite(v)) return "—";
   return num(v, v < 10 ? 1 : 0);
 }
+
+/** «acer platanoides» → «Acer platanoides» (algunas claves llegan en minúsculas). */
+export const nombreCientifico = (v: string | undefined | null) => (v ? v.charAt(0).toUpperCase() + v.slice(1) : "");

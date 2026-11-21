@@ -1,257 +1,211 @@
+import { lazy, Suspense, useState } from "react";
 import type { FichaArbol } from "../../types/fichaArbol";
-import type { CodigoEtiqueta } from "../../types/diagnostico";
-import { fechaChile } from "../../lib/dates";
-import { co2Anual, num, MOTIVO_CARBONO, MOTIVO_SECUESTRO } from "./formato";
 import type { SecuestroArbol } from "../../types/indicadores";
+import { co2Anual, MOTIVO_SECUESTRO, nombreCientifico, num } from "./formato";
+import type { Zona } from "./Arbol3D";
 
 /**
- * Ficha biométrica del árbol (maqueta «Ficha biométrica del árbol»), con
- * B2: medición vigente, área proyectada de copa (INDICES fila 13) y
- * carbono aéreo leñoso del árbol (CC-069 v1). Área y biomasa foliar,
- * escorrentía, captura anual y proyección de crecimiento no tienen método
- * aprobado (CC-016: filas «Pendiente»): se muestran sin número.
+ * Ficha biométrica del árbol (B2), como experiencia visual: el árbol 3D al
+ * centro; a la izquierda la captura anual de CO₂ (indicador principal) y el
+ * carbono almacenado; a la derecha las medidas y lo que aún no tiene método.
+ * Los valores llegan de la API (CC-069 v1 y secuestro v1): el frontend no
+ * calcula. Las advertencias metodológicas quedan en desplegables.
+ * El árbol es un esquema ilustrativo, no a escala, y se carga aparte (three.js).
  */
 
-/**
- * Captura anual de CO₂ del árbol (decisiones A a C, 2026-11-20): valor si la
- * especie tiene una categoría de crecimiento aprobada; si no, un rango
- * exploratorio rotulado como simulación; o el motivo por el que no se estima.
- */
-/** «acer platanoides» → «Acer platanoides» (la API entrega la clave en minúsculas). */
-const nombreCientifico = (v: string | undefined) => (v ? v.charAt(0).toUpperCase() + v.slice(1) : "");
-
-function Advertencias({ lista }: { lista: string[] | undefined }) {
-  if (!lista || lista.length === 0) return null;
-  return (
-    <ul className="bio-anual__avisos">
-      {lista.map((t) => (
-        <li key={t}>{t}</li>
-      ))}
-    </ul>
-  );
-}
-
-function CapturaAnual({ s }: { s: SecuestroArbol | undefined }) {
-  if (!s) {
-    return <span className="bio-tag bio-tag--pendiente">Captura anual: método en definición</span>;
-  }
-  if (s.tipo === "estimacion_fundamentada") {
-    return (
-      <div className="bio-anual">
-        <span className="bio-anual__lbl">Captura anual de CO₂</span>
-        <strong className="bio-anual__val">
-          {co2Anual(s.valor.co2_kg_anio)} <small>kg CO₂/año</small>
-        </strong>
-        <span className="bio-tag bio-tag--resuelto">Estimación</span>
-        <span className="bio-anual__nota">Crecimiento según la categoría aprobada para la especie ({s.fuente_categoria}). Altura constante.</span>
-      </div>
-    );
-  }
-  if (s.tipo === "simulacion_exploratoria") {
-    return (
-      <div className="bio-anual">
-        <span className="bio-anual__lbl">Captura anual de CO₂</span>
-        <strong className="bio-anual__val">
-          {co2Anual(s.rango.co2_kg_anio_min)} a {co2Anual(s.rango.co2_kg_anio_max)} <small>kg CO₂/año</small>
-        </strong>
-        <span className="bio-tag bio-tag--simulacion">Simulación exploratoria</span>
-        <span className="bio-anual__nota">
-          Rango con las categorías de crecimiento lento a rápido de i-Tree Eco, ajustadas por la luz que recibe la copa y su muerte regresiva. La
-          especie no tiene una tasa de crecimiento aprobada: no es una medición ni una estimación validada y no se suma a los totales.
-        </span>
-        <Advertencias lista={s.advertencias} />
-      </div>
-    );
-  }
-  return (
-    <div className="bio-anual">
-      <span className="bio-anual__lbl">Captura anual de CO₂</span>
-      <strong className="bio-anual__val">No estimable</strong>
-      <span className="bio-anual__nota">{MOTIVO_SECUESTRO[s.motivo] ?? s.detalle}</span>
-    </div>
-  );
-}
-
+const Arbol3D = lazy(() => import("./Arbol3D").then((m) => ({ default: m.Arbol3D })));
 const n = (v: unknown): number | null => (typeof v === "number" && Number.isFinite(v) ? v : null);
 
-function Fila({ etiqueta, valor, pendiente }: { etiqueta: string; valor: string; pendiente?: boolean }) {
+function Captura({ s, onExplorar }: { s: SecuestroArbol | undefined; onExplorar: (v: boolean) => void }) {
+  const eventos = { onMouseEnter: () => onExplorar(true), onMouseLeave: () => onExplorar(false), onFocus: () => onExplorar(true), onBlur: () => onExplorar(false) };
+  if (!s) return <article className="bio-card bx-captura">Sin datos de captura anual en esta API.</article>;
+
+  if (s.tipo !== "simulacion_exploratoria" && s.tipo !== "estimacion_fundamentada") {
+    return (
+      <article className="bio-card bx-captura bx-captura--vacia" tabIndex={0} {...eventos}>
+        <span className="bx-eyebrow">Captura anual de CO₂</span>
+        <strong className="bx-captura__estado">No estimable</strong>
+        <p className="bx-captura__motivo">{MOTIVO_SECUESTRO[s.motivo] ?? s.detalle}</p>
+        <p className="bx-captura__sub">Se calcula cuando la especie tenga un modelo de biomasa y el árbol tenga sus datos completos.</p>
+      </article>
+    );
+  }
+
+  const valores = s.tipo === "simulacion_exploratoria" ? s.por_categoria : [s.valor];
+  const max = Math.max(...valores.map((v) => v.co2_kg_anio), 0.1) * 1.15;
+  const etiqueta = { lento: "Lento", moderado: "Moderado", rapido: "Rápido" } as const;
+  const advertencias = s.advertencias ?? [];
+
   return (
-    <div className={`bio-fila ${pendiente ? "bio-fila--pendiente" : ""}`}>
-      <span>{etiqueta}</span>
-      <strong>{valor}</strong>
-    </div>
+    <article className="bio-card bx-captura" tabIndex={0} {...eventos}>
+      <header className="bx-captura__head">
+        <span className="bx-eyebrow">Captura anual de CO₂</span>
+        {s.tipo === "simulacion_exploratoria" ? (
+          <span className="bio-tag bio-tag--simulacion">Simulación exploratoria</span>
+        ) : (
+          <span className="bio-tag bio-tag--resuelto">Estimación</span>
+        )}
+      </header>
+      <div className="bx-captura__valor">
+        {s.tipo === "simulacion_exploratoria" ? (
+          <>
+            <b>{co2Anual(s.rango.co2_kg_anio_min)}</b>
+            <i>a</i>
+            <b>{co2Anual(s.rango.co2_kg_anio_max)}</b>
+          </>
+        ) : (
+          <b>{co2Anual(s.valor.co2_kg_anio)}</b>
+        )}
+        <span>kg de CO₂ al año</span>
+      </div>
+      <p className="bx-captura__sub">
+        {s.tipo === "simulacion_exploratoria"
+          ? "Depende de qué tan rápido crece la especie. Mientras no tenga una tasa aprobada, se muestran los tres ritmos posibles."
+          : "Según la categoría de crecimiento aprobada para la especie."}
+      </p>
+      <div className="bx-escala" role="img" aria-label={valores.map((v) => `${etiqueta[v.categoria]}: ${co2Anual(v.co2_kg_anio)} kg`).join(", ")}>
+        <div className="bx-escala__pista">
+          {s.tipo === "simulacion_exploratoria" && (
+            <span className="bx-escala__rango" style={{ left: `${(s.rango.co2_kg_anio_min / max) * 100}%`, width: `${((s.rango.co2_kg_anio_max - s.rango.co2_kg_anio_min) / max) * 100}%` }} />
+          )}
+          {valores.map((v) => (
+            <span key={v.categoria} className={`bx-escala__punto is-${v.categoria}`} style={{ left: `${(v.co2_kg_anio / max) * 100}%` }}>
+              <em>{co2Anual(v.co2_kg_anio)}</em>
+              <small>{etiqueta[v.categoria]}</small>
+            </span>
+          ))}
+        </div>
+        <span className="bx-escala__cero">0</span>
+      </div>
+      <details className="bx-detalle">
+        <summary>
+          Cómo se calcula{advertencias.length > 0 && <span className="bx-detalle__n">{advertencias.length} avisos</span>}
+        </summary>
+        {advertencias.length > 0 && (
+          <ul className="bx-detalle__avisos">
+            {advertencias.map((t) => (
+              <li key={t}>{t}</li>
+            ))}
+          </ul>
+        )}
+        <ul className="bx-detalle__lista">
+          {s.supuestos.map((t) => (
+            <li key={t}>{t}</li>
+          ))}
+        </ul>
+        <p className="bx-detalle__pie">
+          Modelo {s.modelo.id} · CLE {s.entradas.cle} · muerte regresiva {s.entradas.muerte_regresiva_pct} %
+        </p>
+      </details>
+    </article>
   );
 }
 
-/** Esquema decorativo del árbol (no a escala). */
-function Arbol() {
-  return (
-    <svg viewBox="0 0 320 300" className="bio-tree" aria-hidden="true">
-      <defs>
-        <radialGradient id="bio-crown" cx="40%" cy="35%" r="70%">
-          <stop offset="0" stopColor="var(--bio-crown-hi)" />
-          <stop offset="1" stopColor="var(--bio-crown-lo)" />
-        </radialGradient>
-        <radialGradient id="bio-glow" cx="50%" cy="45%" r="50%">
-          <stop offset="0" stopColor="var(--bio-glow)" />
-          <stop offset="1" stopColor="transparent" />
-        </radialGradient>
-      </defs>
-      <ellipse cx="160" cy="130" rx="150" ry="125" fill="url(#bio-glow)" />
-      <path className="bio-tree__roots" d="M60 262 C110 248 130 246 160 246 C190 246 210 248 260 262 M128 248 C120 268 112 280 100 292 M192 248 C200 268 208 280 220 292 M160 248 V284" />
-      <rect className="bio-tree__trunk" x="146" y="168" width="28" height="82" rx="6" />
-      <rect className="bio-tree__core" x="154" y="190" width="12" height="40" rx="4" />
-      <g className="bio-tree__crown">
-        <circle cx="104" cy="128" r="54" fill="url(#bio-crown)" />
-        <circle cx="216" cy="122" r="56" fill="url(#bio-crown)" />
-        <circle cx="160" cy="80" r="62" fill="url(#bio-crown)" />
-        <circle cx="160" cy="140" r="56" fill="url(#bio-crown)" />
-      </g>
-      {[
-        [40, 110],
-        [282, 96],
-        [70, 210],
-        [258, 214],
-        [120, 30],
-        [214, 36],
-      ].map(([x, y], i) => (
-        <circle key={i} className="bio-tree__spark" cx={x} cy={y} r="2.6" style={{ animationDelay: `${i * 0.7}s` }} />
-      ))}
-    </svg>
-  );
-}
-
-export function FichaBiometrica({ ficha }: { ficha: FichaArbol }) {
+export function FichaBiometrica({ ficha, lugar = null }: { ficha: FichaArbol; lugar?: string | null }) {
+  const [zona, setZona] = useState<Zona | null>(null);
+  const [captura, setCaptura] = useState(false);
   const a = ficha.arbol;
   const dap = n(a.dap_cm);
   const altura = n(a.altura_total_m);
-  const ns = n(a.diametro_copa_ns_m);
-  const eo = n(a.diametro_copa_eo_m);
+  const copa = n((a as Record<string, unknown>).diametro_copa_m);
   const area = n(a.area_proyectada_copa_m2);
-  const clase = (a.clase_edad as CodigoEtiqueta | null | undefined)?.etiqueta ?? null;
-  const vigenteDesde = ficha.historial[0]?.vigente_desde ?? null;
   const carbono = ficha.estimacion_carbono_aereo_lenoso;
-  const evaluado = ficha.evaluacion_completa_vigente;
-  const motivoArea =
-    evaluado === false ? "sin evaluación completa vigente" : a.copa_no_presenta === true ? "no presenta copa" : "sin medición de copa";
+  const cv = carbono?.valor ?? null;
+  const exploratorio = cv?.modelo.estado === "exploratorio";
+  const clase = (a.clase_edad as { etiqueta?: string } | null | undefined)?.etiqueta ?? null;
+  const resalta = (z: Zona) => ({
+    onMouseEnter: () => setZona(z),
+    onMouseLeave: () => setZona(null),
+    "data-zona": z,
+  });
+  const on = (z: Zona) => (zona === z ? "is-zona" : "");
 
   return (
-    <div className="bio-ficha">
-      <article className="bio-card bio-ficha__stage">
-        <header className="bio-ficha__id">
-          <div>
-            <code>{a.tree_code}</code>
-            <h2>{a.nombre_comun ?? "Árbol sin nombre común"}</h2>
-            <p>{a.especie_cientifica ? <em>{a.especie_cientifica}</em> : "Especie sin identificar"}</p>
-          </div>
-          <span className="bio-pill">
-            <i />
-            {vigenteDesde ? `Vigente desde ${fechaChile(vigenteDesde)}` : "Medición vigente"}
-          </span>
+    <div className={`bx-exp ${zona ? `bx-exp--${zona}` : ""}`}>
+      <section className="bx-exp__escena" aria-label="Árbol interactivo">
+        <header className="bx-exp__titulo">
+          <h2>{(a.nombre_comun as string | null) ?? nombreCientifico(a.especie_cientifica as string | null)}</h2>
+          <p>
+            <em>{nombreCientifico(a.especie_cientifica as string | null)}</em> · {a.tree_code as string}
+            {lugar ? ` · ${lugar}` : ""}
+          </p>
+          {clase && <span className="bio-chip">{clase}</span>}
         </header>
+        <Suspense fallback={<div className="a3d" aria-busy="true" />}>
+          <Arbol3D key={a.id as string} semilla={a.tree_code as string} zona={zona} onZona={setZona} captura={captura || zona === "copa"} />
+        </Suspense>
+        <span className={`bx-exp__pin bx-exp__pin--copa ${on("copa")}`}>
+          <b>Copa</b> {copa !== null ? `${num(copa, 1)} m` : "sin medición"}
+          {area !== null && <small>{num(area, 1)} m² de sombra</small>}
+        </span>
+        <span className={`bx-exp__pin bx-exp__pin--tronco ${on("tronco")}`}>
+          <b>Tronco</b> {dap !== null ? `DAP ${num(dap, 1)} cm` : "sin medición"}
+          {cv && <small>{num(cv.carbono_kg, 0)} kg C almacenados</small>}
+        </span>
+        <span className={`bx-exp__pin bx-exp__pin--raices ${on("raices")}`}>
+          <b>Raíces y suelo</b> método pendiente
+        </span>
+        <p className="bx-exp__pista">Arrastra para girar · toca la copa, el tronco o el suelo</p>
+        <span className="bx-exp__nota">Ilustración generada para SIVU, no a escala</span>
+      </section>
 
-        <div className="bio-ficha__visual">
-          <Arbol />
+      <div className="bx-exp__izq">
+        <Captura s={ficha.secuestro_anual} onExplorar={setCaptura} />
+        <article {...resalta("tronco")} className={`bio-card bx-kpi ${on("tronco")}`}>
+          <span className="bx-eyebrow">Carbono almacenado</span>
+          <strong>
+            {cv ? num(cv.carbono_kg, 0) : "—"} <small>kg C</small>
+          </strong>
+          <span className="bx-kpi__sub">{cv ? `${num(cv.co2e_kg, 0)} kg de CO₂ equivalente en madera` : (carbono?.detalle ?? "Sin estimación")}</span>
+          {exploratorio && (
+            <span className="bx-info" title={`Ecuación de ${nombreCientifico(cv?.modelo.especie_ecuacion)}, otra especie del mismo género. No suma a los totales.`}>
+              Exploratorio · modelo sustituto ⓘ
+            </span>
+          )}
+        </article>
+      </div>
 
-          <section className="bio-callout bio-callout--copa">
-            <h3>Copa</h3>
-            <Fila etiqueta="Área proyectada" valor={area !== null ? `${num(area, 1)} m²` : "—"} />
-            {area === null && <span className="bio-callout__motivo">{motivoArea}</span>}
-            <Fila etiqueta="Área foliar" valor="Método pendiente" pendiente />
-            <Fila etiqueta="Biomasa foliar" valor="Método pendiente" pendiente />
-          </section>
-
-          <section className="bio-callout bio-callout--tronco">
-            <h3>Tronco · depósito de carbono</h3>
-            <Fila etiqueta="DAP" valor={dap !== null ? `${num(dap, 1)} cm` : "—"} />
-            {carbono === undefined ? (
-              <Fila etiqueta="Carbono almacenado" valor="Pendiente de publicar" pendiente />
-            ) : carbono.valor ? (
-              <>
-                <Fila etiqueta="Carbono almacenado" valor={`${num(carbono.valor.carbono_kg, 0)} kg C`} />
-                <Fila etiqueta="CO₂ equivalente" valor={`${num(carbono.valor.co2e_kg, 0)} kg`} />
-                {carbono.valor.modelo.estado === "exploratorio" && (
-                  <span className="bio-callout__motivo">
-                    Estimación exploratoria: ecuación de <i>{nombreCientifico(carbono.valor.modelo.especie_ecuacion)}</i>, otra especie del mismo género. No suma a los totales.
-                  </span>
-                )}
-              </>
-            ) : (
-              <>
-                <Fila etiqueta="Carbono almacenado" valor="Sin estimación" />
-                <span className="bio-callout__motivo">{MOTIVO_CARBONO[carbono.motivo] ?? carbono.detalle}</span>
-              </>
-            )}
-          </section>
-
-          <section className="bio-callout bio-callout--raices">
-            <h3>Raíces y suelo</h3>
-            <Fila etiqueta="Escorrentía evitada" valor="Método pendiente" pendiente />
-          </section>
-
-          <ul className="bio-legend" aria-label="Leyenda">
-            <li>
-              <i className="bio-legend__dot bio-legend__dot--ok" /> Medido o calculado
-            </li>
-            <li>
-              <i className="bio-legend__dot bio-legend__dot--pend" /> Método pendiente
-            </li>
+      <aside className="bx-exp__der">
+        <article className="bio-card bx-medidas">
+          <h3>Medidas del árbol</h3>
+          <dl>
+            <div {...resalta("tronco")} className={on("tronco")}>
+              <dt>Altura</dt>
+              <dd>{altura !== null ? `${num(altura, 1)} m` : "—"}</dd>
+            </div>
+            <div {...resalta("tronco")} className={on("tronco")}>
+              <dt>DAP</dt>
+              <dd>{dap !== null ? `${num(dap, 1)} cm` : "—"}</dd>
+            </div>
+            <div {...resalta("copa")} className={on("copa")}>
+              <dt>Diámetro de copa</dt>
+              <dd>{copa !== null ? `${num(copa, 1)} m` : "—"}</dd>
+            </div>
+            <div {...resalta("copa")} className={on("copa")}>
+              <dt>Área de copa</dt>
+              <dd>{area !== null ? `${num(area, 1)} m²` : "—"}</dd>
+            </div>
+          </dl>
+          <p className="bx-medidas__pie">Medición vigente desde {ficha.historial[0]?.vigente_desde ?? "—"}</p>
+        </article>
+        <article {...resalta("raices")} className={`bio-card bx-prox ${on("raices")}`}>
+          <h3>Próximamente</h3>
+          <ul>
+            <li>Área y biomasa foliar</li>
+            <li>Escorrentía evitada</li>
+            <li>Proyección de crecimiento</li>
           </ul>
-        </div>
-      </article>
-
-      <aside className="bio-ficha__side">
-        <article className={`bio-card bio-co2 ${carbono?.valor ? "" : "bio-co2--muted"}`}>
-          <span className="bio-co2__lbl">CO₂ equivalente almacenado</span>
-          <span className="bio-co2__val">
-            {carbono?.valor ? num(carbono.valor.co2e_kg, 0) : "—"}
-            {carbono?.valor && <small>kg CO₂</small>}
-          </span>
-          <span className="bio-co2__sub">
-            {carbono === undefined
-              ? "La estimación por árbol todavía no está disponible."
-              : carbono.valor
-                ? `Carbono aéreo leñoso ${num(carbono.valor.carbono_kg, 0)} kg C · modelo ${carbono.valor.modelo.id}`
-                : carbono.detalle}
-          </span>
-          {carbono?.valor?.modelo.estado === "exploratorio" && <span className="bio-tag bio-tag--simulacion">Estimación exploratoria · modelo sustituto</span>}
-          <CapturaAnual s={ficha.secuestro_anual} />
         </article>
-
-        <article className="bio-card bio-crece">
-          <header className="bio-panel__head">
-            <h2>Si este árbol crece</h2>
-            <span className="bio-tag bio-tag--pendiente">Próximamente</span>
-          </header>
-          <div className="bio-crece__track" aria-hidden="true">
-            <i />
-          </div>
-          <p className="bio-panel__sub">La proyección de crecimiento todavía no tiene un método aprobado en la hoja INDICES.</p>
-          <div className="bio-crece__tiles">
-            <div>
-              <span>Carbono acumulado hoy</span>
-              <strong>
-                {carbono?.valor ? num(carbono.valor.carbono_kg, 0) : "—"} <small>kg C</small>
-              </strong>
-            </div>
-            <div>
-              <span>CO₂ equivalente hoy</span>
-              <strong>
-                {carbono?.valor ? num(carbono.valor.co2e_kg, 0) : "—"} <small>kg</small>
-              </strong>
-            </div>
-          </div>
-          {carbono?.valor?.modelo.estado === "exploratorio" && <p className="bio-panel__sub">Carbono de hoy: estimación exploratoria con modelo sustituto.</p>}
-        </article>
-
-        <article className="bio-card bio-medicion">
-          <h2>Medición vigente</h2>
-          <Fila etiqueta="Altura total" valor={altura !== null ? `${num(altura, 1)} m` : "—"} />
-          <Fila etiqueta="DAP" valor={dap !== null ? `${num(dap, 1)} cm` : "—"} />
-          <Fila etiqueta="Copa N-S / E-O" valor={ns !== null || eo !== null ? `${num(ns, 1)} / ${num(eo, 1)} m` : a.copa_no_presenta === true ? "No presenta" : "—"} />
-          <Fila etiqueta="Clase de edad" valor={clase ?? "—"} />
-          {evaluado === false && <p className="bio-medicion__nota">Sin evaluación completa vigente: no entra en los indicadores biométricos del proyecto.</p>}
-        </article>
+        {cv && (
+          <details className="bio-card bx-notas">
+            <summary>Notas del modelo de carbono</summary>
+            <p>
+              {cv.modelo.id}
+              {exploratorio ? ` · ecuación de ${nombreCientifico(cv.modelo.especie_ecuacion)}, otra especie del mismo género; no suma a los totales.` : "."}
+            </p>
+            <p className="bx-notas__fuente">{cv.modelo.fuente}</p>
+          </details>
+        )}
       </aside>
     </div>
   );
