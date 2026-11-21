@@ -224,6 +224,9 @@ export type CarbonoArbol =
         co2e_kg: number;
         /** estado «exploratorio» (2026-11-20): modelo sustituto que no suma a los totales. */
         modelo: { id: string; fuente: string; estado?: "aprobado" | "exploratorio"; confianza?: string; especie_ecuacion?: string };
+        /** Propuesta experimental: estado del resultado (un multifustal siempre es exploratorio). */
+        estado_resultado?: "aprobado" | "exploratorio";
+        tratamiento_multifustal?: null | { metodo: string; fuente: string; dap_fustes_cm: number[]; dap_equivalente_cm: number };
       };
       categoria: null;
       motivo: null;

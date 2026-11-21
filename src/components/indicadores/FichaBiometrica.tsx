@@ -145,8 +145,15 @@ export function FichaBiometrica({ ficha, lugar = null }: { ficha: FichaArbol; lu
   const area = n(a.area_proyectada_copa_m2);
   const carbono = ficha.estimacion_carbono_aereo_lenoso;
   const cv = carbono?.valor ?? null;
-  const exploratorio = cv?.modelo.estado === "exploratorio";
-  const origen = exploratorio ? origenExploratorio(cv?.modelo.confianza, cv?.modelo.especie_ecuacion) : null;
+  const exploratorio = (cv?.estado_resultado ?? cv?.modelo.estado) === "exploratorio";
+  const origen = !exploratorio
+    ? null
+    : cv?.tratamiento_multifustal
+      ? {
+          corto: "multifustal",
+          largo: `Multifustal: DAP equivalente de ${num(cv.tratamiento_multifustal.dap_equivalente_cm, 1)} cm por área basal de los fustes, como en i-Tree Eco; su compatibilidad con la ecuación no está demostrada. No suma a los totales.`,
+        }
+      : origenExploratorio(cv?.modelo.confianza, cv?.modelo.especie_ecuacion);
   // Carbono aéreo total (con hojas): solo cuando la especie no tiene modelo leñoso; nunca se muestran ni suman juntos.
   const tv = cv ? null : (ficha.estimacion_carbono_aereo_total?.valor ?? null);
   const clase = (a.clase_edad as { etiqueta?: string } | null | undefined)?.etiqueta ?? null;
