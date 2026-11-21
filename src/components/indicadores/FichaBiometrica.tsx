@@ -76,6 +76,11 @@ function Captura({
         ) : (
           <span className="bio-tag bio-tag--resuelto">Estimación</span>
         )}
+        {advertencias.some((t) => t.startsWith("Medición en revisión")) && (
+          <span className="bio-tag bio-tag--pendiente" title="La medición vigente debe verificarse en terreno: el resultado no está validado.">
+            Medición en revisión
+          </span>
+        )}
       </header>
       <div className="bx-captura__valor">
         {s.tipo === "simulacion_exploratoria" ? (
