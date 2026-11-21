@@ -32,3 +32,21 @@ export const MOTIVO_CARBONO: Record<string, string> = {
   configuracion_fuste_no_determinada: "Sin dato de multifustal",
   resultado_invalido: "Cálculo no válido",
 };
+
+/** Motivos del secuestro anual: los del carbono almacenado más los propios (decisiones A a C, 2026-11-20). */
+export const MOTIVO_SECUESTRO: Record<string, string> = {
+  ...MOTIVO_CARBONO,
+  falta_cle: "Falta la exposición lumínica de copa",
+  falta_muerte_regresiva: "Falta la muerte regresiva de copa",
+  dap_proyectado_fuera_de_rango: "El DAP del año siguiente sale del rango del modelo",
+  resultado_invalido_secuestro: "Cálculo no válido",
+};
+
+/** kg CO₂/año: un decimal bajo 10, sin decimales desde 10. */
+export function co2Anual(v: number | null | undefined): string {
+  if (v === null || v === undefined || !Number.isFinite(v)) return "—";
+  return num(v, v < 10 ? 1 : 0);
+}
+
+/** «acer platanoides» → «Acer platanoides» (algunas claves llegan en minúsculas). */
+export const nombreCientifico = (v: string | undefined | null) => (v ? v.charAt(0).toUpperCase() + v.slice(1) : "");

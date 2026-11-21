@@ -2,11 +2,13 @@ import { useEffect, useState } from "react";
 import { useParams, useSearchParams } from "react-router-dom";
 import { obtenerIndicadores } from "../api/indicadores";
 import { listarDiagnosticos } from "../api/diagnosticos";
+import { listarInventarioCompleto } from "../api/inventory";
 import { obtenerFichaArbol } from "../api/fichaArbol";
 import { useCurrentProject } from "../hooks/useCurrentProject";
 import { SivuLoader } from "../components/SivuLoader";
 import { HuellaVerde } from "../components/indicadores/HuellaVerde";
 import { FichaBiometrica } from "../components/indicadores/FichaBiometrica";
+import { SelectorArbol, type ArbolLista } from "../components/indicadores/SelectorArbol";
 import { fechaHoraChile } from "../lib/dates";
 import type { IndicadoresProyecto } from "../types/indicadores";
 import type { FichaArbol } from "../types/fichaArbol";
@@ -20,11 +22,6 @@ import type { FichaArbol } from "../types/fichaArbol";
 
 type Carga<T> = { estado: "cargando" } | { estado: "listo"; datos: T } | { estado: "error"; mensaje: string };
 
-interface ArbolEvaluado {
-  tree_id: string;
-  tree_code: string;
-  nombre: string | null;
-}
 
 export default function IndicesPage() {
   const { projectId = "" } = useParams();
@@ -49,16 +46,22 @@ export default function IndicesPage() {
   }, [projectId, barrio, clave]);
 
   // Árboles con evaluación vigente (B18): los que se pueden abrir en la vista «Por árbol».
-  const [evaluados, setEvaluados] = useState<{ id: string; carga: Carga<ArbolEvaluado[]> } | null>(null);
+  const [evaluados, setEvaluados] = useState<{ id: string; carga: Carga<ArbolLista[]> } | null>(null);
   useEffect(() => {
     let cancelado = false;
-    listarDiagnosticos(projectId)
-      .then((ds) => {
+    // La ubicación corta (calle y sector) sale del inventario (B1); si falla, el selector funciona sin ella.
+    Promise.all([listarDiagnosticos(projectId), listarInventarioCompleto(projectId, {}).catch(() => [])])
+      .then(([ds, inv]) => {
         if (cancelado) return;
-        const lista = ds
+        const porId = new Map(inv.map((t) => [t.id, t]));
+        const lista: ArbolLista[] = ds
           .filter((d) => d.vigente)
-          .map((d) => ({ tree_id: d.tree_id, tree_code: d.tree_code, nombre: d.nombre_comun ?? d.especie_cientifica }))
-          .sort((x, y) => x.tree_code.localeCompare(y.tree_code));
+          .map((d) => {
+            const t = porId.get(d.tree_id);
+            const corta = t?.ubicacion_descriptiva?.split(";")[0]?.trim() || null;
+            return { id: d.tree_id, codigo: d.tree_code, comun: d.nombre_comun, cientifico: d.especie_cientifica, lugar: corta ?? t?.sector ?? null };
+          })
+          .sort((x, y) => (x.comun ?? "~").localeCompare(y.comun ?? "~", "es") || x.codigo.localeCompare(y.codigo));
         setEvaluados({ id: projectId, carga: { estado: "listo", datos: lista } });
       })
       .catch((e: unknown) => !cancelado && setEvaluados({ id: projectId, carga: { estado: "error", mensaje: e instanceof Error ? e.message : "" } }));
@@ -68,7 +71,7 @@ export default function IndicesPage() {
   }, [projectId]);
   const listaEvaluados = evaluados?.id === projectId && evaluados.carga.estado === "listo" ? evaluados.carga.datos : null;
 
-  const arbolSel = arbolParam ?? listaEvaluados?.[0]?.tree_id ?? null;
+  const arbolSel = arbolParam ?? listaEvaluados?.[0]?.id ?? null;
   const [fichaSuelta, setFichaSuelta] = useState<{ id: string; carga: Carga<FichaArbol> } | null>(null);
   // La ficha (B2) se pide solo al abrir un árbol; ya no se leen todas para ordenar el carbono.
   useEffect(() => {
@@ -112,6 +115,9 @@ export default function IndicesPage() {
         </div>
 
         <div className="bio-head__tools">
+          {vista === "arbol" && listaEvaluados && listaEvaluados.length > 0 && (
+            <SelectorArbol arboles={listaEvaluados} sel={arbolSel} onSel={(id) => actualizar({ arbol: id })} />
+          )}
           <div className="bio-seg" role="tablist" aria-label="Vista">
             <button role="tab" aria-selected={vista === "proyecto"} className={vista === "proyecto" ? "is-on" : ""} onClick={() => actualizar({ vista: null })}>
               Proyecto
@@ -166,7 +172,7 @@ export default function IndicesPage() {
           )}
           {datos && datos.cobertura.arboles_presentes > 0 && (
             <>
-              <HuellaVerde d={datos} />
+              <HuellaVerde d={datos} onVerArboles={() => actualizar({ vista: "arbol" })} />
               <p className="bio-pie">
                 {datos.cobertura.arboles_presentes} presentes de {datos.cobertura.arboles_registrados} registrados
                 {datos.cobertura.arboles_con_evaluacion_valida !== undefined && ` · ${datos.cobertura.arboles_con_evaluacion_valida} con evaluación completa vigente`} ·
@@ -179,15 +185,6 @@ export default function IndicesPage() {
 
       {vista === "arbol" && (
         <>
-          {listaEvaluados && listaEvaluados.length > 0 && (
-            <nav className="bio-trees" aria-label="Árboles con evaluación vigente">
-              {listaEvaluados.map((a) => (
-                <button key={a.tree_id} className={a.tree_id === arbolSel ? "is-on" : ""} aria-pressed={a.tree_id === arbolSel} onClick={() => actualizar({ arbol: a.tree_id })}>
-                  {a.tree_code}
-                </button>
-              ))}
-            </nav>
-          )}
           {!listaEvaluados && evaluados?.carga.estado !== "error" && <SivuLoader message="Buscando los árboles evaluados…" />}
           {listaEvaluados && listaEvaluados.length === 0 && !arbolParam && (
             <div className="bio-card bio-vacio">
@@ -202,7 +199,7 @@ export default function IndicesPage() {
               <span>{ficha.mensaje}</span>
             </div>
           )}
-          {ficha?.estado === "listo" && <FichaBiometrica ficha={ficha.datos} />}
+          {ficha?.estado === "listo" && <FichaBiometrica ficha={ficha.datos} lugar={listaEvaluados?.find((x) => x.id === arbolSel)?.lugar ?? null} />}
         </>
       )}
     </div>
