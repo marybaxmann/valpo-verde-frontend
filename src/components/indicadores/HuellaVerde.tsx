@@ -170,6 +170,7 @@ function CarbonoProyecto({ d, onVerArboles }: { d: IndicadoresProyecto; onVerArb
   const s = d.estimacion_secuestro_anual;
   const c = d.estimacion_carbono_aereo_lenoso;
   const t = d.estimacion_carbono_aereo_total;
+  const v = d.estimacion_variacion_anual_carbono_aereo_total;
   if (!s || !c) return null;
   const cs = s.cobertura;
   const cc = c.cobertura;
@@ -212,8 +213,16 @@ function CarbonoProyecto({ d, onVerArboles }: { d: IndicadoresProyecto; onVerArb
           ]}
         />
         <p className="bx-carbono__nota">
-          El total oficial suma solo estimaciones fundamentadas. Las simulaciones se ven, con su rango, en la ficha de cada árbol.
+          Aumento proyectado del carbono en la madera por crecimiento; no es la captura fotosintética. El total oficial suma solo estimaciones
+          fundamentadas. Las simulaciones se ven, con su rango, en la ficha de cada árbol.
         </p>
+        {v && v.cobertura.simulacion_exploratoria > 0 && (
+          <p className="bx-carbono__nota bx-carbono__extra">
+            <span className="bio-tag bio-tag--simulacion">Experimental</span> {num(v.cobertura.simulacion_exploratoria)}{" "}
+            {v.cobertura.simulacion_exploratoria === 1 ? "árbol tiene" : "árboles tienen"} además una simulación de la variación anual del carbono aéreo
+            total, con hojas. Va aparte y no se suma.
+          </p>
+        )}
         {onVerArboles && (
           <button type="button" className="bx-boton" onClick={onVerArboles}>
             Ver árboles →

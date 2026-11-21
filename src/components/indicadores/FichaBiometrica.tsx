@@ -18,14 +18,37 @@ const n = (v: unknown): number | null => (typeof v === "number" && Number.isFini
 /** «tallo, ramas, ramillas y hojas». */
 const lista = (xs: string[]) => (xs.length < 2 ? (xs[0] ?? "—") : `${xs.slice(0, -1).join(", ")} y ${xs[xs.length - 1]}`);
 
-function Captura({ s, onExplorar, conCarbonoTotal = false }: { s: SecuestroArbol | undefined; onExplorar: (v: boolean) => void; conCarbonoTotal?: boolean }) {
+/** Rótulo del origen de una ecuación exploratoria (propuesta experimental incluida). */
+function origenExploratorio(confianza: string | undefined, especieEcuacion: string | undefined): { corto: string; largo: string } {
+  if (confianza === "generica_urbana") {
+    return { corto: "ecuación general urbana", largo: `${especieEcuacion ?? "Ecuación general"} de la Urban Tree Database: no es de la especie ni de su género. No suma a los totales.` };
+  }
+  if (confianza === "propia_urbana") return { corto: "ecuación de la especie", largo: "Ecuación urbana de la propia especie, aún no revisada por el equipo para SIVU. No suma a los totales." };
+  return { corto: "modelo sustituto", largo: `Ecuación de ${nombreCientifico(especieEcuacion)}, otra especie del mismo género. No suma a los totales.` };
+}
+
+function Captura({
+  s: secuestro,
+  variacion,
+  onExplorar,
+  conCarbonoTotal = false,
+}: {
+  s: SecuestroArbol | undefined;
+  variacion?: SecuestroArbol;
+  onExplorar: (v: boolean) => void;
+  conCarbonoTotal?: boolean;
+}) {
+  // Propuesta experimental: sin secuestro leñoso, se muestra la variación anual del carbono aéreo total (con hojas).
+  const usaVariacion = !!variacion && variacion.tipo === "simulacion_exploratoria" && !!secuestro && secuestro.tipo !== "simulacion_exploratoria" && secuestro.tipo !== "estimacion_fundamentada";
+  const s = usaVariacion ? variacion : secuestro;
+  const titulo = usaVariacion ? "Variación anual del carbono aéreo total" : "Secuestro anual de CO₂";
   const eventos = { onMouseEnter: () => onExplorar(true), onMouseLeave: () => onExplorar(false), onFocus: () => onExplorar(true), onBlur: () => onExplorar(false) };
   if (!s) return <article className="bio-card bx-captura">Sin datos de captura anual en esta API.</article>;
 
   if (s.tipo !== "simulacion_exploratoria" && s.tipo !== "estimacion_fundamentada") {
     return (
       <article className="bio-card bx-captura bx-captura--vacia" tabIndex={0} {...eventos}>
-        <span className="bx-eyebrow">Captura anual de CO₂</span>
+        <span className="bx-eyebrow">{titulo}</span>
         <strong className="bx-captura__estado">No estimable</strong>
         <p className="bx-captura__motivo">{MOTIVO_SECUESTRO[s.motivo] ?? s.detalle}</p>
         <p className="bx-captura__sub">
@@ -45,8 +68,10 @@ function Captura({ s, onExplorar, conCarbonoTotal = false }: { s: SecuestroArbol
   return (
     <article className="bio-card bx-captura" tabIndex={0} {...eventos}>
       <header className="bx-captura__head">
-        <span className="bx-eyebrow">Captura anual de CO₂</span>
-        {s.tipo === "simulacion_exploratoria" ? (
+        <span className="bx-eyebrow">{titulo}</span>
+        {usaVariacion ? (
+          <span className="bio-tag bio-tag--simulacion">Simulación experimental</span>
+        ) : s.tipo === "simulacion_exploratoria" ? (
           <span className="bio-tag bio-tag--simulacion">Simulación exploratoria</span>
         ) : (
           <span className="bio-tag bio-tag--resuelto">Estimación</span>
@@ -65,9 +90,11 @@ function Captura({ s, onExplorar, conCarbonoTotal = false }: { s: SecuestroArbol
         <span>kg de CO₂ al año</span>
       </div>
       <p className="bx-captura__sub">
-        {s.tipo === "simulacion_exploratoria"
-          ? "Depende de qué tan rápido crece la especie. Mientras no tenga una tasa aprobada, se muestran los tres ritmos posibles."
-          : "Según la categoría de crecimiento aprobada para la especie."}
+        {usaVariacion
+          ? "Aumento proyectado del carbono en tronco, ramas y hojas por el crecimiento de un año. Incluye hojas: no se compara ni se suma con el secuestro de la madera. No es la captura fotosintética."
+          : s.tipo === "simulacion_exploratoria"
+            ? "Aumento proyectado del carbono en la madera por el crecimiento de un año (no es la captura fotosintética). Depende de qué tan rápido crece la especie: mientras no tenga una tasa aprobada, se muestran los tres ritmos posibles."
+            : "Aumento proyectado del carbono en la madera por el crecimiento de un año, según la categoría aprobada para la especie."}
       </p>
       <div className="bx-escala" role="img" aria-label={valores.map((v) => `${etiqueta[v.categoria]}: ${co2Anual(v.co2_kg_anio)} kg`).join(", ")}>
         <div className="bx-escala__pista">
@@ -101,6 +128,7 @@ function Captura({ s, onExplorar, conCarbonoTotal = false }: { s: SecuestroArbol
         </ul>
         <p className="bx-detalle__pie">
           Modelo {s.modelo.id} · CLE {s.entradas.cle} · muerte regresiva {s.entradas.muerte_regresiva_pct} %
+          {usaVariacion ? " · propuesta experimental" : ""}
         </p>
       </details>
     </article>
@@ -118,6 +146,7 @@ export function FichaBiometrica({ ficha, lugar = null }: { ficha: FichaArbol; lu
   const carbono = ficha.estimacion_carbono_aereo_lenoso;
   const cv = carbono?.valor ?? null;
   const exploratorio = cv?.modelo.estado === "exploratorio";
+  const origen = exploratorio ? origenExploratorio(cv?.modelo.confianza, cv?.modelo.especie_ecuacion) : null;
   // Carbono aéreo total (con hojas): solo cuando la especie no tiene modelo leñoso; nunca se muestran ni suman juntos.
   const tv = cv ? null : (ficha.estimacion_carbono_aereo_total?.valor ?? null);
   const clase = (a.clase_edad as { etiqueta?: string } | null | undefined)?.etiqueta ?? null;
@@ -159,7 +188,7 @@ export function FichaBiometrica({ ficha, lugar = null }: { ficha: FichaArbol; lu
       </section>
 
       <div className="bx-exp__izq">
-        <Captura s={ficha.secuestro_anual} onExplorar={setCaptura} conCarbonoTotal={tv !== null} />
+        <Captura s={ficha.secuestro_anual} variacion={ficha.variacion_anual_carbono_aereo_total} onExplorar={setCaptura} conCarbonoTotal={tv !== null} />
         {tv ? (
           <article {...resalta("tronco")} className={`bio-card bx-kpi ${on("tronco")}`}>
             <header className="bx-kpi__head">
@@ -192,8 +221,8 @@ export function FichaBiometrica({ ficha, lugar = null }: { ficha: FichaArbol; lu
           </strong>
           <span className="bx-kpi__sub">{cv ? `${num(cv.co2e_kg, 0)} kg de CO₂ equivalente en madera` : (carbono?.detalle ?? "Sin estimación")}</span>
           {exploratorio && (
-            <span className="bx-info" title={`Ecuación de ${nombreCientifico(cv?.modelo.especie_ecuacion)}, otra especie del mismo género. No suma a los totales.`}>
-              Exploratorio · modelo sustituto ⓘ
+            <span className="bx-info" title={origen?.largo}>
+              Exploratorio · {origen?.corto} ⓘ
             </span>
           )}
         </article>
@@ -248,7 +277,7 @@ export function FichaBiometrica({ ficha, lugar = null }: { ficha: FichaArbol; lu
             <summary>Notas del modelo de carbono</summary>
             <p>
               {cv.modelo.id}
-              {exploratorio ? ` · ecuación de ${nombreCientifico(cv.modelo.especie_ecuacion)}, otra especie del mismo género; no suma a los totales.` : "."}
+              {exploratorio ? ` · ${origen?.largo}` : "."}
             </p>
             <p className="bx-notas__fuente">{cv.modelo.fuente}</p>
           </details>

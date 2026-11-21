@@ -120,6 +120,12 @@ export interface IndicadoresProyecto {
   estimacion_secuestro_anual?: SecuestroAgregado;
   /** Carbono aéreo total con hojas (carbono directo, 2026-11-21): solo cobertura; ausente en la API publicada. */
   estimacion_carbono_aereo_total?: CarbonoAereoTotalAgregado;
+  /** Propuesta experimental (2026-11-21): solo cobertura de la variación anual del carbono aéreo total. */
+  estimacion_variacion_anual_carbono_aereo_total?: {
+    indicador: "estimacion_variacion_anual_carbono_aereo_total";
+    cobertura: { presentes: number; universo_calculo: number; simulacion_exploratoria: number; no_estimable: number; motivos: Record<string, number> };
+    total: null;
+  };
 }
 
 /**

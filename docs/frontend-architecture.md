@@ -379,6 +379,11 @@ email, nunca hardcodeado.
 - Ficha (`FichaBiometrica`): la tarjeta de carbono muestra `estimacion_carbono_aereo_total` solo cuando la especie no tiene resultado leñoso, así nunca aparecen juntos ni se suman. Rotulada «Exploratorio», con kg C, kg CO₂e almacenado, «Incluye» / «Excluye» desde `componente` y la referencia con DOI en «Notas del modelo de carbono». La captura anual aclara que la especie no tiene método de crecimiento aprobado.
 - Proyecto (`HuellaVerde`): una nota bajo la barra del carbono almacenado con los árboles que tienen carbono aéreo total; sin total, sin tarjeta nueva y sin sumarlo al leñoso.
 
+### Fase 7 · Propuesta experimental del secuestro anual (2026-11-21)
+Rama `feature/indicadores-experimental`, sin publicar. Backend con modelos UTD por especie y variación anual del carbono aéreo total.
+- `FichaBiometrica`: «Captura anual» pasa a «Secuestro anual de CO₂», explicado como aumento proyectado del carbono en la madera (no captura fotosintética). Si el secuestro leñoso no es estimable y hay `variacion_anual_carbono_aereo_total`, la misma tarjeta la muestra con su rótulo «Simulación experimental» y la aclaración de que incluye hojas. `origenExploratorio` rotula el carbono exploratorio según `modelo.confianza`.
+- `HuellaVerde`: nota con la cobertura de la variación del carbono aéreo total; sin total.
+
 ## 5. Limitaciones conocidas (revisado 2026-11-19)
 
 - **Agregar miembro** a un proyecto todavía pide el `user_id` (UUID) en un campo de texto. El backend ya expone `GET /api/sivu/projects/:id/available-users`, pero el frontend aún no lo usa: es una mejora pendiente.

@@ -35,6 +35,8 @@ export interface FichaArbol {
   estimacion_carbono_aereo_lenoso?: CarbonoArbol;
   /** Carbono aéreo total con hojas (carbono directo, 2026-11-21); otro componente, exploratorio. Ausente en la API publicada. */
   estimacion_carbono_aereo_total?: CarbonoAereoTotalArbol;
+  /** Propuesta experimental (2026-11-21): variación anual proyectada del carbono aéreo total (con hojas). Ausente en la API publicada. */
+  variacion_anual_carbono_aereo_total?: SecuestroArbol;
   /** Secuestro anual (decisiones A a C, 2026-11-20); ausente en la API publicada hasta su despliegue. */
   secuestro_anual?: SecuestroArbol;
   evaluacion_vigente: EvaluacionVigente | null;
