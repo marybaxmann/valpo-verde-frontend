@@ -24,11 +24,17 @@ const tituloArbol = (comun: string | null, cientifico: string | null) =>
 function formaIlustracion(tipoHoja: string | null | undefined, especie: string | null | undefined): Forma {
   const e = (especie ?? "").trim().toLowerCase();
   if (tipoHoja === "palmera" || /^(phoenix|washingtonia|syagrus|butia|jubaea|trachycarpus|archontophoenix)\b/.test(e)) return "palmera";
+  // Modelo de araucaria solo para el género Araucaria.
   if (/^araucaria (angustifolia|araucana)\b/.test(e)) return "araucaria";
-  if (tipoHoja === "acicular" || tipoHoja === "escamosa" || /^(araucaria|pinus|cupressus|cedrus|sequoia|abies|picea|thuja|juniperus)\b/.test(e)) return "conifera";
+  if (/^araucaria\b/.test(e)) return "araucaria_piramidal";
   return "latifoliada";
 }
-const NOMBRE_FORMA: Record<Forma, string> = { latifoliada: "latifoliada", araucaria: "araucaria", conifera: "conífera", palmera: "palmera" };
+const NOMBRE_FORMA: Record<Forma, string> = {
+  latifoliada: "latifoliada",
+  araucaria: "araucaria en candelabro",
+  araucaria_piramidal: "araucaria piramidal",
+  palmera: "palmera",
+};
 const n = (v: unknown): number | null => (typeof v === "number" && Number.isFinite(v) ? v : null);
 /** «tallo, ramas, ramillas y hojas». */
 const lista = (xs: string[]) => (xs.length < 2 ? (xs[0] ?? "—") : `${xs.slice(0, -1).join(", ")} y ${xs[xs.length - 1]}`);
