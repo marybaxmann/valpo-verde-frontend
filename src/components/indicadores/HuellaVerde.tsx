@@ -1,3 +1,4 @@
+import { DiagnosticoArbolado } from "./DiagnosticoArbolado";
 import type { IndicadoresProyecto, NivelTaxonomico } from "../../types/indicadores";
 import { co2Anual, masa, MOTIVO_SECUESTRO, num, pct } from "./formato";
 
@@ -113,7 +114,7 @@ function Origen({ d }: { d: IndicadoresProyecto }) {
   const filas: [string, number | null, number, string][] = [
     ["Introducidos", o.introducidos.porcentaje, o.introducidos.arboles, "intro"],
     ["Nativos", o.nativos.porcentaje, o.nativos.arboles, "nat"],
-    ["Sin origen en el catálogo", o.origen_no_determinado.porcentaje, o.origen_no_determinado.arboles, "nd"],
+    ["Origen sin determinar", o.origen_no_determinado.porcentaje, o.origen_no_determinado.arboles, "nd"],
   ];
   return (
     <article className="bio-card bio-panel bio-cpanel">
@@ -128,14 +129,17 @@ function Origen({ d }: { d: IndicadoresProyecto }) {
             <span className="bio-corigen__bar">
               <i style={{ width: `${Math.min(100, p ?? 0)}%` }} />
             </span>
-            <strong>{pct(p)}</strong>
+            <strong title={incompleto && clase !== "nd" ? "Mínimo: puede subir cuando se determine el origen de las especies faltantes" : undefined}>
+              {incompleto && clase !== "nd" ? "≥ " : ""}
+              {pct(p)}
+            </strong>
             <small>{num(n)}</small>
           </li>
         ))}
       </ul>
       {incompleto && (
         <p className="bio-panel__foot">
-          {num(o.origen_no_determinado.arboles)} árboles son de especies sin origen registrado en el catálogo; la proporción de nativos puede ser mayor cuando se complete.
+          {num(o.origen_no_determinado.arboles)} árboles no tienen origen determinado (especie sin vínculo al catálogo o sin identificar): los porcentajes de introducidos y nativos son mínimos. Detalle en «Diagnóstico del arbolado» → Calidad de datos.
         </p>
       )}
     </article>
@@ -358,6 +362,8 @@ export function HuellaVerde({ d, onVerArboles }: { d: IndicadoresProyecto; onVer
         <PerfilTamanos d={d} />
         <Origen d={d} />
       </section>
+
+      {d.diagnostico_descriptivo && <DiagnosticoArbolado d={d.diagnostico_descriptivo} />}
 
       <EnDefinicion d={d} />
     </div>

@@ -121,6 +121,8 @@ export interface IndicadoresProyecto {
   /** Carbono aéreo total con hojas (carbono directo, 2026-11-21): solo cobertura; ausente en la API publicada. */
   estimacion_carbono_aereo_total?: CarbonoAereoTotalAgregado;
   /** Propuesta experimental (2026-11-21): solo cobertura de la variación anual del carbono aéreo total. */
+  /** Propuesta experimental: indicadores descriptivos con datos medidos y vigentes. Ausente en la API publicada. */
+  diagnostico_descriptivo?: DiagnosticoDescriptivo;
   /** Propuesta experimental: una sola clase por árbol evaluado. Ausente en la API publicada. */
   resumen_proyeccion_anual?: {
     universo_calculo: number;
@@ -173,6 +175,87 @@ export type CarbonoAereoTotalArbol =
       limitaciones: string[];
     }
   | { valor: null; categoria: CategoriaSinCarbono; motivo: string; detalle: string; limitaciones: string[] };
+
+export interface EstadisticaDescriptiva {
+  n: number;
+  media: number | null;
+  mediana: number | null;
+  minimo: number | null;
+  maximo: number | null;
+}
+type ClaseDescriptiva = { etiqueta: string; desde: number; hasta: number | null; n: number };
+type PorValor = { n: number; mediana: number | null; valores: { valor: number; n: number }[] };
+type PorCategoria = { categorias: { codigo: string; etiqueta: string | null; n: number }[]; sin_dato: number };
+type Abundancia = { denominador: number; grupos: { nombre: string; arboles: number; porcentaje: number | null }[]; sin_dato: number };
+
+/** Diagnóstico descriptivo (propuesta experimental): datos medidos y vigentes, sin ecuaciones ni índices. */
+export interface DiagnosticoDescriptivo {
+  estado: string;
+  universo: { presentes: number; con_evaluacion_vigente: number };
+  dimensiones: {
+    altura_m: EstadisticaDescriptiva & { clases: ClaseDescriptiva[] };
+    dap_cm: EstadisticaDescriptiva & { multifustales_con_dap_equivalente: number };
+    diametro_copa_m: EstadisticaDescriptiva;
+    area_copa_por_arbol_m2: EstadisticaDescriptiva;
+    longitud_copa_viva_m: EstadisticaDescriptiva;
+    proporcion_copa_viva_pct: EstadisticaDescriptiva & { clases: ClaseDescriptiva[] };
+    relacion_copa_altura: EstadisticaDescriptiva;
+    altura_primera_rama_m: EstadisticaDescriptiva;
+    clase_edad: PorCategoria;
+  };
+  condicion_copa: {
+    nota: string;
+    cle: PorValor;
+    muerte_regresiva_pct: PorValor;
+    defoliacion_pct: PorValor;
+    clorosis_pct: PorValor;
+    necrosis_pct: PorValor;
+    copa_faltante_pct: PorValor;
+    vitalidad: PorCategoria;
+  };
+  composicion: { genero: Abundancia; familia: Abundancia };
+  territorio: {
+    sectores: {
+      sector: string;
+      presentes: number;
+      con_evaluacion_vigente: number;
+      especies: number;
+      altura_mediana_m: number | null;
+      dap_mediano_cm: number | null;
+      diametro_copa_mediano_m: number | null;
+    }[];
+    comparable: boolean;
+  };
+  completitud: {
+    presentes_sin_evaluacion_vigente: number;
+    evaluados_sin: Record<"altura" | "dap" | "diametro_copa" | "base_copa_viva" | "primera_rama" | "clase_edad" | "cle" | "muerte_regresiva", number>;
+    base_copa_viva_mayor_que_altura: number;
+    multifustales_sin_fustes: number;
+    presentes_sin_especie: number;
+    presentes_especie_sin_rasgos: number;
+    especies_sin_origen_en_catalogo: string[];
+    mediciones_en_revision: { tree_code: string; motivo: string }[];
+  };
+}
+
+/** Descriptivos de un árbol (ficha; propuesta experimental). */
+export interface DescriptivosArbol {
+  longitud_copa_viva_m: number | null;
+  proporcion_copa_viva_pct: number | null;
+  relacion_copa_altura: number | null;
+  altura_primera_rama_m: number | null;
+  altura_base_copa_viva_m: number | null;
+  numero_fustes: number | null;
+  condicion_copa: {
+    cle: number | null;
+    muerte_regresiva_pct: number | null;
+    defoliacion_pct: number | null;
+    clorosis_pct: number | null;
+    necrosis_pct: number | null;
+    copa_faltante_pct: number | null;
+    vitalidad: { codigo: string; etiqueta: string | null } | null;
+  };
+}
 
 /** Secuestro anual del ámbito: el total suma solo estimaciones fundamentadas; las simulaciones solo se cuentan. */
 export interface SecuestroAgregado {

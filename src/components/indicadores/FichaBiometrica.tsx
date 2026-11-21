@@ -2,7 +2,7 @@ import { lazy, Suspense, useState } from "react";
 import type { FichaArbol } from "../../types/fichaArbol";
 import type { SecuestroArbol } from "../../types/indicadores";
 import { co2Anual, MOTIVO_SECUESTRO, nombreCientifico, num } from "./formato";
-import type { Zona } from "./Arbol3D";
+import type { Forma, Zona } from "./Arbol3D";
 
 /**
  * Ficha biométrica del árbol (B2), como experiencia visual: el árbol 3D al
@@ -17,6 +17,18 @@ const Arbol3D = lazy(() => import("./Arbol3D").then((m) => ({ default: m.Arbol3D
 /** Nombre común; si falta o el registro dice «Sin identificar» pese a tener especie, el nombre científico. */
 const tituloArbol = (comun: string | null, cientifico: string | null) =>
   comun && !(cientifico && comun.trim().toLowerCase() === "sin identificar") ? comun : nombreCientifico(cientifico) || (comun ?? "");
+/**
+ * Grupo morfológico SOLO para la ilustración: tipo de hoja del catálogo y, si
+ * la especie no está vinculada, el género. No interviene en ningún cálculo.
+ */
+function formaIlustracion(tipoHoja: string | null | undefined, especie: string | null | undefined): Forma {
+  const e = (especie ?? "").trim().toLowerCase();
+  if (tipoHoja === "palmera" || /^(phoenix|washingtonia|syagrus|butia|jubaea|trachycarpus|archontophoenix)\b/.test(e)) return "palmera";
+  if (/^araucaria (angustifolia|araucana)\b/.test(e)) return "araucaria";
+  if (tipoHoja === "acicular" || tipoHoja === "escamosa" || /^(araucaria|pinus|cupressus|cedrus|sequoia|abies|picea|thuja|juniperus)\b/.test(e)) return "conifera";
+  return "latifoliada";
+}
+const NOMBRE_FORMA: Record<Forma, string> = { latifoliada: "latifoliada", araucaria: "araucaria", conifera: "conífera", palmera: "palmera" };
 const n = (v: unknown): number | null => (typeof v === "number" && Number.isFinite(v) ? v : null);
 /** «tallo, ramas, ramillas y hojas». */
 const lista = (xs: string[]) => (xs.length < 2 ? (xs[0] ?? "—") : `${xs.slice(0, -1).join(", ")} y ${xs[xs.length - 1]}`);
@@ -179,6 +191,8 @@ export function FichaBiometrica({ ficha, lugar = null }: { ficha: FichaArbol; lu
   const detalleSinCarbono =
     carbono?.motivo === "sin_modelo" && total && total.valor === null && total.motivo !== "sin_modelo" ? total.detalle : carbono?.detalle;
   const clase = (a.clase_edad as { etiqueta?: string } | null | undefined)?.etiqueta ?? null;
+  const ds = ficha.descriptivos ?? null;
+  const forma = formaIlustracion(ficha.sobre_la_especie?.tipo_hoja?.codigo, a.especie_cientifica as string | null);
   const resalta = (z: Zona) => ({
     onMouseEnter: () => setZona(z),
     onMouseLeave: () => setZona(null),
@@ -198,7 +212,7 @@ export function FichaBiometrica({ ficha, lugar = null }: { ficha: FichaArbol; lu
           {clase && <span className="bio-chip">{clase}</span>}
         </header>
         <Suspense fallback={<div className="a3d" aria-busy="true" />}>
-          <Arbol3D key={a.id as string} semilla={a.tree_code as string} zona={zona} onZona={setZona} captura={captura || zona === "copa"} />
+          <Arbol3D key={a.id as string} semilla={a.tree_code as string} forma={forma} zona={zona} onZona={setZona} captura={captura || zona === "copa"} />
         </Suspense>
         <span className={`bx-exp__pin bx-exp__pin--copa ${on("copa")}`}>
           <b>Copa</b> {copa !== null ? `${num(copa, 1)} m` : "sin medición"}
@@ -206,14 +220,14 @@ export function FichaBiometrica({ ficha, lugar = null }: { ficha: FichaArbol; lu
         </span>
         <span className={`bx-exp__pin bx-exp__pin--tronco ${on("tronco")}`}>
           <b>Tronco</b> {dap !== null ? `DAP ${num(dap, 1)} cm` : "sin medición"}
-          {cv && <small>{num(cv.carbono_kg, 0)} kg C almacenados</small>}
+          {cv && <small>{num(cv.carbono_kg, 0)} kg C en tronco y ramas</small>}
           {tv && <small>{num(tv.carbono_kg, 1)} kg C aéreos, con hojas</small>}
         </span>
         <span className={`bx-exp__pin bx-exp__pin--raices ${on("raices")}`}>
           <b>Raíces y suelo</b> método pendiente
         </span>
         <p className="bx-exp__pista">Arrastra para girar · toca la copa, el tronco o el suelo</p>
-        <span className="bx-exp__nota">Ilustración generada para SIVU, no a escala</span>
+        <span className="bx-exp__nota">Ilustración por grupo morfológico ({NOMBRE_FORMA[forma]}), no a escala: no reconstruye el ejemplar</span>
       </section>
 
       <div className="bx-exp__izq">
@@ -278,7 +292,60 @@ export function FichaBiometrica({ ficha, lugar = null }: { ficha: FichaArbol; lu
               <dt>Área de copa</dt>
               <dd>{area !== null ? `${num(area, 1)} m²` : "—"}</dd>
             </div>
+            {ds && (
+              <>
+                <div {...resalta("tronco")} className={on("tronco")}>
+                  <dt>Fustes</dt>
+                  <dd>{ds.numero_fustes === null ? "—" : ds.numero_fustes === 1 ? "1 (monofustal)" : `${ds.numero_fustes} (DAP equivalente)`}</dd>
+                </div>
+                <div {...resalta("tronco")} className={on("tronco")}>
+                  <dt>Altura de primera rama</dt>
+                  <dd>{ds.altura_primera_rama_m !== null ? `${num(ds.altura_primera_rama_m, 1)} m` : "—"}</dd>
+                </div>
+                <div {...resalta("copa")} className={on("copa")}>
+                  <dt>Base de copa viva</dt>
+                  <dd>{ds.altura_base_copa_viva_m !== null ? `${num(ds.altura_base_copa_viva_m, 1)} m` : "—"}</dd>
+                </div>
+                <div {...resalta("copa")} className={on("copa")} title="Altura total − base de la copa viva, y su proporción sobre la altura total">
+                  <dt>Copa viva</dt>
+                  <dd>
+                    {ds.longitud_copa_viva_m !== null ? `${num(ds.longitud_copa_viva_m, 1)} m · ${num(ds.proporcion_copa_viva_pct, 0)} %` : "—"}
+                  </dd>
+                </div>
+                <div {...resalta("copa")} className={on("copa")} title="Diámetro de copa dividido por la altura total">
+                  <dt>Copa / altura</dt>
+                  <dd>{ds.relacion_copa_altura !== null ? num(ds.relacion_copa_altura, 2) : "—"}</dd>
+                </div>
+              </>
+            )}
           </dl>
+          {ds && (
+            <details className="bx-detalle bx-medidas__cond">
+              <summary>Condición de copa registrada</summary>
+              <dl className="bx-medidas__cond-dl">
+                {(
+                  [
+                    ["Exposición lumínica (CLE)", ds.condicion_copa.cle, ""],
+                    ["Muerte regresiva", ds.condicion_copa.muerte_regresiva_pct, " %"],
+                    ["Defoliación estimada", ds.condicion_copa.defoliacion_pct, " %"],
+                    ["Copa faltante", ds.condicion_copa.copa_faltante_pct, " %"],
+                    ["Clorosis", ds.condicion_copa.clorosis_pct, " %"],
+                    ["Necrosis", ds.condicion_copa.necrosis_pct, " %"],
+                  ] as [string, number | null, string][]
+                ).map(([k, v, u]) => (
+                  <div key={k}>
+                    <dt>{k}</dt>
+                    <dd>{v === null ? "sin dato" : `${num(v)}${u}`}</dd>
+                  </div>
+                ))}
+                <div>
+                  <dt>Vitalidad</dt>
+                  <dd>{ds.condicion_copa.vitalidad ? (ds.condicion_copa.vitalidad.etiqueta ?? ds.condicion_copa.vitalidad.codigo) : "sin dato"}</dd>
+                </div>
+              </dl>
+              <p className="bx-detalle__pie">Valores registrados en la evaluación vigente. No es un índice de vitalidad ni de riesgo.</p>
+            </details>
+          )}
           <p className="bx-medidas__pie">Medición vigente desde {ficha.historial[0]?.vigente_desde ?? "—"}</p>
         </article>
         <article {...resalta("raices")} className={`bio-card bx-prox ${on("raices")}`}>

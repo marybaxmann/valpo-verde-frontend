@@ -6,7 +6,8 @@ import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js
  * Árbol 3D procedural de la ficha biométrica (SIVU). Recurso ORIGINAL: ramas generadas
  * por algoritmo y texturas de hojas, pasto, corteza y baldosas dibujadas en
  * canvas; no usa modelos ni imágenes de terceros. Esquema ilustrativo, no a
- * escala: la forma no representa las medidas del árbol.
+ * escala: la forma no representa las medidas del árbol. La estructura sigue el
+ * grupo morfológico de la especie (latifoliada, araucaria, conífera o palmera).
  *
  * - Copa de tarjetas de hojas instanciadas con luz, sombras y viento (shader).
  * - Tronco y raíces orgánicos; plataforma isométrica con pasto.
@@ -18,8 +19,16 @@ import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js
 
 export type Zona = "copa" | "tronco" | "raices";
 
+/**
+ * Grupo morfológico de la ilustración (no reconstruye el ejemplar):
+ * latifoliada (copa ramificada), araucaria (fuste recto y copa en candelabro,
+ * como A. angustifolia), conífera (piramidal por verticilos) o palmera.
+ */
+export type Forma = "latifoliada" | "araucaria" | "conifera" | "palmera";
+
 interface Props {
   semilla: string;
+  forma?: Forma;
   zona: Zona | null;
   onZona: (z: Zona | null) => void;
   captura: boolean;
@@ -195,7 +204,7 @@ interface Escena {
   dispose: () => void;
 }
 
-function crearEscena(host: HTMLDivElement, semilla: string, onZona: (z: Zona | null) => void): Escena | null {
+function crearEscena(host: HTMLDivElement, semilla: string, forma: Forma, onZona: (z: Zona | null) => void): Escena | null {
   let renderer: THREE.WebGLRenderer;
   try {
     renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: "high-performance" });
@@ -293,7 +302,79 @@ function crearEscena(host: HTMLDivElement, semilla: string, onZona: (z: Zona | n
     }
     if (nivel >= 2) puntas.push(p);
   };
-  rama(new THREE.Vector3(0, 0, 0), arriba.clone(), largoTronco, 0.4, 0);
+  // Fuste recto por segmentos (araucaria, conífera y palmera).
+  const fuste = (alto: number, r0: number, r1: number, inclinacion = 0) => {
+    const n = 7;
+    let p = new THREE.Vector3(0, 0, 0);
+    const lean = new THREE.Vector3(inclinacion, 0, inclinacion * 0.4);
+    for (let i = 0; i < n; i++) {
+      const t = (i + 1) / n;
+      const q = new THREE.Vector3(lean.x * t * t * alto, alto * t, lean.z * t * t * alto);
+      segmento(p, q, r0 + (r1 - r0) * (i / n), r0 + (r1 - r0) * t);
+      p = q;
+    }
+    return p;
+  };
+  if (forma === "araucaria") {
+    // Fuste largo y despejado; verticilos solo en lo alto, con ramas que salen casi horizontales y se curvan hacia arriba: copa plana en candelabro.
+    const alto = 3.9 + rnd() * 0.3;
+    const cima = fuste(alto, 0.24, 0.09);
+    const niveles = 5;
+    for (let v = 0; v < niveles; v++) {
+      const y = alto - 0.9 + v * 0.2;
+      const nRamas = 6;
+      const largo = 1.55 - v * 0.2;
+      for (let k = 0; k < nRamas; k++) {
+        const az = (k / nRamas) * Math.PI * 2 + v * 0.55 + rnd() * 0.3;
+        const ini = new THREE.Vector3(0, y, 0);
+        const codo = new THREE.Vector3(Math.cos(az) * largo, y + 0.18 + rnd() * 0.08, Math.sin(az) * largo);
+        segmento(ini, codo, 0.075, 0.045);
+        const punta = new THREE.Vector3(codo.x * 1.08, alto + 0.2 + rnd() * 0.15, codo.z * 1.08);
+        segmento(codo, punta, 0.045, 0.02);
+        // Mechones solo en el extremo curvado de cada rama: la estructura queda a la vista.
+        puntas.push(codo.clone().lerp(punta, 0.75), punta.clone());
+      }
+    }
+    puntas.push(cima);
+  } else if (forma === "conifera") {
+    // Piramidal: verticilos regulares con ramas horizontales que se acortan hacia la punta.
+    const alto = 4.6 + rnd() * 0.4;
+    const cima = fuste(alto, 0.28, 0.05);
+    const desde = 0.9;
+    for (let y = desde, v = 0; y < alto - 0.2; y += 0.34, v++) {
+      const f = 1 - (y - desde) / (alto - desde);
+      const largo = 0.25 + 1.55 * f;
+      const nRamas = 5;
+      for (let k = 0; k < nRamas; k++) {
+        const az = (k / nRamas) * Math.PI * 2 + v * 0.63;
+        const ini = new THREE.Vector3(0, y, 0);
+        const fin = new THREE.Vector3(Math.cos(az) * largo, y - 0.08 * f, Math.sin(az) * largo);
+        segmento(ini, fin, 0.05 * (0.4 + f), 0.015);
+        for (let j = 1; j <= 3; j++) puntas.push(ini.clone().lerp(fin, j / 3));
+      }
+    }
+    puntas.push(cima);
+  } else if (forma === "palmera") {
+    // Estípite grueso sin ramas y corona de frondas arqueadas.
+    const alto = 3.9 + rnd() * 0.4;
+    const cima = fuste(alto, 0.34, 0.3, 0.05);
+    const nFrondas = 15;
+    for (let k = 0; k < nFrondas; k++) {
+      const az = (k / nFrondas) * Math.PI * 2 + rnd() * 0.2;
+      const subida = 0.35 + rnd() * 0.5;
+      const largo = 1.9 + rnd() * 0.4;
+      let prev = cima.clone();
+      for (let j = 1; j <= 8; j++) {
+        const t = j / 8;
+        const q = new THREE.Vector3(cima.x + Math.cos(az) * largo * t, cima.y + subida * t - 1.25 * t * t, cima.z + Math.sin(az) * largo * t);
+        segmento(prev, q, 0.035 * (1 - t) + 0.01, 0.035 * (1 - t) + 0.008);
+        puntas.push(q.clone());
+        prev = q;
+      }
+    }
+  } else {
+    rama(new THREE.Vector3(0, 0, 0), arriba.clone(), largoTronco, 0.4, 0);
+  }
 
   const cortezaMat = new THREE.MeshStandardMaterial({ map: texCorteza, color: 0xe2dccf, roughness: 0.9 });
   const tronco = new THREE.Mesh(mergeGeometries(geomRamas), cortezaMat);
@@ -307,7 +388,9 @@ function crearEscena(host: HTMLDivElement, semilla: string, onZona: (z: Zona | n
   for (let k = 0; k < nRaices; k++) {
     const az = (k / nRaices) * Math.PI * 2 + rnd() * 0.5;
     const a = new THREE.Vector3(Math.cos(az) * 0.12, 0.42, Math.sin(az) * 0.12);
-    const b = new THREE.Vector3(Math.cos(az) * (0.75 + rnd() * 0.35), -0.06, Math.sin(az) * (0.75 + rnd() * 0.35));
+    // Las palmeras no tienen contrafuertes: base más recogida.
+    const alcance = forma === "palmera" ? 0.42 : 0.75;
+    const b = new THREE.Vector3(Math.cos(az) * (alcance + rnd() * 0.3), -0.06, Math.sin(az) * (alcance + rnd() * 0.3));
     const largo = a.distanceTo(b);
     const geo = new THREE.CylinderGeometry(0.03, 0.15, largo, 7);
     const q = new THREE.Quaternion().setFromUnitVectors(arriba, b.clone().sub(a).normalize());
@@ -321,7 +404,15 @@ function crearEscena(host: HTMLDivElement, semilla: string, onZona: (z: Zona | n
   arbol.add(raices);
 
   // Copa: tarjetas de hojas alrededor de cada punta, más claras arriba y al lado del sol
-  const porPunta = Math.max(14, Math.round(1500 / Math.max(1, puntas.length)));
+  const estilo =
+    forma === "palmera"
+      ? { porPunta: 6, disp: [0.32, 0.12, 0.32], esc: [0.38, 0.22] }
+      : forma === "araucaria"
+        ? { porPunta: Math.max(6, Math.round(700 / Math.max(1, puntas.length))), disp: [0.3, 0.16, 0.3], esc: [0.3, 0.16] }
+        : forma === "conifera"
+          ? { porPunta: Math.max(8, Math.round(1300 / Math.max(1, puntas.length))), disp: [0.38, 0.2, 0.38], esc: [0.38, 0.22] }
+          : { porPunta: Math.max(14, Math.round(1500 / Math.max(1, puntas.length))), disp: [1.3, 1.0, 1.3], esc: [0.75, 0.55] };
+  const porPunta = estilo.porPunta;
   // Relleno de la copa: hojas extra en el contorno, sobre todo en los bordes y abajo.
   const RELLENO = 0;
   const total = puntas.length * porPunta + RELLENO;
@@ -336,10 +427,11 @@ function crearEscena(host: HTMLDivElement, semilla: string, onZona: (z: Zona | n
   const m = new THREE.Matrix4();
   const col = new THREE.Color();
   // Rampa de verdes luminosa: la parte en sombra queda en verdes medios, no casi negros.
-  const claro = new THREE.Color("#d6ec9e");
-  const medio = new THREE.Color("#a2cf68");
-  const oscuro = new THREE.Color("#7aad52");
-  const sombra = new THREE.Color("#649a49");
+  const perenneOscura = forma === "araucaria" || forma === "conifera";
+  const claro = new THREE.Color(perenneOscura ? "#9fc77a" : forma === "palmera" ? "#c3e08a" : "#d6ec9e");
+  const medio = new THREE.Color(perenneOscura ? "#6f9f55" : forma === "palmera" ? "#93c25f" : "#a2cf68");
+  const oscuro = new THREE.Color(perenneOscura ? "#4f8044" : forma === "palmera" ? "#6f9f4a" : "#7aad52");
+  const sombra = new THREE.Color(perenneOscura ? "#3f6b3a" : forma === "palmera" ? "#5b8a40" : "#649a49");
   const yMax = Math.max(...puntas.map((p) => p.y));
   const yMin = Math.min(...puntas.map((p) => p.y));
   let idx = 0;
@@ -359,8 +451,8 @@ function crearEscena(host: HTMLDivElement, semilla: string, onZona: (z: Zona | n
   };
   for (const p of puntas) {
     for (let k = 0; k < porPunta; k++) {
-      const off = new THREE.Vector3((rnd() - 0.5) * 1.3, (rnd() - 0.55) * 1.0, (rnd() - 0.5) * 1.3);
-      colocar(p.clone().add(off), 0.75 + rnd() * 0.55);
+      const off = new THREE.Vector3((rnd() - 0.5) * estilo.disp[0], (rnd() - 0.55) * estilo.disp[1], (rnd() - 0.5) * estilo.disp[2]);
+      colocar(p.clone().add(off), estilo.esc[0] + rnd() * estilo.esc[1]);
     }
   }
   // Contorno de la copa (elipsoide de las puntas): más hojas abajo y en los costados.
@@ -713,7 +805,7 @@ function crearEscena(host: HTMLDivElement, semilla: string, onZona: (z: Zona | n
   };
 }
 
-export function Arbol3D({ semilla, zona, onZona, captura }: Props) {
+export function Arbol3D({ semilla, forma = "latifoliada", zona, onZona, captura }: Props) {
   const host = useRef<HTMLDivElement>(null);
   const escena = useRef<Escena | null>(null);
   const cb = useRef(onZona);
@@ -722,14 +814,14 @@ export function Arbol3D({ semilla, zona, onZona, captura }: Props) {
     cb.current = onZona;
   }, [onZona]);
   useEffect(() => {
-    const e = crearEscena(host.current!, semilla, (z) => cb.current(z));
+    const e = crearEscena(host.current!, semilla, forma, (z) => cb.current(z));
     if (!e) setSinWebgl(true);
     escena.current = e;
     return () => {
       e?.dispose();
       escena.current = null;
     };
-  }, [semilla]);
+  }, [semilla, forma]);
   useEffect(() => escena.current?.setZona(zona), [zona]);
   useEffect(() => escena.current?.setCaptura(captura), [captura]);
   return (

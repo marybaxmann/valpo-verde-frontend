@@ -2284,6 +2284,9 @@
   grid-area: escena;
   position: relative;
   min-height: 600px;
+  /* Altura propia: abrir detalles en las columnas no estira ni recorta la ilustración. */
+  align-self: start;
+  height: 660px;
   border-radius: 28px;
   overflow: hidden;
   background:
@@ -2483,6 +2486,7 @@
   }
   .bx-exp__escena {
     min-height: 460px;
+    height: 460px;
   }
   .bx-exp__titulo h2 {
     font-size: 24px;
@@ -2499,4 +2503,180 @@
   .bx-exp__pin {
     transition: none;
   }
+}
+
+/* Diagnóstico del arbolado (propuesta experimental) */
+.bx-diag {
+  padding: 14px 16px;
+  gap: 12px;
+}
+.bx-diag__tabs {
+  align-self: flex-start;
+  flex-wrap: wrap;
+}
+.bx-diag__mini {
+  align-self: flex-start;
+}
+.bx-diag__cuerpo {
+  display: grid;
+  gap: 12px;
+}
+.bx-diag__cuerpo--dos {
+  grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+  gap: 22px;
+}
+.bx-diag__col {
+  min-width: 0;
+  display: grid;
+  gap: 8px;
+  align-content: start;
+}
+.bx-diag h3 {
+  margin: 4px 0 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--bio-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.bx-diag__tabla {
+  overflow-x: auto;
+}
+.bx-diag__tabla table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12.5px;
+  font-variant-numeric: tabular-nums;
+}
+.bx-diag__tabla th,
+.bx-diag__tabla td {
+  padding: 6px 8px;
+  text-align: right;
+  border-bottom: 1px solid var(--bio-card-border);
+  white-space: nowrap;
+}
+.bx-diag__tabla th[scope="row"],
+.bx-diag__tabla thead th:first-child {
+  text-align: left;
+  font-weight: 500;
+}
+.bx-diag__tabla thead th {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--bio-muted);
+}
+.bx-diag__barras {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 5px;
+}
+.bx-diag__barras li {
+  display: grid;
+  grid-template-columns: minmax(0, 1.3fr) minmax(0, 1.5fr) 32px 38px;
+  gap: 8px;
+  align-items: center;
+  font-size: 12.5px;
+}
+.bx-diag__barras li > span:first-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.bx-diag__barras b {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.bx-diag__barras small {
+  text-align: right;
+  color: var(--bio-muted);
+  font-variant-numeric: tabular-nums;
+}
+.bx-diag__pista {
+  height: 8px;
+  border-radius: 99px;
+  background: var(--bio-track);
+  overflow: hidden;
+}
+.bx-diag__pista i {
+  display: block;
+  height: 100%;
+  border-radius: 99px;
+  background: var(--bio-mint);
+}
+.bx-diag__vars {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+.bx-diag__vars li {
+  display: grid;
+  gap: 4px;
+}
+.bx-diag__var {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 12.5px;
+  font-weight: 500;
+}
+.bx-diag__var small {
+  font-weight: 400;
+  color: var(--bio-muted);
+}
+.bx-diag__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin: 0;
+  font-size: 12px;
+}
+.bx-diag__falta {
+  border-color: var(--bio-amber);
+}
+.bx-diag__lista {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 6px;
+  font-size: 12.5px;
+}
+.bx-diag__lista li {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}
+.bx-diag__lista b {
+  font-variant-numeric: tabular-nums;
+}
+@media (max-width: 900px) {
+  .bx-diag__cuerpo--dos {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.bx-medidas__cond {
+  margin-top: 10px;
+}
+.bx-medidas__cond-dl {
+  margin: 8px 0 0;
+  display: grid;
+  gap: 4px;
+  font-size: 12px;
+}
+.bx-medidas__cond-dl div {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+}
+.bx-medidas__cond-dl dt {
+  color: var(--bio-muted);
+}
+.bx-medidas__cond-dl dd {
+  margin: 0;
+  font-variant-numeric: tabular-nums;
 }
