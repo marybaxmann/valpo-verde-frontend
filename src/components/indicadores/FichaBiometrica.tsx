@@ -31,7 +31,7 @@ function formaIlustracion(tipoHoja: string | null | undefined, especie: string |
 }
 const NOMBRE_FORMA: Record<Forma, string> = {
   latifoliada: "latifoliada",
-  araucaria: "araucaria en candelabro",
+  araucaria: "araucaria",
   araucaria_piramidal: "araucaria piramidal",
   palmera: "palmera",
 };

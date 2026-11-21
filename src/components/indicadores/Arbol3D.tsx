@@ -21,11 +21,11 @@ export type Zona = "copa" | "tronco" | "raices";
 
 /**
  * Grupo morfológico de la ilustración (no reconstruye el ejemplar):
- * latifoliada (copa ramificada); araucaria en candelabro (A. angustifolia y
- * A. araucana: fuste despejado, verticilos altos con ramas que se curvan hacia
- * arriba y mechones de agujas en las puntas); araucaria piramidal
- * (A. heterophylla y otras: pisos horizontales simétricos de ramillas con
- * agujas), o palmera. Las araucarias usan follaje de agujas, no de hojas.
+ * latifoliada (copa ramificada); araucaria (A. angustifolia y A. araucana:
+ * fuste recto despejado y copa en cúpula de verticilos con racimos de ramillas
+ * en cordón; de adulta se aplana); araucaria piramidal (A. heterophylla y
+ * otras: pisos horizontales simétricos), o palmera. Las araucarias usan
+ * ramillas escamosas en cordón, no hojas.
  */
 export type Forma = "latifoliada" | "araucaria" | "araucaria_piramidal" | "palmera";
 
@@ -93,39 +93,35 @@ function texturaHojas(): THREE.CanvasTexture {
   return t;
 }
 
-/** Ramilla de araucaria: eje central con escamas y agujas apretadas a ambos lados (escala de grises). */
+/** Escamas de las ramillas de araucaria (cordones cubiertos de hojas escamosas), en escala de grises. */
 function texturaAgujas(): THREE.CanvasTexture {
   const c = document.createElement("canvas");
-  c.width = 128;
-  c.height = 256;
+  c.width = 64;
+  c.height = 128;
   const g = c.getContext("2d")!;
-  const rnd = aleatorio("agujas-sivu");
-  g.lineCap = "round";
-  // Eje
-  g.strokeStyle = "rgb(150,150,150)";
-  g.lineWidth = 5;
-  g.beginPath();
-  g.moveTo(64, 252);
-  g.quadraticCurveTo(60, 128, 64, 6);
-  g.stroke();
-  // Agujas: cortas, rígidas, inclinadas hacia la punta; más cortas arriba.
-  for (let i = 0; i < 150; i++) {
-    const t = rnd();
-    const y = 250 - t * 240;
-    const x = 64 + Math.sin(t * 3) * 2;
-    const lado = rnd() > 0.5 ? 1 : -1;
-    const largo = (1 - t * 0.55) * (16 + rnd() * 12);
-    const ang = lado * (0.55 + rnd() * 0.45);
-    const tono = 150 + Math.round(rnd() * 100);
-    g.strokeStyle = `rgb(${tono},${tono},${tono})`;
-    g.lineWidth = 3 + rnd() * 2;
-    g.beginPath();
-    g.moveTo(x, y);
-    g.lineTo(x + Math.sin(ang) * largo, y - Math.cos(ang) * largo);
-    g.stroke();
+  const rnd = aleatorio("escamas-sivu");
+  g.fillStyle = "rgb(120,120,120)";
+  g.fillRect(0, 0, 64, 128);
+  // Escamas imbricadas: filas desfasadas de gotas que apuntan hacia la punta.
+  for (let fila = 0; fila < 16; fila++) {
+    for (let col = 0; col < 5; col++) {
+      const x = col * 14 + (fila % 2 ? 7 : 0) + (rnd() - 0.5) * 2;
+      const y = 128 - fila * 8.5;
+      const tono = 165 + Math.round(rnd() * 80);
+      g.fillStyle = `rgb(${tono},${tono},${tono})`;
+      g.beginPath();
+      g.moveTo(x, y - 10);
+      g.quadraticCurveTo(x + 7, y - 2, x, y + 2);
+      g.quadraticCurveTo(x - 7, y - 2, x, y - 10);
+      g.fill();
+      g.strokeStyle = "rgba(70,70,70,0.5)";
+      g.lineWidth = 1;
+      g.stroke();
+    }
   }
   const t = new THREE.CanvasTexture(c);
   t.colorSpace = THREE.SRGBColorSpace;
+  t.wrapS = t.wrapT = THREE.RepeatWrapping;
   t.anisotropy = 4;
   return t;
 }
@@ -295,6 +291,8 @@ function crearEscena(host: HTMLDivElement, semilla: string, forma: Forma, onZona
   const esAraucaria = forma === "araucaria" || forma === "araucaria_piramidal";
   // Dirección de crecimiento de cada punta (solo araucarias): orienta las ramillas de agujas.
   const direcciones: THREE.Vector3[] = [];
+  // Racimos secos (pardos) del verticilo más bajo, como se ven en los ejemplares del Piloto.
+  const secos: boolean[] = [];
 
   // Base isométrica limpia: pasto pintado arriba y tierra clara a los lados.
   const ladoMat = new THREE.MeshStandardMaterial({ color: 0xc8ad84, roughness: 0.95 });
@@ -359,31 +357,48 @@ function crearEscena(host: HTMLDivElement, semilla: string, forma: Forma, onZona
     return p;
   };
   if (forma === "araucaria") {
-    // Fuste largo y despejado; verticilos solo en lo alto, con ramas que salen casi horizontales y se curvan hacia arriba: copa plana en candelabro.
-    const alto = 3.9 + rnd() * 0.3;
-    const cima = fuste(alto, 0.24, 0.09);
-    const niveles = 5;
+    // Araucaria angustifolia (forma urbana joven, como A-000504): fuste recto despejado
+    // y copa en cúpula de verticilos de ramas ascendentes que terminan en racimos de ramillas.
+    const alto = 4.5 + rnd() * 0.3;
+    const cima = fuste(alto, 0.24, 0.07);
+    const desde = alto * 0.4;
+    const niveles = 8;
     for (let v = 0; v < niveles; v++) {
-      const y = alto - 0.9 + v * 0.2;
-      const nRamas = 6;
-      const largo = 1.55 - v * 0.2;
+      const t = v / (niveles - 1);
+      const y = desde + (alto - 0.25 - desde) * t;
+      const nRamas = 5;
+      // Cúpula: ramas más largas en el tercio medio-bajo, cortas arriba.
+      const largo = (0.55 + 1.35 * Math.sin(Math.PI * (0.25 + 0.75 * t))) * (1 - 0.35 * t);
+      const incl = (1.5 - 0.95 * t) + (rnd() - 0.5) * 0.12; // desde la vertical: abajo casi horizontales
       for (let k = 0; k < nRamas; k++) {
-        const az = (k / nRamas) * Math.PI * 2 + v * 0.55 + rnd() * 0.3;
-        const ini = new THREE.Vector3(0, y, 0);
-        const codo = new THREE.Vector3(Math.cos(az) * largo, y + 0.18 + rnd() * 0.08, Math.sin(az) * largo);
-        segmento(ini, codo, 0.075, 0.045);
-        const punta = new THREE.Vector3(codo.x * 1.08, alto + 0.2 + rnd() * 0.15, codo.z * 1.08);
-        segmento(codo, punta, 0.045, 0.02);
-        // Mechones de agujas solo en el extremo curvado de cada rama, mirando hacia arriba y afuera.
+        const az = (k / nRamas) * Math.PI * 2 + v * 0.7 + rnd() * 0.35;
         const afuera = new THREE.Vector3(Math.cos(az), 0, Math.sin(az));
-        for (const t of [0.55, 0.8, 1]) {
-          puntas.push(codo.clone().lerp(punta, t));
-          direcciones.push(afuera.clone().multiplyScalar(0.95).add(new THREE.Vector3(0, 1, 0)).normalize());
+        const ini = new THREE.Vector3(0, y, 0);
+        const d1 = afuera.clone().multiplyScalar(Math.sin(incl)).add(new THREE.Vector3(0, Math.cos(incl), 0));
+        const medio = ini.clone().add(d1.clone().multiplyScalar(largo * 0.55));
+        // La rama se curva hacia arriba en su mitad exterior.
+        const d2 = afuera.clone().multiplyScalar(Math.sin(incl) * 0.8).add(new THREE.Vector3(0, Math.cos(incl) + 0.15 + 0.3 * t, 0)).normalize();
+        const fin = medio.clone().add(d2.clone().multiplyScalar(largo * 0.5));
+        segmento(ini, medio, 0.06 * (1 - 0.5 * t), 0.04 * (1 - 0.5 * t));
+        segmento(medio, fin, 0.04 * (1 - 0.5 * t), 0.018);
+        // Ramillas en cordón a lo largo de casi toda la rama (la visten), más densas hacia la punta.
+        const dirRacimo = afuera.clone().multiplyScalar(0.9).add(new THREE.Vector3(0, 0.55 + 0.4 * t, 0)).normalize();
+        const tramos: [THREE.Vector3, THREE.Vector3, number[]][] = [
+          [ini, medio, [0.45, 0.8]],
+          [medio, fin, [0.15, 0.4, 0.65, 0.88, 1]],
+        ];
+        for (const [a, b, fs] of tramos) {
+          for (const f of fs) {
+            puntas.push(a.clone().lerp(b, f));
+            direcciones.push(dirRacimo);
+            secos.push(v <= 1 && rnd() > (v === 0 ? 0.3 : 0.75));
+          }
         }
       }
     }
     puntas.push(cima);
     direcciones.push(new THREE.Vector3(0, 1, 0));
+    secos.push(false);
   } else if (forma === "araucaria_piramidal") {
     // Pisos horizontales y simétricos: verticilos regulares de 5 ramas que se acortan hacia la punta.
     const alto = 4.6 + rnd() * 0.4;
@@ -402,11 +417,13 @@ function crearEscena(host: HTMLDivElement, semilla: string, forma: Forma, onZona
         for (let j = 1; j <= 4; j++) {
           puntas.push(ini.clone().lerp(fin, 0.2 + (0.8 * j) / 4));
           direcciones.push(afuera);
+          secos.push(false);
         }
       }
     }
     puntas.push(cima);
     direcciones.push(new THREE.Vector3(0, 1, 0));
+    secos.push(false);
   } else if (forma === "palmera") {
     // Estípite grueso sin ramas y corona de frondas arqueadas.
     const alto = 3.9 + rnd() * 0.4;
@@ -442,7 +459,7 @@ function crearEscena(host: HTMLDivElement, semilla: string, forma: Forma, onZona
     const az = (k / nRaices) * Math.PI * 2 + rnd() * 0.5;
     const a = new THREE.Vector3(Math.cos(az) * 0.12, 0.42, Math.sin(az) * 0.12);
     // Las palmeras no tienen contrafuertes: base más recogida.
-    const alcance = forma === "palmera" ? 0.42 : 0.75;
+    const alcance = forma === "palmera" || esAraucaria ? 0.42 : 0.75;
     const b = new THREE.Vector3(Math.cos(az) * (alcance + rnd() * 0.3), -0.06, Math.sin(az) * (alcance + rnd() * 0.3));
     const largo = a.distanceTo(b);
     const geo = new THREE.CylinderGeometry(0.03, 0.15, largo, 7);
@@ -461,44 +478,49 @@ function crearEscena(host: HTMLDivElement, semilla: string, forma: Forma, onZona
     forma === "palmera"
       ? { porPunta: 6, disp: [0.32, 0.12, 0.32], esc: [0.38, 0.22] }
       : forma === "araucaria"
-        ? { porPunta: Math.max(7, Math.round(900 / Math.max(1, puntas.length))), disp: [0.16, 0.1, 0.16], esc: [0.4, 0.22] }
+        ? { porPunta: 8, disp: [0.12, 0.07, 0.12], esc: [0.22, 0.2] }
         : forma === "araucaria_piramidal"
-          ? { porPunta: Math.max(5, Math.round(1100 / Math.max(1, puntas.length))), disp: [0.18, 0.05, 0.18], esc: [0.42, 0.22] }
+          ? { porPunta: 6, disp: [0.12, 0.04, 0.12], esc: [0.26, 0.18] }
           : { porPunta: Math.max(14, Math.round(1500 / Math.max(1, puntas.length))), disp: [1.3, 1.0, 1.3], esc: [0.75, 0.55] };
   const porPunta = estilo.porPunta;
   // Relleno de la copa: hojas extra en el contorno, sobre todo en los bordes y abajo.
   const RELLENO = 0;
   const total = puntas.length * porPunta + RELLENO;
   const texCopa = esAraucaria ? texAgujas : texHojas;
-  const hojasMat = new THREE.MeshLambertMaterial({ map: texCopa, alphaTest: 0.42, side: THREE.DoubleSide });
+  const hojasMat = esAraucaria
+    ? new THREE.MeshLambertMaterial({ map: texCopa })
+    : new THREE.MeshLambertMaterial({ map: texCopa, alphaTest: 0.42, side: THREE.DoubleSide });
   const hojasProf = new THREE.MeshDepthMaterial({ depthPacking: THREE.RGBADepthPacking, map: texCopa, alphaTest: 0.42 });
   conViento(hojasMat, movimientoReducido ? 0 : 0.035, uTime);
   conViento(hojasProf, movimientoReducido ? 0 : 0.035, uTime);
   // Araucarias: ramillas alargadas que nacen en la punta (base en el origen); latifoliadas: ramilletes centrados.
-  const geoCopa = esAraucaria ? new THREE.PlaneGeometry(0.42, 1).translate(0, 0.5, 0) : new THREE.PlaneGeometry(1, 1).translate(0, 0.35, 0);
+  // Araucarias: ramillas como cordones (cilindros que se afinan hacia la punta) con base en la rama.
+  const geoCopa = esAraucaria ? new THREE.CylinderGeometry(0.035, 0.06, 1, 7, 1).translate(0, 0.5, 0) : new THREE.PlaneGeometry(1, 1).translate(0, 0.35, 0);
   const hojas = new THREE.InstancedMesh(geoCopa, hojasMat, total);
-  hojas.customDepthMaterial = hojasProf;
+  if (!esAraucaria) hojas.customDepthMaterial = hojasProf;
   hojas.castShadow = true;
   hojas.receiveShadow = true;
   const m = new THREE.Matrix4();
   const col = new THREE.Color();
   // Rampa de verdes luminosa: la parte en sombra queda en verdes medios, no casi negros.
   // Araucarias: verde azulado oscuro de conífera, claramente distinto del verde de las latifoliadas.
-  const claro = new THREE.Color(esAraucaria ? "#8db592" : forma === "palmera" ? "#c3e08a" : "#d6ec9e");
-  const medio = new THREE.Color(esAraucaria ? "#5c8c6c" : forma === "palmera" ? "#93c25f" : "#a2cf68");
-  const oscuro = new THREE.Color(esAraucaria ? "#3d6a55" : forma === "palmera" ? "#6f9f4a" : "#7aad52");
-  const sombra = new THREE.Color(esAraucaria ? "#2b5244" : forma === "palmera" ? "#5b8a40" : "#649a49");
+  const claro = new THREE.Color(esAraucaria ? "#7f9e6a" : forma === "palmera" ? "#c3e08a" : "#d6ec9e");
+  const medio = new THREE.Color(esAraucaria ? "#5b7a4c" : forma === "palmera" ? "#93c25f" : "#a2cf68");
+  const oscuro = new THREE.Color(esAraucaria ? "#405f3b" : forma === "palmera" ? "#6f9f4a" : "#7aad52");
+  const sombra = new THREE.Color(esAraucaria ? "#2f4a2e" : forma === "palmera" ? "#5b8a40" : "#649a49");
+  const pardo = new THREE.Color("#7a6343");
   const yMax = Math.max(...puntas.map((p) => p.y));
   const yMin = Math.min(...puntas.map((p) => p.y));
   let idx = 0;
   const eje = new THREE.Vector3(0, 1, 0);
-  const colocar = (pos: THREE.Vector3, s: number, dir?: THREE.Vector3) => {
+  const colocar = (pos: THREE.Vector3, s: number, dir?: THREE.Vector3, seco = false) => {
     if (dir) {
-      // Ramilla orientada en la dirección de crecimiento, con un giro aleatorio sobre su eje.
-      const d = dir.clone().add(new THREE.Vector3((rnd() - 0.5) * 0.5, (rnd() - 0.5) * 0.35, (rnd() - 0.5) * 0.5)).normalize();
+      // Cordón orientado según el crecimiento, abierto en abanico dentro del racimo.
+      const d = dir.clone().add(new THREE.Vector3((rnd() - 0.5) * 0.9, (rnd() - 0.5) * 0.5, (rnd() - 0.5) * 0.9)).normalize();
       const q = new THREE.Quaternion().setFromUnitVectors(eje, d);
       q.multiply(new THREE.Quaternion().setFromAxisAngle(eje, rnd() * Math.PI * 2));
-      m.compose(pos, q, new THREE.Vector3(s, s, s));
+      const g = 0.85 + rnd() * 0.4;
+      m.compose(pos, q, new THREE.Vector3(g, s, g));
     } else {
       const e = new THREE.Euler(rnd() * Math.PI, rnd() * Math.PI * 2, rnd() * Math.PI);
       m.compose(pos, new THREE.Quaternion().setFromEuler(e), new THREE.Vector3(s, s, s));
@@ -511,13 +533,14 @@ function crearEscena(host: HTMLDivElement, semilla: string, forma: Forma, onZona
     if (l > 0.66) col.copy(medio).lerp(claro, (l - 0.66) / 0.34);
     else if (l > 0.33) col.copy(oscuro).lerp(medio, (l - 0.33) / 0.33);
     else col.copy(sombra).lerp(oscuro, l / 0.33);
+    if (seco) col.lerp(pardo, 0.75);
     hojas.setColorAt(idx, col);
     idx++;
   };
   puntas.forEach((p, i) => {
     for (let k = 0; k < porPunta; k++) {
       const off = new THREE.Vector3((rnd() - 0.5) * estilo.disp[0], (rnd() - 0.55) * estilo.disp[1], (rnd() - 0.5) * estilo.disp[2]);
-      colocar(p.clone().add(off), estilo.esc[0] + rnd() * estilo.esc[1], esAraucaria ? direcciones[i] : undefined);
+      colocar(p.clone().add(off), estilo.esc[0] + rnd() * estilo.esc[1], esAraucaria ? direcciones[i] : undefined, esAraucaria && secos[i]);
     }
   });
   // Contorno de la copa (elipsoide de las puntas): más hojas abajo y en los costados.
