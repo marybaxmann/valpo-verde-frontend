@@ -15,8 +15,10 @@ import type { Zona } from "./Arbol3D";
 
 const Arbol3D = lazy(() => import("./Arbol3D").then((m) => ({ default: m.Arbol3D })));
 const n = (v: unknown): number | null => (typeof v === "number" && Number.isFinite(v) ? v : null);
+/** «tallo, ramas, ramillas y hojas». */
+const lista = (xs: string[]) => (xs.length < 2 ? (xs[0] ?? "—") : `${xs.slice(0, -1).join(", ")} y ${xs[xs.length - 1]}`);
 
-function Captura({ s, onExplorar }: { s: SecuestroArbol | undefined; onExplorar: (v: boolean) => void }) {
+function Captura({ s, onExplorar, conCarbonoTotal = false }: { s: SecuestroArbol | undefined; onExplorar: (v: boolean) => void; conCarbonoTotal?: boolean }) {
   const eventos = { onMouseEnter: () => onExplorar(true), onMouseLeave: () => onExplorar(false), onFocus: () => onExplorar(true), onBlur: () => onExplorar(false) };
   if (!s) return <article className="bio-card bx-captura">Sin datos de captura anual en esta API.</article>;
 
@@ -26,7 +28,11 @@ function Captura({ s, onExplorar }: { s: SecuestroArbol | undefined; onExplorar:
         <span className="bx-eyebrow">Captura anual de CO₂</span>
         <strong className="bx-captura__estado">No estimable</strong>
         <p className="bx-captura__motivo">{MOTIVO_SECUESTRO[s.motivo] ?? s.detalle}</p>
-        <p className="bx-captura__sub">Se calcula cuando la especie tenga un modelo de biomasa y el árbol tenga sus datos completos.</p>
+        <p className="bx-captura__sub">
+          {conCarbonoTotal
+            ? "La especie tiene un modelo exploratorio de carbono aéreo total, pero todavía no un método de crecimiento aprobado para estimar la captura anual."
+            : "Se calcula cuando la especie tenga un modelo de biomasa y el árbol tenga sus datos completos."}
+        </p>
       </article>
     );
   }
@@ -112,6 +118,8 @@ export function FichaBiometrica({ ficha, lugar = null }: { ficha: FichaArbol; lu
   const carbono = ficha.estimacion_carbono_aereo_lenoso;
   const cv = carbono?.valor ?? null;
   const exploratorio = cv?.modelo.estado === "exploratorio";
+  // Carbono aéreo total (con hojas): solo cuando la especie no tiene modelo leñoso; nunca se muestran ni suman juntos.
+  const tv = cv ? null : (ficha.estimacion_carbono_aereo_total?.valor ?? null);
   const clase = (a.clase_edad as { etiqueta?: string } | null | undefined)?.etiqueta ?? null;
   const resalta = (z: Zona) => ({
     onMouseEnter: () => setZona(z),
@@ -141,6 +149,7 @@ export function FichaBiometrica({ ficha, lugar = null }: { ficha: FichaArbol; lu
         <span className={`bx-exp__pin bx-exp__pin--tronco ${on("tronco")}`}>
           <b>Tronco</b> {dap !== null ? `DAP ${num(dap, 1)} cm` : "sin medición"}
           {cv && <small>{num(cv.carbono_kg, 0)} kg C almacenados</small>}
+          {tv && <small>{num(tv.carbono_kg, 1)} kg C aéreos, con hojas</small>}
         </span>
         <span className={`bx-exp__pin bx-exp__pin--raices ${on("raices")}`}>
           <b>Raíces y suelo</b> método pendiente
@@ -150,7 +159,32 @@ export function FichaBiometrica({ ficha, lugar = null }: { ficha: FichaArbol; lu
       </section>
 
       <div className="bx-exp__izq">
-        <Captura s={ficha.secuestro_anual} onExplorar={setCaptura} />
+        <Captura s={ficha.secuestro_anual} onExplorar={setCaptura} conCarbonoTotal={tv !== null} />
+        {tv ? (
+          <article {...resalta("tronco")} className={`bio-card bx-kpi ${on("tronco")}`}>
+            <header className="bx-kpi__head">
+              <span className="bx-eyebrow">Carbono aéreo total</span>
+              <span className="bio-tag bio-tag--simulacion">Exploratorio</span>
+            </header>
+            <strong>
+              {num(tv.carbono_kg, 1)} <small>kg C</small>
+            </strong>
+            <span className="bx-kpi__sub">{num(tv.co2e_kg, 1)} kg de CO₂ equivalente almacenado</span>
+            <dl className="bx-kpi__comp">
+              <div>
+                <dt>Incluye</dt>
+                <dd>{lista(tv.componente.incluye)}</dd>
+              </div>
+              <div>
+                <dt>Excluye</dt>
+                <dd>{lista(tv.componente.excluye)}</dd>
+              </div>
+            </dl>
+            <span className="bx-info" title="Ecuación de la misma especie ajustada en el bosque mediterráneo chileno, no en árboles urbanos. Incluye hojas: no es comparable con el carbono leñoso de otras especies ni suma a los totales.">
+              Modelo de la especie, no urbano ⓘ
+            </span>
+          </article>
+        ) : (
         <article {...resalta("tronco")} className={`bio-card bx-kpi ${on("tronco")}`}>
           <span className="bx-eyebrow">Carbono almacenado</span>
           <strong>
@@ -163,6 +197,7 @@ export function FichaBiometrica({ ficha, lugar = null }: { ficha: FichaArbol; lu
             </span>
           )}
         </article>
+        )}
       </div>
 
       <aside className="bx-exp__der">
@@ -196,6 +231,18 @@ export function FichaBiometrica({ ficha, lugar = null }: { ficha: FichaArbol; lu
             <li>Proyección de crecimiento</li>
           </ul>
         </article>
+        {tv && (
+          <details className="bio-card bx-notas">
+            <summary>Notas del modelo de carbono</summary>
+            <p>{tv.modelo.id} · carbono aéreo total (con hojas), exploratorio para árboles urbanos; no suma a los totales.</p>
+            <p className="bx-notas__fuente">
+              {tv.modelo.fuente}.{" "}
+              <a href={tv.modelo.doi} target="_blank" rel="noreferrer">
+                {tv.modelo.doi.replace("https://doi.org/", "doi:")}
+              </a>
+            </p>
+          </details>
+        )}
         {cv && (
           <details className="bio-card bx-notas">
             <summary>Notas del modelo de carbono</summary>

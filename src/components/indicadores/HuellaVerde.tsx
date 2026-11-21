@@ -169,6 +169,7 @@ function Barra({ partes }: { partes: { n: number; clase: string; etiqueta: strin
 function CarbonoProyecto({ d, onVerArboles }: { d: IndicadoresProyecto; onVerArboles?: () => void }) {
   const s = d.estimacion_secuestro_anual;
   const c = d.estimacion_carbono_aereo_lenoso;
+  const t = d.estimacion_carbono_aereo_total;
   if (!s || !c) return null;
   const cs = s.cobertura;
   const cc = c.cobertura;
@@ -240,6 +241,13 @@ function CarbonoProyecto({ d, onVerArboles }: { d: IndicadoresProyecto; onVerArb
             { n: Math.max(0, sinCarbono), clase: "no", etiqueta: "sin estimación" },
           ]}
         />
+        {t && t.cobertura.con_resultado_exploratorio > 0 && (
+          <p className="bx-carbono__nota bx-carbono__extra">
+            <span className="bio-tag bio-tag--simulacion">Exploratorio</span> {num(t.cobertura.con_resultado_exploratorio)}{" "}
+            {t.cobertura.con_resultado_exploratorio === 1 ? "árbol tiene" : "árboles tienen"} además carbono aéreo total con hojas (modelos de la especie,
+            no urbanos). Se ve en su ficha y no suma a este total.
+          </p>
+        )}
       </article>
 
       <article className="bio-card bx-carbono__motivos">
