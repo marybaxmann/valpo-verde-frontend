@@ -114,12 +114,6 @@ export default function IndicesPage() {
           <h1 className="bio-head__title">{vista === "proyecto" ? "Indicadores del proyecto" : "Ficha biométrica del árbol"}</h1>
         </div>
 
-        {vista === "arbol" && listaEvaluados && listaEvaluados.length > 0 && (
-          <div className="bio-head__sel">
-            <SelectorArbol arboles={listaEvaluados} sel={arbolSel} onSel={(id) => actualizar({ arbol: id })} />
-          </div>
-        )}
-
         <div className="bio-head__tools">
           <div className="bio-seg" role="tablist" aria-label="Vista">
             <button role="tab" aria-selected={vista === "proyecto"} className={vista === "proyecto" ? "is-on" : ""} onClick={() => actualizar({ vista: null })}>
@@ -129,29 +123,35 @@ export default function IndicesPage() {
               Por árbol
             </button>
           </div>
-          {vista === "proyecto" && datos && datos.barrios.length > 0 && (
-            <label className="bio-select">
-              <span>Ámbito</span>
-              <select value={barrio ?? ""} onChange={(e) => actualizar({ barrio: e.target.value || null })}>
-                <option value="">Todo el proyecto</option>
-                {datos.barrios.map((b) => (
-                  <option key={b} value={b}>
-                    {b}
-                  </option>
-                ))}
-              </select>
-            </label>
-          )}
-          {vista === "proyecto" && (
-            <ul className="bio-head__legend">
-              <li>
-                <i className="bio-legend__dot bio-legend__dot--ok" /> Resuelto · datos del proyecto
-              </li>
-              <li>
-                <i className="bio-legend__dot bio-legend__dot--pend" /> Método pendiente
-              </li>
-            </ul>
-          )}
+          {/* Espacio de ancho fijo a la derecha del cambio de vista: el cambio de vista no se mueve al pasar de una vista a otra. */}
+          <div className="bio-head__slot">
+            {vista === "arbol" && listaEvaluados && listaEvaluados.length > 0 && (
+              <SelectorArbol arboles={listaEvaluados} sel={arbolSel} onSel={(id) => actualizar({ arbol: id })} />
+            )}
+            {vista === "proyecto" && datos && datos.barrios.length > 0 && (
+              <label className="bio-select">
+                <span>Ámbito</span>
+                <select value={barrio ?? ""} onChange={(e) => actualizar({ barrio: e.target.value || null })}>
+                  <option value="">Todo el proyecto</option>
+                  {datos.barrios.map((b) => (
+                    <option key={b} value={b}>
+                      {b}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            )}
+            {vista === "proyecto" && (
+              <ul className="bio-head__legend">
+                <li>
+                  <i className="bio-legend__dot bio-legend__dot--ok" /> Resuelto · datos del proyecto
+                </li>
+                <li>
+                  <i className="bio-legend__dot bio-legend__dot--pend" /> Método pendiente
+                </li>
+              </ul>
+            )}
+          </div>
         </div>
       </header>
 
