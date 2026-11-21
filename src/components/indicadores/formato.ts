@@ -23,7 +23,7 @@ export function masa(t: number | null | undefined): { valor: string; unidad: str
 export const MOTIVO_CARBONO: Record<string, string> = {
   no_presente: "No presente",
   sin_evaluacion_valida: "Sin evaluación completa vigente",
-  sin_modelo: "Especie sin modelo aprobado",
+  sin_modelo: "Especie sin modelo de carbono aplicable",
   palmera_sin_modelo: "Palmera (sin modelo)",
   multifustal_no_admitido: "Multifustal (el modelo no lo admite)",
   fuera_de_rango: "DAP fuera del rango del modelo",

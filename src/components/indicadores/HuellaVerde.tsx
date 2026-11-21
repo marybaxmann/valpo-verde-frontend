@@ -171,13 +171,15 @@ function CarbonoProyecto({ d, onVerArboles }: { d: IndicadoresProyecto; onVerArb
   const c = d.estimacion_carbono_aereo_lenoso;
   const t = d.estimacion_carbono_aereo_total;
   const v = d.estimacion_variacion_anual_carbono_aereo_total;
+  // Propuesta experimental: si la API trae el resumen por árbol, la tarjeta y los motivos lo usan (una clase por árbol).
+  const rp = d.resumen_proyeccion_anual;
   if (!s || !c) return null;
   const cs = s.cobertura;
   const cc = c.cobertura;
   const sinCarbono = cc.universo_calculo - cc.con_resultado - (cc.con_resultado_exploratorio ?? 0);
   const total = masa(c.total.carbono_t);
   const co2 = masa(c.total.co2e_t);
-  const motivos = Object.entries(cs.motivos)
+  const motivos = Object.entries(rp ? rp.motivos_no_estimable : cs.motivos)
     .filter(([m, v]) => v > 0 && m !== "sin_evaluacion_valida" && m !== "no_presente")
     .sort((a, b) => b[1] - a[1]);
 
@@ -189,7 +191,16 @@ function CarbonoProyecto({ d, onVerArboles }: { d: IndicadoresProyecto; onVerArb
           <span className="bio-tag bio-tag--simulacion">{s.total_fundamentado.co2_kg_anio === null ? "Sin estimación fundamentada" : "Estimación"}</span>
         </header>
         <div className="bx-carbono__cifra">
-          {s.total_fundamentado.co2_kg_anio === null ? (
+          {s.total_fundamentado.co2_kg_anio === null && rp ? (
+            <>
+              <b>{num(rp.con_proyeccion)}</b>
+              <span>
+                de {num(rp.universo_calculo)} árboles evaluados
+                <br />
+                tienen una proyección anual (simulación)
+              </span>
+            </>
+          ) : s.total_fundamentado.co2_kg_anio === null ? (
             <>
               <b>{num(cs.simulacion_exploratoria)}</b>
               <span>
@@ -206,17 +217,26 @@ function CarbonoProyecto({ d, onVerArboles }: { d: IndicadoresProyecto; onVerArb
           )}
         </div>
         <Barra
-          partes={[
-            { n: cs.estimacion_fundamentada, clase: "fund", etiqueta: "fundamentadas" },
-            { n: cs.simulacion_exploratoria, clase: "sim", etiqueta: "simulaciones" },
-            { n: cs.no_estimable, clase: "no", etiqueta: "no estimables" },
-          ]}
+          partes={
+            rp
+              ? [
+                  { n: rp.estimacion_fundamentada, clase: "fund", etiqueta: "fundamentadas" },
+                  { n: rp.simulacion_secuestro_lenoso, clase: "sim", etiqueta: "secuestro en la madera" },
+                  { n: rp.simulacion_variacion_aereo_total, clase: "aereo", etiqueta: "carbono aéreo total (con hojas, aparte)" },
+                  { n: rp.no_estimable, clase: "no", etiqueta: "no estimables" },
+                ]
+              : [
+                  { n: cs.estimacion_fundamentada, clase: "fund", etiqueta: "fundamentadas" },
+                  { n: cs.simulacion_exploratoria, clase: "sim", etiqueta: "simulaciones" },
+                  { n: cs.no_estimable, clase: "no", etiqueta: "no estimables" },
+                ]
+          }
         />
         <p className="bx-carbono__nota">
           Aumento proyectado del carbono en la madera por crecimiento; no es la captura fotosintética. El total oficial suma solo estimaciones
           fundamentadas. Las simulaciones se ven, con su rango, en la ficha de cada árbol.
         </p>
-        {v && v.cobertura.simulacion_exploratoria > 0 && (
+        {!rp && v && v.cobertura.simulacion_exploratoria > 0 && (
           <p className="bx-carbono__nota bx-carbono__extra">
             <span className="bio-tag bio-tag--simulacion">Experimental</span> {num(v.cobertura.simulacion_exploratoria)}{" "}
             {v.cobertura.simulacion_exploratoria === 1 ? "árbol tiene" : "árboles tienen"} además una simulación de la variación anual del carbono aéreo

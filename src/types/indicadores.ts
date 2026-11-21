@@ -121,6 +121,16 @@ export interface IndicadoresProyecto {
   /** Carbono aéreo total con hojas (carbono directo, 2026-11-21): solo cobertura; ausente en la API publicada. */
   estimacion_carbono_aereo_total?: CarbonoAereoTotalAgregado;
   /** Propuesta experimental (2026-11-21): solo cobertura de la variación anual del carbono aéreo total. */
+  /** Propuesta experimental: una sola clase por árbol evaluado. Ausente en la API publicada. */
+  resumen_proyeccion_anual?: {
+    universo_calculo: number;
+    con_proyeccion: number;
+    estimacion_fundamentada: number;
+    simulacion_secuestro_lenoso: number;
+    simulacion_variacion_aereo_total: number;
+    no_estimable: number;
+    motivos_no_estimable: Record<string, number>;
+  };
   estimacion_variacion_anual_carbono_aereo_total?: {
     indicador: "estimacion_variacion_anual_carbono_aereo_total";
     cobertura: { presentes: number; universo_calculo: number; simulacion_exploratoria: number; no_estimable: number; motivos: Record<string, number> };
@@ -187,6 +197,8 @@ export interface MetodoSecuestro {
   base_carbono: string;
   altura: string;
   unidad: string;
+  /** Parámetros de crecimiento con su fuente (Nowak 2024). */
+  crecimiento?: { fuente: string };
 }
 
 interface SecuestroComun {

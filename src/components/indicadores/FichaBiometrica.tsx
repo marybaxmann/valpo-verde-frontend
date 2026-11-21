@@ -14,6 +14,9 @@ import type { Zona } from "./Arbol3D";
  */
 
 const Arbol3D = lazy(() => import("./Arbol3D").then((m) => ({ default: m.Arbol3D })));
+/** Nombre común; si falta o el registro dice «Sin identificar» pese a tener especie, el nombre científico. */
+const tituloArbol = (comun: string | null, cientifico: string | null) =>
+  comun && !(cientifico && comun.trim().toLowerCase() === "sin identificar") ? comun : nombreCientifico(cientifico) || (comun ?? "");
 const n = (v: unknown): number | null => (typeof v === "number" && Number.isFinite(v) ? v : null);
 /** «tallo, ramas, ramillas y hojas». */
 const lista = (xs: string[]) => (xs.length < 2 ? (xs[0] ?? "—") : `${xs.slice(0, -1).join(", ")} y ${xs[xs.length - 1]}`);
@@ -39,9 +42,13 @@ function Captura({
   conCarbonoTotal?: boolean;
 }) {
   // Propuesta experimental: sin secuestro leñoso, se muestra la variación anual del carbono aéreo total (con hojas).
-  const usaVariacion = !!variacion && variacion.tipo === "simulacion_exploratoria" && !!secuestro && secuestro.tipo !== "simulacion_exploratoria" && secuestro.tipo !== "estimacion_fundamentada";
-  const s = usaVariacion ? variacion : secuestro;
-  const titulo = usaVariacion ? "Variación anual del carbono aéreo total" : "Secuestro anual de CO₂";
+  const sinLenoso = !!secuestro && secuestro.tipo !== "simulacion_exploratoria" && secuestro.tipo !== "estimacion_fundamentada";
+  const usaVariacion = !!variacion && variacion.tipo === "simulacion_exploratoria" && sinLenoso;
+  // Sin ninguna proyección: si la especie tiene carbono directo (motivo distinto de «sin_modelo»), manda su motivo.
+  const motivoVariacion =
+    sinLenoso && secuestro.motivo === "sin_modelo" && !!variacion && variacion.tipo !== "simulacion_exploratoria" && variacion.tipo !== "estimacion_fundamentada" && variacion.motivo !== "sin_modelo";
+  const s = usaVariacion || motivoVariacion ? variacion : secuestro;
+  const titulo = usaVariacion || motivoVariacion ? "Variación anual del carbono aéreo total" : "Secuestro anual de CO₂";
   const eventos = { onMouseEnter: () => onExplorar(true), onMouseLeave: () => onExplorar(false), onFocus: () => onExplorar(true), onBlur: () => onExplorar(false) };
   if (!s) return <article className="bio-card bx-captura">Sin datos de captura anual en esta API.</article>;
 
@@ -49,12 +56,12 @@ function Captura({
     return (
       <article className="bio-card bx-captura bx-captura--vacia" tabIndex={0} {...eventos}>
         <span className="bx-eyebrow">{titulo}</span>
-        <strong className="bx-captura__estado">No estimable</strong>
+        <strong className="bx-captura__estado">{s.tipo === "fuera_del_universo" ? "Fuera del cálculo" : "No estimable"}</strong>
         <p className="bx-captura__motivo">{MOTIVO_SECUESTRO[s.motivo] ?? s.detalle}</p>
         <p className="bx-captura__sub">
           {conCarbonoTotal
             ? "La especie tiene un modelo exploratorio de carbono aéreo total, pero todavía no un método de crecimiento aprobado para estimar la captura anual."
-            : "Se calcula cuando la especie tenga un modelo de biomasa y el árbol tenga sus datos completos."}
+            : (s.detalle ?? "Se calcula cuando la especie tenga un modelo de biomasa y el árbol tenga sus datos completos.")}
         </p>
       </article>
     );
@@ -131,10 +138,16 @@ function Captura({
             <li key={t}>{t}</li>
           ))}
         </ul>
+        <p className="bx-detalle__formula">
+          {usaVariacion ? "Variación" : "Secuestro"} = [C(DAP + ΔDAP) − C(DAP)] × 44/12, con ΔDAP = ritmo de crecimiento × factor de luz de copa ({num(s.factores.factor_cle, 2)}) × (1 − muerte
+          regresiva) ({num(s.factores.factor_condicion, 2)}).
+        </p>
         <p className="bx-detalle__pie">
           Modelo {s.modelo.id} · CLE {s.entradas.cle} · muerte regresiva {s.entradas.muerte_regresiva_pct} %
           {usaVariacion ? " · propuesta experimental" : ""}
         </p>
+        <p className="bx-detalle__pie">Ecuación: {s.modelo.fuente}.</p>
+        {s.metodo?.crecimiento?.fuente && <p className="bx-detalle__pie">Crecimiento: {s.metodo.crecimiento.fuente}.</p>}
       </details>
     </article>
   );
@@ -161,6 +174,10 @@ export function FichaBiometrica({ ficha, lugar = null }: { ficha: FichaArbol; lu
       : origenExploratorio(cv?.modelo.confianza, cv?.modelo.especie_ecuacion);
   // Carbono aéreo total (con hojas): solo cuando la especie no tiene modelo leñoso; nunca se muestran ni suman juntos.
   const tv = cv ? null : (ficha.estimacion_carbono_aereo_total?.valor ?? null);
+  // Sin carbono: si la especie tiene carbono directo, se muestra su motivo (p. ej., multifustal) en vez de «sin modelo».
+  const total = ficha.estimacion_carbono_aereo_total;
+  const detalleSinCarbono =
+    carbono?.motivo === "sin_modelo" && total && total.valor === null && total.motivo !== "sin_modelo" ? total.detalle : carbono?.detalle;
   const clase = (a.clase_edad as { etiqueta?: string } | null | undefined)?.etiqueta ?? null;
   const resalta = (z: Zona) => ({
     onMouseEnter: () => setZona(z),
@@ -173,7 +190,7 @@ export function FichaBiometrica({ ficha, lugar = null }: { ficha: FichaArbol; lu
     <div className={`bx-exp ${zona ? `bx-exp--${zona}` : ""}`}>
       <section className="bx-exp__escena" aria-label="Árbol interactivo">
         <header className="bx-exp__titulo">
-          <h2>{(a.nombre_comun as string | null) ?? nombreCientifico(a.especie_cientifica as string | null)}</h2>
+          <h2>{tituloArbol(a.nombre_comun as string | null, a.especie_cientifica as string | null)}</h2>
           <p>
             <em>{nombreCientifico(a.especie_cientifica as string | null)}</em> · {a.tree_code as string}
             {lugar ? ` · ${lugar}` : ""}
@@ -231,7 +248,7 @@ export function FichaBiometrica({ ficha, lugar = null }: { ficha: FichaArbol; lu
           <strong>
             {cv ? num(cv.carbono_kg, 0) : "—"} <small>kg C</small>
           </strong>
-          <span className="bx-kpi__sub">{cv ? `${num(cv.co2e_kg, 0)} kg de CO₂ equivalente en madera` : (carbono?.detalle ?? "Sin estimación")}</span>
+          <span className="bx-kpi__sub">{cv ? `${num(cv.co2e_kg, 0)} kg de CO₂ equivalente en madera` : (detalleSinCarbono ?? "Sin estimación")}</span>
           {exploratorio && (
             <span className="bx-info" title={origen?.largo}>
               Exploratorio · {origen?.corto} ⓘ
