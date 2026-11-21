@@ -1,4 +1,4 @@
-import type { CarbonoAereoTotalArbol, CarbonoArbol, SecuestroArbol } from "./indicadores";
+import type { CarbonoAereoTotalArbol, CarbonoArbol, DescriptivosArbol, SecuestroArbol } from "./indicadores";
 import type { CodigoEtiqueta, EvaluacionVigente } from "./diagnostico";
 import type { OtListada } from "./workOrder";
 import type { Incidencia } from "./incidencia";
@@ -35,6 +35,12 @@ export interface FichaArbol {
   estimacion_carbono_aereo_lenoso?: CarbonoArbol;
   /** Carbono aéreo total con hojas (carbono directo, 2026-11-21); otro componente, exploratorio. Ausente en la API publicada. */
   estimacion_carbono_aereo_total?: CarbonoAereoTotalArbol;
+  /** Propuesta experimental (2026-11-21): variación anual proyectada del carbono aéreo total (con hojas). Ausente en la API publicada. */
+  variacion_anual_carbono_aereo_total?: SecuestroArbol;
+  /** Propuesta experimental: valores descriptivos y condición de copa registrada. Ausente en la API publicada. */
+  descriptivos?: DescriptivosArbol;
+  /** Rasgos de la especie del catálogo (tipo de hoja para la ilustración). */
+  sobre_la_especie?: { genero: string | null; familia: string | null; tipo_hoja: { codigo: string; etiqueta: string | null } | null } | null;
   /** Secuestro anual (decisiones A a C, 2026-11-20); ausente en la API publicada hasta su despliegue. */
   secuestro_anual?: SecuestroArbol;
   evaluacion_vigente: EvaluacionVigente | null;

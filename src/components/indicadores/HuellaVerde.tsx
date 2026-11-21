@@ -1,3 +1,4 @@
+import { DiagnosticoArbolado } from "./DiagnosticoArbolado";
 import type { IndicadoresProyecto, NivelTaxonomico } from "../../types/indicadores";
 import { co2Anual, masa, MOTIVO_SECUESTRO, num, pct } from "./formato";
 
@@ -113,7 +114,7 @@ function Origen({ d }: { d: IndicadoresProyecto }) {
   const filas: [string, number | null, number, string][] = [
     ["Introducidos", o.introducidos.porcentaje, o.introducidos.arboles, "intro"],
     ["Nativos", o.nativos.porcentaje, o.nativos.arboles, "nat"],
-    ["Sin origen en el catálogo", o.origen_no_determinado.porcentaje, o.origen_no_determinado.arboles, "nd"],
+    ["Origen sin determinar", o.origen_no_determinado.porcentaje, o.origen_no_determinado.arboles, "nd"],
   ];
   return (
     <article className="bio-card bio-panel bio-cpanel">
@@ -128,14 +129,17 @@ function Origen({ d }: { d: IndicadoresProyecto }) {
             <span className="bio-corigen__bar">
               <i style={{ width: `${Math.min(100, p ?? 0)}%` }} />
             </span>
-            <strong>{pct(p)}</strong>
+            <strong title={incompleto && clase !== "nd" ? "Mínimo: puede subir cuando se determine el origen de las especies faltantes" : undefined}>
+              {incompleto && clase !== "nd" ? "≥ " : ""}
+              {pct(p)}
+            </strong>
             <small>{num(n)}</small>
           </li>
         ))}
       </ul>
       {incompleto && (
         <p className="bio-panel__foot">
-          {num(o.origen_no_determinado.arboles)} árboles son de especies sin origen registrado en el catálogo; la proporción de nativos puede ser mayor cuando se complete.
+          {num(o.origen_no_determinado.arboles)} árboles no tienen origen determinado (especie sin vínculo al catálogo o sin identificar): los porcentajes de introducidos y nativos son mínimos. Detalle en «Diagnóstico del arbolado» → Calidad de datos.
         </p>
       )}
     </article>
@@ -170,13 +174,16 @@ function CarbonoProyecto({ d, onVerArboles }: { d: IndicadoresProyecto; onVerArb
   const s = d.estimacion_secuestro_anual;
   const c = d.estimacion_carbono_aereo_lenoso;
   const t = d.estimacion_carbono_aereo_total;
+  const v = d.estimacion_variacion_anual_carbono_aereo_total;
+  // Propuesta experimental: si la API trae el resumen por árbol, la tarjeta y los motivos lo usan (una clase por árbol).
+  const rp = d.resumen_proyeccion_anual;
   if (!s || !c) return null;
   const cs = s.cobertura;
   const cc = c.cobertura;
   const sinCarbono = cc.universo_calculo - cc.con_resultado - (cc.con_resultado_exploratorio ?? 0);
   const total = masa(c.total.carbono_t);
   const co2 = masa(c.total.co2e_t);
-  const motivos = Object.entries(cs.motivos)
+  const motivos = Object.entries(rp ? rp.motivos_no_estimable : cs.motivos)
     .filter(([m, v]) => v > 0 && m !== "sin_evaluacion_valida" && m !== "no_presente")
     .sort((a, b) => b[1] - a[1]);
 
@@ -188,7 +195,16 @@ function CarbonoProyecto({ d, onVerArboles }: { d: IndicadoresProyecto; onVerArb
           <span className="bio-tag bio-tag--simulacion">{s.total_fundamentado.co2_kg_anio === null ? "Sin estimación fundamentada" : "Estimación"}</span>
         </header>
         <div className="bx-carbono__cifra">
-          {s.total_fundamentado.co2_kg_anio === null ? (
+          {s.total_fundamentado.co2_kg_anio === null && rp ? (
+            <>
+              <b>{num(rp.con_proyeccion)}</b>
+              <span>
+                de {num(rp.universo_calculo)} árboles evaluados
+                <br />
+                tienen una proyección anual (simulación)
+              </span>
+            </>
+          ) : s.total_fundamentado.co2_kg_anio === null ? (
             <>
               <b>{num(cs.simulacion_exploratoria)}</b>
               <span>
@@ -205,15 +221,32 @@ function CarbonoProyecto({ d, onVerArboles }: { d: IndicadoresProyecto; onVerArb
           )}
         </div>
         <Barra
-          partes={[
-            { n: cs.estimacion_fundamentada, clase: "fund", etiqueta: "fundamentadas" },
-            { n: cs.simulacion_exploratoria, clase: "sim", etiqueta: "simulaciones" },
-            { n: cs.no_estimable, clase: "no", etiqueta: "no estimables" },
-          ]}
+          partes={
+            rp
+              ? [
+                  { n: rp.estimacion_fundamentada, clase: "fund", etiqueta: "fundamentadas" },
+                  { n: rp.simulacion_secuestro_lenoso, clase: "sim", etiqueta: "secuestro en la madera" },
+                  { n: rp.simulacion_variacion_aereo_total, clase: "aereo", etiqueta: "carbono aéreo total (con hojas, aparte)" },
+                  { n: rp.no_estimable, clase: "no", etiqueta: "no estimables" },
+                ]
+              : [
+                  { n: cs.estimacion_fundamentada, clase: "fund", etiqueta: "fundamentadas" },
+                  { n: cs.simulacion_exploratoria, clase: "sim", etiqueta: "simulaciones" },
+                  { n: cs.no_estimable, clase: "no", etiqueta: "no estimables" },
+                ]
+          }
         />
         <p className="bx-carbono__nota">
-          El total oficial suma solo estimaciones fundamentadas. Las simulaciones se ven, con su rango, en la ficha de cada árbol.
+          Aumento proyectado del carbono en la madera por crecimiento; no es la captura fotosintética. El total oficial suma solo estimaciones
+          fundamentadas. Las simulaciones se ven, con su rango, en la ficha de cada árbol.
         </p>
+        {!rp && v && v.cobertura.simulacion_exploratoria > 0 && (
+          <p className="bx-carbono__nota bx-carbono__extra">
+            <span className="bio-tag bio-tag--simulacion">Experimental</span> {num(v.cobertura.simulacion_exploratoria)}{" "}
+            {v.cobertura.simulacion_exploratoria === 1 ? "árbol tiene" : "árboles tienen"} además una simulación de la variación anual del carbono aéreo
+            total, con hojas. Va aparte y no se suma.
+          </p>
+        )}
         {onVerArboles && (
           <button type="button" className="bx-boton" onClick={onVerArboles}>
             Ver árboles →
@@ -329,6 +362,8 @@ export function HuellaVerde({ d, onVerArboles }: { d: IndicadoresProyecto; onVer
         <PerfilTamanos d={d} />
         <Origen d={d} />
       </section>
+
+      {d.diagnostico_descriptivo && <DiagnosticoArbolado d={d.diagnostico_descriptivo} />}
 
       <EnDefinicion d={d} />
     </div>
