@@ -89,6 +89,7 @@ function Captura({
   const max = Math.max(...valores.map((v) => v.co2_kg_anio), 0.1) * 1.15;
   const etiqueta = { lento: "Lento", moderado: "Moderado", rapido: "Rápido" } as const;
   const advertencias = s.advertencias ?? [];
+  const ref = s.tipo === "simulacion_exploratoria" ? (s.categoria_itree ?? null) : null;
 
   return (
     <article className="bio-card bx-captura" tabIndex={0} {...eventos}>
@@ -132,7 +133,11 @@ function Captura({
             <span className="bx-escala__rango" style={{ left: `${(s.rango.co2_kg_anio_min / max) * 100}%`, width: `${((s.rango.co2_kg_anio_max - s.rango.co2_kg_anio_min) / max) * 100}%` }} />
           )}
           {valores.map((v) => (
-            <span key={v.categoria} className={`bx-escala__punto is-${v.categoria}`} style={{ left: `${(v.co2_kg_anio / max) * 100}%` }}>
+            <span
+              key={v.categoria}
+              className={`bx-escala__punto is-${v.categoria} ${ref?.categoria === v.categoria ? "is-ref" : ""}`}
+              style={{ left: `${(v.co2_kg_anio / max) * 100}%` }}
+            >
               <em>{co2Anual(v.co2_kg_anio)}</em>
               <small>{etiqueta[v.categoria]}</small>
             </span>
@@ -140,6 +145,15 @@ function Captura({
         </div>
         <span className="bx-escala__cero">0</span>
       </div>
+      {ref && s.tipo === "simulacion_exploratoria" && (
+        <p className="bx-captura__ref" title={`${ref.fuente}. ${ref.estado}.`}>
+          <span className="bx-captura__ref-punto" aria-hidden="true" />
+          <span>
+            Según i-Tree, la especie crece a ritmo <b>{etiqueta[ref.categoria].toLowerCase()}</b>: unos{" "}
+            <b>{co2Anual(valores.find((v) => v.categoria === ref.categoria)?.co2_kg_anio)} kg de CO₂ al año</b>. Es una referencia, no una estimación aprobada.
+          </span>
+        </p>
+      )}
       <details className="bx-detalle">
         <summary>
           Cómo se calcula{advertencias.length > 0 && <span className="bx-detalle__n">{advertencias.length} avisos</span>}

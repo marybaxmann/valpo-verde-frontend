@@ -293,6 +293,8 @@ interface SecuestroComun {
   /** Modelo exploratorio, altura sin rango publicado, poda intensa o desmoche. */
   advertencias?: string[];
   metodo: MetodoSecuestro;
+  /** Propuesta experimental: categoría de crecimiento según i-Tree (solo referencia, no aprobada). */
+  categoria_itree?: { categoria: "lento" | "moderado" | "rapido"; fuente: string; estado: string } | null;
 }
 
 export interface SecuestroCategoria {
