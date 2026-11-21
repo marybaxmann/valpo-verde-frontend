@@ -114,10 +114,13 @@ export default function IndicesPage() {
           <h1 className="bio-head__title">{vista === "proyecto" ? "Indicadores del proyecto" : "Ficha biométrica del árbol"}</h1>
         </div>
 
-        <div className="bio-head__tools">
-          {vista === "arbol" && listaEvaluados && listaEvaluados.length > 0 && (
+        {vista === "arbol" && listaEvaluados && listaEvaluados.length > 0 && (
+          <div className="bio-head__sel">
             <SelectorArbol arboles={listaEvaluados} sel={arbolSel} onSel={(id) => actualizar({ arbol: id })} />
-          )}
+          </div>
+        )}
+
+        <div className="bio-head__tools">
           <div className="bio-seg" role="tablist" aria-label="Vista">
             <button role="tab" aria-selected={vista === "proyecto"} className={vista === "proyecto" ? "is-on" : ""} onClick={() => actualizar({ vista: null })}>
               Proyecto
