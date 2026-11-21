@@ -196,6 +196,9 @@ function EnDefinicion({ d }: { d: IndicadoresProyecto }) {
           {carbono && carbono.cobertura.con_resultado > 0
             ? `${c!.valor} ${c!.unidad} C estimados en ${num(carbono.cobertura.con_resultado)} de ${num(carbono.cobertura.presentes)} árboles; el método sigue pendiente en la metodología.`
             : "El método de cálculo sigue pendiente en la metodología."}
+          {carbono?.cobertura.con_resultado_exploratorio
+            ? ` Otros ${num(carbono.cobertura.con_resultado_exploratorio)} árboles tienen una estimación exploratoria con modelo sustituto, que no se suma.`
+            : ""}
         </span>
       </div>
       <Secuestro d={d} />

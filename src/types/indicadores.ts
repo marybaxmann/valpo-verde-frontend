@@ -48,6 +48,8 @@ export interface CarbonoAgregado {
     presentes: number;
     universo_calculo: number;
     con_resultado: number;
+    /** Resultados con modelo exploratorio (2026-11-20): se muestran rotulados y no suman al total. */
+    con_resultado_exploratorio?: number;
     por_categoria: Record<CategoriaSinCarbono, number>;
     motivos: Record<string, number>;
   };
@@ -145,10 +147,12 @@ export interface MetodoSecuestro {
 
 interface SecuestroComun {
   unidad: string;
-  modelo: { id: string; fuente: string; confianza: string; especie_ecuacion: string };
+  modelo: { id: string; fuente: string; confianza: string; especie_ecuacion: string; estado?: "aprobado" | "exploratorio" };
   entradas: { dap_cm: number; altura_total_m: number | null; cle: number; muerte_regresiva_pct: number };
   factores: { factor_cle: number; factor_condicion: number };
   supuestos: string[];
+  /** Modelo exploratorio, altura sin rango publicado, poda intensa o desmoche. */
+  advertencias?: string[];
   metodo: MetodoSecuestro;
 }
 
@@ -169,7 +173,14 @@ export type SecuestroArbol =
 /** Carbono de un árbol (B2, CC-069 v1): valor, o null con categoría, motivo y detalle. */
 export type CarbonoArbol =
   | {
-      valor: { volumen_m3: number; biomasa_aerea_lenosa_kg: number; carbono_kg: number; co2e_kg: number; modelo: { id: string; fuente: string } };
+      valor: {
+        volumen_m3: number;
+        biomasa_aerea_lenosa_kg: number;
+        carbono_kg: number;
+        co2e_kg: number;
+        /** estado «exploratorio» (2026-11-20): modelo sustituto que no suma a los totales. */
+        modelo: { id: string; fuente: string; estado?: "aprobado" | "exploratorio"; confianza?: string; especie_ecuacion?: string };
+      };
       categoria: null;
       motivo: null;
       detalle: null;

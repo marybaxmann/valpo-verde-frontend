@@ -17,6 +17,20 @@ import type { SecuestroArbol } from "../../types/indicadores";
  * especie tiene una categoría de crecimiento aprobada; si no, un rango
  * exploratorio rotulado como simulación; o el motivo por el que no se estima.
  */
+/** «acer platanoides» → «Acer platanoides» (la API entrega la clave en minúsculas). */
+const nombreCientifico = (v: string | undefined) => (v ? v.charAt(0).toUpperCase() + v.slice(1) : "");
+
+function Advertencias({ lista }: { lista: string[] | undefined }) {
+  if (!lista || lista.length === 0) return null;
+  return (
+    <ul className="bio-anual__avisos">
+      {lista.map((t) => (
+        <li key={t}>{t}</li>
+      ))}
+    </ul>
+  );
+}
+
 function CapturaAnual({ s }: { s: SecuestroArbol | undefined }) {
   if (!s) {
     return <span className="bio-tag bio-tag--pendiente">Captura anual: método en definición</span>;
@@ -45,6 +59,7 @@ function CapturaAnual({ s }: { s: SecuestroArbol | undefined }) {
           Rango con las categorías de crecimiento lento a rápido de i-Tree Eco, ajustadas por la luz que recibe la copa y su muerte regresiva. La
           especie no tiene una tasa de crecimiento aprobada: no es una medición ni una estimación validada y no se suma a los totales.
         </span>
+        <Advertencias lista={s.advertencias} />
       </div>
     );
   }
@@ -155,6 +170,11 @@ export function FichaBiometrica({ ficha }: { ficha: FichaArbol }) {
               <>
                 <Fila etiqueta="Carbono almacenado" valor={`${num(carbono.valor.carbono_kg, 0)} kg C`} />
                 <Fila etiqueta="CO₂ equivalente" valor={`${num(carbono.valor.co2e_kg, 0)} kg`} />
+                {carbono.valor.modelo.estado === "exploratorio" && (
+                  <span className="bio-callout__motivo">
+                    Estimación exploratoria: ecuación de <i>{nombreCientifico(carbono.valor.modelo.especie_ecuacion)}</i>, otra especie del mismo género. No suma a los totales.
+                  </span>
+                )}
               </>
             ) : (
               <>
@@ -194,6 +214,7 @@ export function FichaBiometrica({ ficha }: { ficha: FichaArbol }) {
                 ? `Carbono aéreo leñoso ${num(carbono.valor.carbono_kg, 0)} kg C · modelo ${carbono.valor.modelo.id}`
                 : carbono.detalle}
           </span>
+          {carbono?.valor?.modelo.estado === "exploratorio" && <span className="bio-tag bio-tag--simulacion">Estimación exploratoria · modelo sustituto</span>}
           <CapturaAnual s={ficha.secuestro_anual} />
         </article>
 
@@ -220,6 +241,7 @@ export function FichaBiometrica({ ficha }: { ficha: FichaArbol }) {
               </strong>
             </div>
           </div>
+          {carbono?.valor?.modelo.estado === "exploratorio" && <p className="bio-panel__sub">Carbono de hoy: estimación exploratoria con modelo sustituto.</p>}
         </article>
 
         <article className="bio-card bio-medicion">
