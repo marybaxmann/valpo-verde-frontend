@@ -327,9 +327,9 @@ export default function ProjectDashboard() {
 
             <article className="sivu-panel sivu-dash__comp">
               <div className="sivu-panel__head">
-                <h2>Composición del inventario</h2>
-                <Link to="../mapa?vista=especies" relative="path" className="sivu-panel__link">
-                  Especies del inventario <Icon name="arrow-right" size={12} />
+                <Link to="../mapa?vista=especies" relative="path" className="sivu-comp__titulo" aria-label="Abrir el catálogo de especies">
+                  <h2>Catálogo de especies</h2>
+                  <Icon name="arrow-right" size={14} />
                 </Link>
               </div>
               {r ? (

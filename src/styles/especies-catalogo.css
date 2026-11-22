@@ -23,14 +23,6 @@
 .sivu-inv__vistas {
   margin-left: auto;
 }
-/* Gráfico de especies bajo el mapa, en la columna lateral. */
-.sivu-inv__comp-link {
-  border: 0;
-  background: none;
-  padding: 0;
-  font: inherit;
-  cursor: pointer;
-}
 @media (max-width: 640px) {
   .sivu-inv__vistas {
     margin-left: 0;
@@ -393,4 +385,56 @@
   .sivu-esp__arbol-med {
     display: none;
   }
+}
+
+/* Columna de la tabla con su encabezado (2026-11-22): el selector queda
+   alineado con el borde de la tabla y el mapa empieza a la altura del título. */
+.sivu-inv__main {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+.sivu-inv__geo-inline {
+  display: inline-flex;
+  margin-right: 6px;
+  vertical-align: -1px;
+  color: var(--sivu-accent);
+}
+/* En una columna: encabezado, luego el mapa y el gráfico, y después la tabla. */
+@media (max-width: 1100px) {
+  .sivu-inv__main {
+    display: contents;
+  }
+  .sivu-inv__head {
+    order: -2;
+  }
+}
+@media (min-width: 901px) and (max-width: 1599px) {
+  .sivu-inv.has-sheet .sivu-inv__main {
+    display: contents;
+  }
+  .sivu-inv.has-sheet .sivu-inv__head {
+    order: -2;
+  }
+}
+/* Título del gráfico como enlace al catálogo («Catálogo de especies →»). */
+.sivu-comp__titulo {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  text-decoration: none;
+}
+.sivu-comp__titulo h2 {
+  margin: 0;
+}
+.sivu-comp__titulo:hover h2,
+.sivu-comp__titulo:focus-visible h2 {
+  color: var(--sivu-accent);
 }
