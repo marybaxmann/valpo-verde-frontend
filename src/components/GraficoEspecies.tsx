@@ -1,11 +1,12 @@
 /**
- * Columnas por especie (pedido de la responsable, 2026-11-22): las seis más
+ * Columnas por especie (pedido de la responsable, 2026-11-22): las cinco más
  * registradas y «Otras» con el resto, en número de árboles y % del inventario
  * (B7 `especies_top`, que trae hasta 10). Se usa en el Dashboard y en el
- * Inventario. Paleta primaveral (menta, cerezo, lila, cielo, durazno y
- * glicina) que evita los tonos de la paleta de riesgo (PR-016 v8.0).
+ * Inventario. Paleta «Naranja y ladrillo» elegida por la responsable: verde,
+ * ladrillo, naranja, naranja claro y crema, de la especie con más árboles a
+ * la quinta.
  */
-const PALETA_PRIMAVERA = ["#4FBFA0", "#F08DB0", "#A98BE3", "#6FBDE8", "#F5AE94", "#8E9BE8"] as const;
+const PALETA_ESPECIES = ["#5C8A2C", "#C6442C", "#E8692F", "#F4A85C", "#FDE5C8"] as const;
 
 export function GraficoEspecies({
   especies,
@@ -17,7 +18,7 @@ export function GraficoEspecies({
   /** Altura menor, para la columna lateral del Inventario. */
   compacto?: boolean;
 }) {
-  const top = especies.slice(0, 6);
+  const top = especies.slice(0, PALETA_ESPECIES.length);
   const enTop = top.reduce((s, e) => s + e.total, 0);
   const otras = Math.max(0, total - enTop);
   const columnas = [
@@ -26,7 +27,7 @@ export function GraficoEspecies({
       nombre: e.nombre_comun ?? e.especie_cientifica ?? "Sin especie",
       detalle: e.especie_cientifica ?? "",
       total: e.total,
-      color: PALETA_PRIMAVERA[i % PALETA_PRIMAVERA.length] as string | null,
+      color: PALETA_ESPECIES[i] as string | null,
     })),
     ...(otras > 0 ? [{ clave: "otras", nombre: "Otras", detalle: "Resto de las especies", total: otras, color: null }] : []),
   ];
