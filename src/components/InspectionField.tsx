@@ -129,14 +129,32 @@ export function InspectionField({
       );
   }
 
+  const tipo = tipoObligatoriedad(campo.obligatoriedad);
+  // Ayuda contextual: precisión de la obligatoriedad (p. ej., «cuando existe copa») y por qué aparece el campo.
+  const ayudas = [
+    tipo === "obligatorio" && campo.obligatoriedad && campo.obligatoriedad.trim() !== "Obligatorio" ? `${campo.obligatoriedad.trim().replace(/\.+$/, "")}.` : null,
+    campo.condicion_texto ? `Cuándo se pide: ${condicionLegible(campo.condicion_texto, etiquetaDe).replace(/\.+$/, "")}.` : null,
+  ].filter(Boolean) as string[];
+  const ayuda = ayudas.join(" ");
+
   return (
     <div className={`sivu-insp-field ${faltante ? "is-missing" : ""}`} id={`wrap-${id}`}>
       <div className="sivu-insp-field__head">
         <label id={`${id}-label`} htmlFor={id} className="sivu-insp-field__name">
           {campo.etiqueta}
           {mostrarUnidad(campo) && <span className="sivu-insp-field__unit">{campo.unidad}</span>}
+          {tipo === "obligatorio" && (
+            <span className="sivu-insp-field__ast" aria-label="obligatorio" title="Obligatorio">
+              *
+            </span>
+          )}
         </label>
-        {campo.obligatoriedad && <span className="sivu-insp-field__req">{campo.obligatoriedad}</span>}
+        {tipo === "opcional" && <span className="sivu-insp-field__opt">opcional</span>}
+        {ayuda && (
+          <span className="sivu-insp-field__info" tabIndex={0} role="note" aria-label={ayuda} data-tip={ayuda}>
+            i
+          </span>
+        )}
       </div>
       {control}
       {referencia && <small className="sivu-insp-field__hint">Registrado en el árbol: {referencia}</small>}
@@ -146,11 +164,24 @@ export function InspectionField({
           Confirmar «{referencia}»
         </button>
       )}
-      {campo.condicion_texto && <small className="sivu-insp-field__hint">{condicionLegible(campo.condicion_texto, etiquetaDe)}</small>}
       {invalido && <small className="sivu-insp-field__error">No es un número válido.</small>}
       {faltante && <small className="sivu-insp-field__error">{faltante}</small>}
     </div>
   );
+}
+
+/**
+ * Presentación de la obligatoriedad del Excel (B16), sin cambiar la regla: el
+ * backend decide qué falta al calcular. «Obligatorio…» → asterisco;
+ * «Opcional» → «opcional»; «Condicional» (y combinaciones) → el campo solo se
+ * ve cuando su condición se cumple, y la ayudita explica por qué aparece.
+ */
+function tipoObligatoriedad(texto: string | null): "obligatorio" | "opcional" | "condicional" | null {
+  const t = (texto ?? "").trim().toLowerCase();
+  if (!t) return null;
+  if (t.startsWith("obligatorio")) return "obligatorio";
+  if (t === "opcional") return "opcional";
+  return "condicional";
 }
 
 /** La unidad se agrega solo si la etiqueta aprobada no la trae ya, p. ej. «Altura total (m)». */
@@ -163,7 +194,7 @@ function mostrarUnidad(campo: CampoFormulario): boolean {
 /** Condición del Excel con los nombres técnicos de otros campos reemplazados por su etiqueta. */
 function condicionLegible(texto: string, etiquetaDe?: (id: string) => string | undefined): string {
   if (!etiquetaDe) return texto;
-  return texto.replace(/[a-z]+(?:_[a-z0-9]+)+/g, (id) => {
+  return texto.replace(/\b[a-z]+(?:_[a-z0-9]+)+\b/g, (id) => {
     return `«${etiquetaDe(id) ?? nombreLegible(id)}»`;
   });
 }

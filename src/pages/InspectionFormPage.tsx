@@ -444,13 +444,24 @@ export default function InspectionFormPage() {
         </div>
       )}
 
+      <IndiceSecciones
+        items={[
+          ...grupos
+            .filter(({ bloques }) => bloques.some((b) => b.campos.some((c) => cumple(c.condicion_activacion, convertidos))))
+            .map(({ seccion }) => ({ id: `sec-${seccion.codigo}`, etiqueta: seccion.etiqueta })),
+          { id: "sec-fotografias", etiqueta: "Fotografías" },
+          ...(calculo ? [{ id: "sec-resultado", etiqueta: "Resultado" }] : []),
+          ...(calculo && calculo.puede_finalizar && !finalizada ? [{ id: "sec-ajustes", etiqueta: "Ajustes" }] : []),
+        ]}
+      />
+
       {grupos.map(({ seccion, bloques }) => {
         const visibles = bloques
           .map((b) => ({ ...b, campos: b.campos.filter((c) => cumple(c.condicion_activacion, convertidos)) }))
           .filter((b) => b.campos.length > 0);
         if (visibles.length === 0) return null;
         return (
-          <section key={seccion.codigo} className="card card--pad sivu-insp__section">
+          <section key={seccion.codigo} id={`sec-${seccion.codigo}`} className="card card--pad sivu-insp__section">
             <h2>{seccion.etiqueta}</h2>
             {visibles.map((b, i) => (
             <div key={b.subtitulo ?? i} className="sivu-insp__block">
@@ -476,7 +487,7 @@ export default function InspectionFormPage() {
         );
       })}
 
-      <section className="card card--pad sivu-insp__section">
+      <section id="sec-fotografias" className="card card--pad sivu-insp__section">
         <h2>Fotografías</h2>
         <p className="sivu-insp__intro">
           Para finalizar una Evaluación inicial, Reevaluación o Levantamiento se requieren al menos dos fotos válidas y distintas de esta inspección. Las vistas de árbol completo, base, tronco y copa son recomendadas. JPG o PNG, hasta 10 MB. Mientras la inspección esté en borrador, una foto subida por error se puede eliminar.
@@ -558,7 +569,7 @@ export default function InspectionFormPage() {
       {calculo && <ResultadoCalculo calculo={calculo} finalizada={!!final} etiqueta={etiqueta} etiquetaCampo={(c) => etiquetaDe.get(c) ?? (c === "fotografias_arbol" ? "Fotografías del árbol" : nombreLegible(c))} />}
 
       {calculo && calculo.puede_finalizar && !finalizada && (
-        <section className="card card--pad sivu-insp__section">
+        <section id="sec-ajustes" className="card card--pad sivu-insp__section">
           <h2>Ajustes del Inspector</h2>
           <p className="sivu-insp__intro">
             Opcional. Si tu criterio técnico difiere del resultado calculado, elige otra categoría y justifícala. El valor calculado se
@@ -718,6 +729,55 @@ export default function InspectionFormPage() {
   );
 }
 
+/**
+ * Índice compacto de secciones (reutiliza `sivu-seg`): fijo bajo la barra
+ * superior, marca la sección visible y lleva a cada una sin recargar ni
+ * perder lo escrito (solo desplaza la página).
+ */
+function IndiceSecciones({ items }: { items: { id: string; etiqueta: string }[] }) {
+  const [activa, setActiva] = useState<string | null>(items[0]?.id ?? null);
+  const clave = items.map((i) => i.id).join("|");
+  useEffect(() => {
+    const els = clave
+      .split("|")
+      .map((id) => document.getElementById(id))
+      .filter((e): e is HTMLElement => e !== null);
+    if (els.length === 0) return;
+    const visibles = new Map<string, number>();
+    const obs = new IntersectionObserver(
+      (entradas) => {
+        for (const e of entradas) visibles.set(e.target.id, e.isIntersecting ? e.boundingClientRect.top : Infinity);
+        const primera = [...visibles.entries()].filter(([, top]) => top !== Infinity).sort((a, b) => a[1] - b[1])[0];
+        if (primera) setActiva(primera[0]);
+      },
+      { rootMargin: "-130px 0px -55% 0px" }
+    );
+    els.forEach((e) => obs.observe(e));
+    return () => obs.disconnect();
+  }, [clave]);
+  if (items.length < 2) return null;
+  return (
+    <nav className="sivu-insp__indice" aria-label="Secciones de la inspección">
+      <div className="sivu-seg sivu-insp__indice-seg">
+        {items.map((i) => (
+          <button
+            key={i.id}
+            type="button"
+            className={`sivu-seg__opt ${activa === i.id ? "is-on" : ""}`}
+            aria-current={activa === i.id ? "true" : undefined}
+            onClick={() => {
+              setActiva(i.id);
+              document.getElementById(i.id)?.scrollIntoView({ behavior: "smooth", block: "start" });
+            }}
+          >
+            {i.etiqueta}
+          </button>
+        ))}
+      </div>
+    </nav>
+  );
+}
+
 function fechaSugeridaTexto(f: CalculoRespuesta["fechas_sugeridas"]["fecha_proxima_inspeccion"]): string {
   if (f.inmediato_y_continuo) return "inmediato y continuo";
   const rango = f.rango_fin && f.rango_fin !== f.rango_inicio ? ` (entre ${fechaChile(f.rango_inicio)} y ${fechaChile(f.rango_fin)})` : "";
@@ -752,7 +812,7 @@ function ResultadoCalculo({
     ["Prioridad ajustada", etiqueta("clasificacion_prioridad", r.clasificacion_prioridad_ajustada)],
   ].filter(([, v]) => v !== "—") as [string, string][];
   return (
-    <section className="card card--pad sivu-insp__section" aria-live="polite">
+    <section id="sec-resultado" className="card card--pad sivu-insp__section" aria-live="polite">
       <h2>Resultado del cálculo</h2>
       <p className={calculo.puede_finalizar ? "sivu-state sivu-state--ok" : "sivu-state"}>
         {finalizada

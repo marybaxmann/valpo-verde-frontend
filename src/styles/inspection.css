@@ -333,3 +333,73 @@
   font: inherit;
   font-size: 13px;
 }
+
+/* Obligatoriedad y ayuda contextual (2026-11-22): asterisco, «opcional» y una «i» con la explicación. */
+.sivu-insp-field__ast {
+  margin-left: 3px;
+  color: var(--classification-high, #b42318);
+  font-weight: 700;
+}
+.sivu-insp-field__opt {
+  font-size: 11px;
+  color: var(--text-faint, var(--text-muted));
+}
+.sivu-insp-field__info {
+  position: relative;
+  flex: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  display: inline-grid;
+  place-items: center;
+  font: 600 10.5px/1 var(--font-body);
+  font-style: italic;
+  color: var(--text-muted);
+  border: 1px solid var(--shell-line, var(--border));
+  background: var(--shell-soft, transparent);
+  cursor: help;
+}
+.sivu-insp-field__info:focus-visible {
+  outline: 2px solid var(--shell-active-bg, currentColor);
+  outline-offset: 2px;
+}
+.sivu-insp-field__info:hover::after,
+.sivu-insp-field__info:focus::after {
+  content: attr(data-tip);
+  position: absolute;
+  z-index: 30;
+  right: 0;
+  top: calc(100% + 6px);
+  width: max-content;
+  max-width: 260px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: var(--text, #1f2a10);
+  color: var(--bg, #fff);
+  font: 400 12px/1.4 var(--font-body);
+  font-style: normal;
+  white-space: normal;
+  box-shadow: var(--shell-float, 0 6px 20px rgba(0, 0, 0, 0.18));
+}
+
+/* Índice de secciones (2026-11-22): fijo bajo la barra superior; las secciones dejan espacio al llegar. */
+.sivu-insp__indice {
+  position: sticky;
+  top: var(--shell-topbar-h, 64px);
+  z-index: 25;
+  padding: 6px 0;
+  background: var(--bg);
+}
+.sivu-insp__indice-seg {
+  display: flex;
+  max-width: 100%;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.sivu-insp__indice-seg .sivu-seg__opt {
+  flex: none;
+  white-space: nowrap;
+}
+.sivu-insp__section {
+  scroll-margin-top: calc(var(--shell-topbar-h, 64px) + 60px);
+}
