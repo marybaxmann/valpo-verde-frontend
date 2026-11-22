@@ -34,10 +34,13 @@
      SIVU PALETA SEMÁNTICA DE CLASIFICACIÓN
      (Solo para badges / categorías técnicas, nunca decoración)
      ================================================== */
-  --classification-critical: #C7252B;
-  --classification-high: #F04A32;
-  --classification-medium: #F9B52B;
-  --classification-low: #DCE8A9;
+  /* Paleta de riesgo, opción C aprobada por la responsable (2026-11-22):
+     bajo verde, moderado amarillo, alto naranjo claro y extremo rojo
+     profundo (más oscuro que alto, para no confundirlos). */
+  --classification-critical: #B3121F;
+  --classification-high: #F59A23;
+  --classification-medium: #F6D03F;
+  --classification-low: #4FA35B;
 
   /* Mapeo de tokens de la aplicación */
   --bg: var(--surface-background);
@@ -94,21 +97,22 @@
   --surface-overlay: rgba(252, 253, 250, 0.95);
   --border-soft: rgba(30, 45, 25, 0.06);
   --border-green: rgba(72, 86, 53, 0.25);
-  --badge-critical-fg: #7a0c10;
-  --badge-critical-bg: #fce8e8;
-  --badge-critical-border: #f7c5c7;
-  --badge-high-fg: #931e0f;
-  --badge-high-bg: #fdeee9;
-  --badge-high-border: #faccc3;
-  --badge-medium-fg: #7f5500;
-  --badge-medium-bg: #fef7e7;
-  --badge-medium-border: #fde5af;
-  --badge-low-fg: #435b1b;
-  --badge-low-bg: #f5f8ea;
-  --badge-low-border: #e2ecc2;
-  --badge-low-dot: #8fa73b;
-  --risk-text-low: #4d6a2e;
-  --risk-text-medium: #946200;
+  /* Extremo: insignia sólida (opción C). */
+  --badge-critical-fg: #ffffff;
+  --badge-critical-bg: #B3121F;
+  --badge-critical-border: #B3121F;
+  --badge-high-fg: #8a4a00;
+  --badge-high-bg: #fef0dc;
+  --badge-high-border: #f9d2a1;
+  --badge-medium-fg: #715a00;
+  --badge-medium-bg: #fef8d9;
+  --badge-medium-border: #f6e39a;
+  --badge-low-fg: #1e6b2b;
+  --badge-low-bg: #e7f4e8;
+  --badge-low-border: #bfe0c3;
+  --badge-low-dot: #4FA35B;
+  --risk-text-low: #2f7a3b;
+  --risk-text-medium: #7a5f00;
   --diagram-neutral: #D3DDD6;
   --diagram-outline: rgba(22, 32, 15, 0.45);
   color-scheme: light;
@@ -158,21 +162,26 @@
   --border-soft: rgba(255, 255, 255, 0.06);
   --border-green: rgba(168, 230, 195, 0.22);
 
-  --badge-critical-fg: #FFB3B5;
-  --badge-critical-bg: #3A1416;
-  --badge-critical-border: #6E2226;
-  --badge-high-fg: #FFB4A5;
-  --badge-high-bg: #3A1A12;
-  --badge-high-border: #6E3022;
-  --badge-medium-fg: #FFD98A;
-  --badge-medium-bg: #33270C;
-  --badge-medium-border: #6B5214;
-  --badge-low-fg: #DCE8A9;
-  --badge-low-bg: #252C14;
-  --badge-low-border: #4A5A22;
-  --badge-low-dot: #B5CC63;
-  --risk-text-low: #C5DA7E;
-  --risk-text-medium: #F9B52B;
+  /* Paleta de riesgo en oscuro (opción C): se aclaran para no perderse en el fondo. */
+  --classification-critical: #D9243A;
+  --classification-high: #F7A43A;
+  --classification-medium: #F6D03F;
+  --classification-low: #5DB869;
+  --badge-critical-fg: #ffffff;
+  --badge-critical-bg: #D9243A;
+  --badge-critical-border: #D9243A;
+  --badge-high-fg: #ffc98a;
+  --badge-high-bg: #3a2810;
+  --badge-high-border: #6e4a1a;
+  --badge-medium-fg: #ffe48a;
+  --badge-medium-bg: #332c0c;
+  --badge-medium-border: #6b5a14;
+  --badge-low-fg: #A6E0AE;
+  --badge-low-bg: #1B3320;
+  --badge-low-border: #2F5A37;
+  --badge-low-dot: #5DB869;
+  --risk-text-low: #A6E0AE;
+  --risk-text-medium: #F6D03F;
   --diagram-neutral: #3A4A41;
   --diagram-outline: rgba(241, 246, 241, 0.4);
 
@@ -1391,7 +1400,7 @@ table.dtable {
   border-color: var(--badge-critical-border);
 }
 .classification-badge--critical .classification-badge__dot {
-  background-color: var(--classification-critical);
+  background-color: #ffffff;
 }
 
 .classification-badge--high {

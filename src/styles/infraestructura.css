@@ -240,17 +240,17 @@
   font-weight: 600;
   white-space: nowrap;
 }
-.sivu-infra-st--sev { background: rgba(240, 74, 50, 0.16); color: #b8321f; }
-.sivu-infra-st--mod { background: rgba(249, 181, 43, 0.2); color: #8a5a00; }
-.sivu-infra-st--lev { background: rgba(160, 180, 90, 0.2); color: #4f6020; }
+.sivu-infra-st--sev { background: rgba(245, 154, 35, 0.18); color: #8a4a00; }
+.sivu-infra-st--mod { background: rgba(246, 208, 63, 0.24); color: #715a00; }
+.sivu-infra-st--lev { background: rgba(79, 163, 91, 0.16); color: #1e6b2b; }
 .sivu-infra-st--sin { background: rgba(79, 163, 224, 0.14); color: #2f6fa8; }
 .sivu-infra-st--nd,
 .sivu-infra-st--sin_dato { background: repeating-linear-gradient(135deg, var(--shell-soft) 0 4px, transparent 4px 8px); color: var(--text-muted); box-shadow: inset 0 0 0 1px var(--shell-line); }
 .sivu-infra-st--na { background: transparent; color: var(--text-faint); box-shadow: inset 0 0 0 1px var(--shell-line); }
 .sivu-infra-st--pend { background: rgba(167, 176, 171, 0.2); color: var(--text-muted); }
-:root[data-theme="dark"] .sivu-infra-st--sev { background: rgba(240, 74, 50, 0.2); color: #ff9a8a; }
-:root[data-theme="dark"] .sivu-infra-st--mod { background: rgba(249, 181, 43, 0.18); color: #f9c75a; }
-:root[data-theme="dark"] .sivu-infra-st--lev { background: rgba(220, 232, 169, 0.16); color: #dce8a9; }
+:root[data-theme="dark"] .sivu-infra-st--sev { background: rgba(247, 164, 58, 0.2); color: #ffc98a; }
+:root[data-theme="dark"] .sivu-infra-st--mod { background: rgba(246, 208, 63, 0.18); color: #ffe48a; }
+:root[data-theme="dark"] .sivu-infra-st--lev { background: rgba(93, 184, 105, 0.16); color: #A6E0AE; }
 :root[data-theme="dark"] .sivu-infra-st--sin { background: rgba(207, 232, 247, 0.14); color: #cfe8f7; }
 .sivu-infra-strip { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
 .sivu-infra-pgrid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
