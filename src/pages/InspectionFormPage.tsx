@@ -42,7 +42,8 @@ import {
   type ValoresCrudos,
   type ValorCrudo,
 } from "../lib/inspectionForm";
-import { fechaChile } from "../lib/dates";
+import { fechaChile, hoyChile } from "../lib/dates";
+import FechaInspeccion, { fechaInspeccionValida } from "../components/FechaInspeccion";
 import { ordenarParaPresentacion } from "../lib/ordenFormulario";
 
 /** Las cuatro vistas recomendadas de la evaluación completa (D-27); su etiqueta viene del catálogo `vista_foto`. */
@@ -114,6 +115,8 @@ export default function InspectionFormPage() {
   const [errorCarga, setErrorCarga] = useState<string | null>(null);
 
   const [inspectionId, setInspectionId] = useState<string | null>(null);
+  const [fechaTerreno, setFechaTerreno] = useState(hoyChile);
+  const [fechaRegistro, setFechaRegistro] = useState<string | null>(null);
   const [valores, setValores] = useState<ValoresCrudos>({});
   const [finalizadasPrevias, setFinalizadasPrevias] = useState(0);
   const [sinGuardar, setSinGuardar] = useState(false);
@@ -173,6 +176,8 @@ export default function InspectionFormPage() {
         if (cancelado || !r) return;
         const [e, inspecciones] = r;
         const borrador = [...inspecciones].reverse().find((i) => i.estado_registro === "preguardado") ?? null;
+        setFechaTerreno(borrador?.fecha_inspeccion ?? hoyChile());
+        setFechaRegistro(borrador?.fecha_registro ?? null);
         if (borrador) {
           setInspectionId(borrador.inspection_id);
           setValores(valoresDeBorrador(borrador));
@@ -215,6 +220,9 @@ export default function InspectionFormPage() {
   const finalizada = final?.finalizada === true;
   // Guardar no bloquea los campos: lo escrito durante el guardado queda como «sin guardar».
   const bloqueado = finalizando || finalizada;
+  const hoy = hoyChile();
+  const fechaMaxima = fechaRegistro && fechaRegistro < hoy ? fechaRegistro : hoy;
+  const fechaInvalida = !fechaInspeccionValida(fechaTerreno, fechaMaxima);
 
   /** Etiqueta de un código de catálogo; el código si el catálogo no lo trae. */
   const etiqueta = (catalogo: string, codigo: unknown): string => {
@@ -255,14 +263,17 @@ export default function InspectionFormPage() {
   }
 
   async function guardar() {
-    if (!esquema || !ot || hayInvalidos) return;
+    if (!esquema || !ot || hayInvalidos || fechaInvalida || bloqueado) return;
     setGuardando(true);
     setGuardadoError(null);
     setGuardadoOk(null);
     const edicionesAlGuardar = ediciones.current;
     try {
-      const body = armarBody(esquema.variables, esquema.campos_arbol, valores, ot.accion.codigo, ot.subtipo?.codigo ?? null);
+      const body = armarBody(
+        esquema.variables, esquema.campos_arbol, valores, ot.accion.codigo, ot.subtipo?.codigo ?? null, fechaTerreno,
+      );
       const res = inspectionId ? await guardarBorrador(inspectionId, body) : await crearBorrador(workOrderId, body);
+      if (!inspectionId) setFechaRegistro(hoy);
       setInspectionId(res.inspection_id);
       const editadoMientras = ediciones.current !== edicionesAlGuardar;
       setSinGuardar(editadoMientras);
@@ -443,6 +454,17 @@ export default function InspectionFormPage() {
           {hayEtiquetasPendientes && <PendingNotice what="el nombre visible de algunos campos" refs="B16 · etiqueta_pendiente" compact />}
         </div>
       )}
+
+      <section className="card card--pad sivu-insp__section">
+        <FechaInspeccion valor={fechaTerreno} maximo={fechaMaxima} bloqueada={bloqueado}
+          cambiar={(fecha) => {
+            setFechaTerreno(fecha);
+            ediciones.current += 1;
+            setSinGuardar(true);
+            setGuardadoOk(null);
+            invalidarCalculo();
+          }} />
+      </section>
 
       {grupos.map(({ seccion, bloques }) => {
         const visibles = bloques
@@ -697,7 +719,7 @@ export default function InspectionFormPage() {
           </div>
         ) : (
           <div className="sivu-insp__bar-actions">
-            <button type="button" className="btn btn-secondary btn-sm" onClick={guardar} disabled={bloqueado || guardando || hayInvalidos || (!sinGuardar && !!inspectionId)}>
+            <button type="button" className="btn btn-secondary btn-sm" onClick={guardar} disabled={bloqueado || guardando || hayInvalidos || fechaInvalida || (!sinGuardar && !!inspectionId)}>
               {guardando ? "Guardando…" : "Guardar borrador"}
             </button>
             <button

@@ -76,6 +76,7 @@ export type ValorCampo = string | number | boolean | null | string[] | number[];
 
 /** Body de POST /work-orders/:id/inspections y PATCH /inspections/:id (estado COMPLETO, nunca un delta). */
 export interface BorradorBody {
+  fecha_inspeccion?: string;
   /** Debe corresponder a la acción de la OT (D-196). */
   tipo_inspeccion_realizada: string;
   subtipo_inspeccion: string | null;
@@ -178,6 +179,7 @@ export interface InspeccionDeOt {
   subtipo_inspeccion: string | null;
   metodo_instrumental: string | null;
   fecha_inspeccion: string;
+  fecha_registro?: string | null;
   observaciones: string | null;
   inspector: string | null;
   finalizada_at: string | null;
