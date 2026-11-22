@@ -65,8 +65,6 @@ export interface CampoFormulario {
   condicion_texto: string | null;
   /** Qué significa el campo (DICCIONARIO_CAMPOS, columna F). Ausente en APIs anteriores. */
   definicion?: string | null;
-  /** Cómo se obtiene en terreno (DICCIONARIO_CAMPOS, columna E). */
-  como_se_obtiene?: string | null;
 }
 
 export interface EsquemaFormulario {

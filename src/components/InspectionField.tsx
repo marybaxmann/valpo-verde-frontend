@@ -185,13 +185,8 @@ export function InspectionField({
   }
 
   const tipo = tipoObligatoriedad(campo.obligatoriedad);
-  // Ayuda «i»: qué significa lo que se pide y cómo se obtiene, tal como lo define el Excel (DICCIONARIO_CAMPOS F y E).
-  const ayuda = [
-    campo.definicion?.trim(),
-    campo.como_se_obtiene?.trim() ? `Cómo se obtiene: ${campo.como_se_obtiene.trim()}` : null,
-  ]
-    .filter(Boolean)
-    .join("\n\n");
+  // Ayuda «i»: qué significa lo que se pide, tal como lo define el Excel (DICCIONARIO_CAMPOS, columna F).
+  const ayuda = campo.definicion?.trim() ?? "";
 
   const respondido = tieneValor(valor);
   const hijo = !!campo.condicion_activacion && campo.condicion_activacion.op !== "siempre";
