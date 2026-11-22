@@ -4,6 +4,7 @@ import { getProjectWithSector } from "../api/projects";
 import type { ProjectWithSector } from "../types/project";
 import { Icon, type IconName } from "../components/Icons";
 import { PendingNotice } from "../components/PendingNotice";
+import { GraficoEspecies } from "../components/GraficoEspecies";
 import { ESTADO_PROYECTO_LABEL } from "../lib/projects";
 import { obtenerResumen } from "../api/resumen";
 import { listarDiagnosticos } from "../api/diagnosticos";
@@ -326,43 +327,17 @@ export default function ProjectDashboard() {
 
             <article className="sivu-panel sivu-dash__comp">
               <div className="sivu-panel__head">
-                <h2>Composición del inventario</h2>
-                <Link to="../mapa" relative="path" className="sivu-panel__link">
-                  Inventario <Icon name="arrow-right" size={12} />
+                <Link to="../mapa?vista=especies" relative="path" className="sivu-comp__titulo" aria-label="Abrir el catálogo de especies">
+                  <h2>Catálogo de especies</h2>
+                  <Icon name="arrow-right" size={14} />
                 </Link>
               </div>
               {r ? (
                 <>
-                  <div className="sivu-lifecycle">
-                    {r.por_ciclo_vida.map((c) => (
-                      <div key={c.codigo ?? "sin"}>
-                        <strong>{c.total}</strong>
-                        <span>{c.etiqueta ?? c.codigo ?? "—"}</span>
-                      </div>
-                    ))}
-                  </div>
-                  <span className="sivu-panel__sub">Especies más registradas</span>
-                  {/* Como la maqueta: las 3 principales en filas de una línea, % sobre el total de árboles (B7). */}
-                  <ul className="sivu-bars">
-                    {r.especies_top.slice(0, 3).map((e) => {
-                      const pct = r.arboles_total > 0 ? Math.round((e.total / r.arboles_total) * 100) : 0;
-                      const max = r.especies_top[0]?.total || 1;
-                      return (
-                        <li key={e.especie_cientifica ?? e.nombre_comun ?? "sin"} title={`${e.especie_cientifica ?? ""} · ${e.total} árboles`}>
-                          <span>{e.nombre_comun ?? e.especie_cientifica ?? "Sin especie"}</span>
-                          <i>
-                            <b style={{ width: `${(e.total / max) * 100}%` }} />
-                          </i>
-                          <strong>{pct}%</strong>
-                        </li>
-                      );
-                    })}
-                  </ul>
-                  {r.especies_distintas > 3 && (
-                    <Link to="../mapa" relative="path" className="sivu-panel__link sivu-dash__more">
-                      Ver las {r.especies_distintas} especies <Icon name="arrow-right" size={12} />
-                    </Link>
-                  )}
+                  <p className="sivu-comp__resumen">
+                    <strong>{r.arboles_total}</strong> árboles · <strong>{r.especies_distintas}</strong> especies
+                  </p>
+                  <GraficoEspecies especies={r.especies_top} total={r.arboles_total} />
                 </>
               ) : (
                 <p className="sivu-state">{errorResumen ? "Sin datos." : "Cargando…"}</p>

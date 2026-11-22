@@ -1,5 +1,5 @@
 import { lazy, Suspense, useEffect, useMemo, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useSearchParams } from "react-router-dom";
 import { getProjectWithSector } from "../api/projects";
 import { listarInventario, listarInventarioCompleto } from "../api/inventory";
 import type { ProjectWithSector } from "../types/project";
@@ -12,6 +12,10 @@ import { ClassificationBadge } from "../components/ClassificationBadge";
 import { Icon } from "../components/Icons";
 import { TreeSheet } from "../components/TreeSheet";
 import { NewTreeModal } from "../components/NewTreeModal";
+import { CatalogoEspecies } from "../components/inventario/CatalogoEspecies";
+import { GraficoEspecies } from "../components/GraficoEspecies";
+import { obtenerResumen } from "../api/resumen";
+import type { ResumenProyecto } from "../types/resumen";
 import { useAuth } from "../hooks/useAuth";
 import { ESTADO_PROYECTO_LABEL } from "../lib/projects";
 import { getArcgisApiKey } from "../lib/arcgis";
@@ -57,18 +61,49 @@ export default function InventoryPage() {
   const [mapError, setMapError] = useState<string | null>(null);
   // `?arbol=<id>` abre la ficha de ese árbol (enlace desde Incidencias).
   const [selectedId, setSelectedId] = useState<string | null>(() => new URLSearchParams(window.location.search).get("arbol"));
+  // Apartado del módulo (2026-11-22): «Árboles» (tabla y mapa) o «Especies» (catálogo), en `?vista=especies`.
+  const [params, setParams] = useSearchParams();
+  const vistaEspecies = params.get("vista") === "especies";
+  // Composición por especie (B7), la misma del Dashboard.
+  const [resumen, setResumen] = useState<{ id: string; datos: ResumenProyecto } | null>(null);
+  useEffect(() => {
+    let cancelado = false;
+    obtenerResumen(projectId)
+      .then((datos) => !cancelado && setResumen({ id: projectId, datos }))
+      .catch(() => {});
+    return () => {
+      cancelado = true;
+    };
+  }, [projectId]);
+  const composicion = resumen?.id === projectId ? resumen.datos : null;
+  const cambiarVista = (especies: boolean) => {
+    const p = new URLSearchParams(params);
+    if (especies) p.set("vista", "especies");
+    else {
+      p.delete("vista");
+      p.delete("especie");
+    }
+    setParams(p, { replace: true });
+  };
   // Etiquetas del ciclo de vida desde el catálogo de la API (provisionales, D-28).
   const [cicloLabel, setCicloLabel] = useState<Record<string, string>>({});
   // Evaluación vigente por árbol (B18 `vigente`, CC-050): la columna de riesgo la muestra tal como llega.
   const [vigentes, setVigentes] = useState<Map<string, EvaluacionVigente> | null>(null);
+  // Fecha de la última inspección finalizada del árbol (B18 `fecha_inspeccion`), para «Última evaluación».
+  const [ultimaEval, setUltimaEval] = useState<Map<string, string>>(new Map());
   useEffect(() => {
     let cancelled = false;
     listarDiagnosticos(projectId)
       .then((ds) => {
         if (cancelled) return;
         const m = new Map<string, EvaluacionVigente>();
-        for (const d of ds) if (d.vigente) m.set(d.tree_id, d.vigente);
+        const f = new Map<string, string>();
+        for (const d of ds) {
+          if (d.vigente) m.set(d.tree_id, d.vigente);
+          if (d.fecha_inspeccion) f.set(d.tree_id, d.fecha_inspeccion);
+        }
         setVigentes(m);
+        setUltimaEval(f);
       })
       .catch(() => !cancelled && setVigentes(new Map()));
     return () => {
@@ -172,39 +207,50 @@ export default function InventoryPage() {
   const hasta = Math.min(offset + PAGE, total);
   const filtrando = Boolean(estado || busqueda);
 
-  return (
-    <div className={`sivu-inv ${selected ? "has-sheet" : ""}`}>
-      <header className="sivu-phead">
-        <div>
-          <div className="sivu-phead__eyebrow">
-            {project && (
-              <span className={`sivu-chip ${project.estado_proyecto === "activo" ? "sivu-chip--ok" : ""}`}>
-                {ESTADO_PROYECTO_LABEL[project.estado_proyecto]}
-              </span>
-            )}
-            {detail?.sector && <span>{detail.sector.nombre_sector}</span>}
-          </div>
-          <h1 className="sivu-phead__title">Inventario</h1>
-          <p className="sivu-phead__meta">
-            {!detail && !projectError && "Cargando proyecto…"}
-            {projectError && (
-              <span className="sivu-phead__error">
-                <Icon name="alert" size={13} /> {projectError}
-              </span>
-            )}
-            {project && pagina && `${pagina.total} ${pagina.total === 1 ? "árbol" : "árboles"}${filtrando ? " con estos filtros" : " en el proyecto"}`}
-          </p>
+  // Encabezado del módulo: con «Árboles» va sobre la tabla (el selector queda alineado con
+  // ella y el mapa sube a la altura del título); con «Especies», a todo el ancho.
+  const encabezado = (
+    <header className="sivu-phead sivu-inv__head">
+      <div>
+        <div className="sivu-phead__eyebrow">
+          {project && (
+            <span className={`sivu-chip ${project.estado_proyecto === "activo" ? "sivu-chip--ok" : ""}`}>
+              {ESTADO_PROYECTO_LABEL[project.estado_proyecto]}
+            </span>
+          )}
+          {detail?.sector && <span>{detail.sector.nombre_sector}</span>}
         </div>
-        {/* Alta: solo Usuario municipal y con el proyecto activo (CC-042: un proyecto cerrado es solo consulta). */}
-        {isMunicipal && project && !cerrado && (
-          <button className="btn btn-primary" onClick={() => setCreating(true)}>
-            <Icon name="plus" size={15} />
-            Nuevo árbol
+        <h1 className="sivu-phead__title">Inventario</h1>
+        <p className="sivu-phead__meta">
+          {!detail && !projectError && "Cargando proyecto…"}
+          {projectError && (
+            <span className="sivu-phead__error">
+              <Icon name="alert" size={13} /> {projectError}
+            </span>
+          )}
+          {project && pagina && `${pagina.total} ${pagina.total === 1 ? "árbol" : "árboles"}${filtrando ? " con estos filtros" : " en el proyecto"}`}
+        </p>
+      </div>
+      {/* Alta: solo Usuario municipal y con el proyecto activo (CC-042: un proyecto cerrado es solo consulta). */}
+      {isMunicipal && project && !cerrado && (
+        <button className="btn btn-primary" onClick={() => setCreating(true)}>
+          <Icon name="plus" size={15} />
+          Nuevo árbol
+        </button>
+      )}
+      {!projectError && (
+        <div className="sivu-seg sivu-inv__vistas" role="tablist" aria-label="Apartado del inventario">
+          <button type="button" role="tab" aria-selected={!vistaEspecies} className={`sivu-seg__opt ${!vistaEspecies ? "is-on" : ""}`} onClick={() => cambiarVista(false)}>
+            Árboles
           </button>
-        )}
-      </header>
-
-      {created.length > 0 && (
+          <button type="button" role="tab" aria-selected={vistaEspecies} className={`sivu-seg__opt ${vistaEspecies ? "is-on" : ""}`} onClick={() => cambiarVista(true)}>
+            Especies
+          </button>
+        </div>
+      )}
+    </header>
+  );
+  const avisoCreados = created.length > 0 && (
         <div className="sivu-inv__created" role="status">
           <Icon name="check" size={15} />
           <span>
@@ -218,10 +264,29 @@ export default function InventoryPage() {
             .
           </span>
         </div>
+  );
+
+  return (
+    <div className={`sivu-inv ${selected ? "has-sheet" : ""}`}>
+      {(vistaEspecies || projectError) && encabezado}
+
+      {(vistaEspecies || projectError) && avisoCreados}
+
+      {!projectError && vistaEspecies && (
+        <CatalogoEspecies
+          projectId={projectId}
+          onArbol={(id) => {
+            cambiarVista(false);
+            setSelectedId(id);
+          }}
+        />
       )}
 
-      {!projectError && (
+      {!projectError && !vistaEspecies && (
         <div className="sivu-inv__layout">
+          <div className="sivu-inv__main">
+          {encabezado}
+          {avisoCreados}
           <article className="sivu-panel sivu-inv__table">
             <div className="sivu-inv__toolbar">
               <label className="sivu-inv__search">
@@ -271,34 +336,30 @@ export default function InventoryPage() {
                   <tr>
                     <th>Código</th>
                     <th>Especie</th>
-                    <th>Ciclo de vida</th>
-                    <th>Riesgo vigente</th>
-                    <th className="sivu-table__num" title="Diámetro a la altura del pecho; en el multifustal, el equivalente">DAP</th>
-                    <th className="sivu-table__num">Altura</th>
                     <th>Sector</th>
                     <th>Ubicación</th>
-                    <th>Registro</th>
-                    <th aria-label="En el mapa" />
+                    <th title="Fecha de la última inspección finalizada">Última evaluación</th>
+                    <th>Riesgo vigente</th>
                   </tr>
                 </thead>
                 <tbody>
                   {!pagina && !listError && (
                     <tr>
-                      <td colSpan={10} className="sivu-inv__state">
+                      <td colSpan={6} className="sivu-inv__state">
                         Cargando inventario…
                       </td>
                     </tr>
                   )}
                   {listError && (
                     <tr>
-                      <td colSpan={10} className="sivu-inv__state sivu-inv__state--error">
+                      <td colSpan={6} className="sivu-inv__state sivu-inv__state--error">
                         <Icon name="alert" size={13} /> {listError}
                       </td>
                     </tr>
                   )}
                   {pagina && !listError && pagina.data.length === 0 && (
                     <tr>
-                      <td colSpan={10} className="sivu-inv__state">
+                      <td colSpan={6} className="sivu-inv__state">
                         {filtrando ? "Ningún árbol coincide con la búsqueda o el filtro." : "El proyecto todavía no tiene árboles registrados."}
                       </td>
                     </tr>
@@ -318,26 +379,23 @@ export default function InventoryPage() {
                             {a.especie_cientifica && a.nombre_comun && <em>{a.especie_cientifica}</em>}
                           </span>
                         </td>
-                        <td>
-                          <span className="sivu-inv__lifecycle">{ciclo(a.estado_ciclo_vida)}</span>
+                        <td>{a.sector ?? "—"}</td>
+                        <td className="sivu-inv__place">
+                          {/* El pin indica que el árbol tiene ubicación en el mapa. */}
+                          {a.ubicacion ? (
+                            <span className="sivu-inv__geo-inline" title="Con ubicación">
+                              <Icon name="pin" size={12} />
+                            </span>
+                          ) : null}
+                          {a.ubicacion_descriptiva ?? "—"}
                         </td>
+                        <td className="sivu-table__num">{ultimaEval.get(a.id) ? fechaChile(ultimaEval.get(a.id)!) : "—"}</td>
                         <td>
                           {vigentes?.get(a.id)?.resultado.clasificacion_riesgo ? (
                             <ClassificationBadge level={vigentes.get(a.id)!.resultado.clasificacion_riesgo!.etiqueta} />
                           ) : (
                             <span className="status-pill">{vigentes ? "Pendiente" : "…"}</span>
                           )}
-                        </td>
-                        <td className="sivu-table__num">
-                          {a.dap_cm != null ? `${a.dap_cm.toLocaleString("es-CL")} cm` : "—"}
-                          {a.multifustal && a.numero_fustes ? <small className="sivu-inv__fustes">{a.numero_fustes} fustes</small> : null}
-                        </td>
-                        <td className="sivu-table__num">{a.altura_total_m != null ? `${a.altura_total_m.toLocaleString("es-CL")} m` : "—"}</td>
-                        <td>{a.sector ?? "—"}</td>
-                        <td className="sivu-inv__place">{a.ubicacion_descriptiva ?? "—"}</td>
-                        <td className="sivu-table__num">{fechaChile(a.fecha_registro)}</td>
-                        <td className="sivu-inv__geo" title={a.ubicacion ? "Con ubicación" : "Sin ubicación"}>
-                          {a.ubicacion ? <Icon name="pin" size={14} /> : <span aria-label="Sin ubicación">—</span>}
                         </td>
                       </tr>
                     ))}
@@ -371,6 +429,7 @@ export default function InventoryPage() {
               </div>
             )}
           </article>
+          </div>
 
           <aside className="sivu-inv__side">
             <article className="sivu-panel sivu-inv__map-panel">
@@ -397,6 +456,20 @@ export default function InventoryPage() {
                 )}
               </div>
             </article>
+            {composicion && (
+              <article className="sivu-panel sivu-inv__comp">
+                <div className="sivu-panel__head">
+                  <button type="button" className="sivu-comp__titulo" onClick={() => cambiarVista(true)} aria-label="Abrir el catálogo de especies">
+                    <h2>Catálogo de especies</h2>
+                    <Icon name="arrow-right" size={14} />
+                  </button>
+                </div>
+                <p className="sivu-comp__resumen">
+                  <strong>{composicion.arboles_total}</strong> árboles · <strong>{composicion.especies_distintas}</strong> especies
+                </p>
+                <GraficoEspecies especies={composicion.especies_top} total={composicion.arboles_total} compacto />
+              </article>
+            )}
           </aside>
         </div>
       )}

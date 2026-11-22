@@ -68,6 +68,7 @@ function projectRoutes() {
       <Route path="projects/:projectId/mapa" element={<InventoryRoute />} />
       <Route path="projects/:projectId/arboles/:treeId" element={<TreeHistoryPage />} />
       <Route path="projects/:projectId/inventario" element={<Navigate to="../mapa" relative="path" replace />} />
+      <Route path="projects/:projectId/especies" element={<Navigate to="../mapa?vista=especies" relative="path" replace />} />
       <Route path="projects/:projectId/inspeccion" element={<RiskPage />} />
       <Route path="projects/:projectId/infraestructura" element={<InfrastructurePage />} />
       <Route path="projects/:projectId/mantencion" element={<MaintenancePage />} />
