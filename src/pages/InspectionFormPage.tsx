@@ -20,6 +20,7 @@ import type {
   AjustesBody,
   CalculoRespuesta,
   CampoAjustable,
+  CampoFormulario,
   EsquemaFormulario,
   FinalizacionRespuesta,
   FinalizarBody,
@@ -29,6 +30,7 @@ import type {
   VistaFoto,
 } from "../types/inspection";
 import { InspectionField } from "../components/InspectionField";
+import { tieneValor, tipoObligatoriedad } from "../lib/inspectionPresentacion";
 import { PendingNotice } from "../components/PendingNotice";
 import { Icon } from "../components/Icons";
 import {
@@ -216,6 +218,8 @@ export default function InspectionFormPage() {
     for (const f of calculo?.campos_faltantes ?? []) m.set(f.campo, f.motivo);
     return m;
   }, [calculo]);
+  // Etapa visible del formulario (una a la vez); null = la primera disponible.
+  const [etapa, setEtapa] = useState<string | null>(null);
   const hayInvalidos = todos.some((c) => valorInvalido(c, valores[c.identificador]));
   const finalizada = final?.finalizada === true;
   // Guardar no bloquea los campos: lo escrito durante el guardado queda como «sin guardar».
@@ -247,6 +251,21 @@ export default function InspectionFormPage() {
   const fechaInspeccionCambiada = !!fechaInspeccion && fechaInspeccion !== sugeridaInspeccion;
   const fechaMonitoreoCambiada = !!fechaMonitoreo && fechaMonitoreo !== sugeridaMonitoreo;
   const fechasSinJustificar = (fechaInspeccionCambiada || fechaMonitoreoCambiada) && !justificacionFecha.trim();
+
+  /** Cambia de etapa sin tocar los valores (viven en esta página) y vuelve al inicio de la etapa. */
+  function irAEtapa(id: string, enfocar?: string) {
+    setEtapa(id);
+    requestAnimationFrame(() => {
+      const campo = enfocar ? document.getElementById(enfocar) : null;
+      if (campo) {
+        campo.scrollIntoView({ behavior: "smooth", block: "center" });
+        return;
+      }
+      // Vuelve al inicio de la etapa solo si quedó arriba de la pantalla.
+      const inicio = document.getElementById("etapa-actual");
+      if (inicio && inicio.getBoundingClientRect().top < 0) inicio.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  }
 
   function invalidarCalculo() {
     cambiosDesdeCalculo.current += 1;
@@ -342,6 +361,7 @@ export default function InspectionFormPage() {
       // Si mientras tanto cambió un campo o una foto, ese resultado ya no corresponde.
       if (cambiosDesdeCalculo.current !== cambiosAlCalcular) return;
       setCalculo(res);
+      irAEtapa("sec-resultado");
       setAjustesCalculados(ajustesFirma);
       setFechaInspeccion(res.fechas_sugeridas.fecha_proxima_inspeccion.fecha ?? "");
       setFechaMonitoreo(res.fechas_sugeridas.fecha_proximo_monitoreo.fecha ?? "");
@@ -420,12 +440,69 @@ export default function InspectionFormPage() {
   const puedeFinalizar =
     !!calculo?.puede_finalizar && !sinGuardar && !finalizada && !ajustesPendientesDeCalcular && !ajustesSinJustificar && !fechasSinJustificar;
 
+  // Etapas (maqueta «Evaluación guiada SIVU»): cada sección de presentación es
+  // una etapa; si con las respuestas actuales ningún campo suyo aplica, queda
+  // como «No aplica» (no se navega). Luego Fotografías, Revisión y, tras
+  // calcular, Resultado y Ajustes.
+  const seccionesTodas = grupos.map(({ seccion, bloques }) => ({
+    seccion,
+    bloques: bloques
+      .map((b) => ({ ...b, campos: b.campos.filter((c) => cumple(c.condicion_activacion, convertidos)) }))
+      .filter((b) => b.campos.length > 0),
+  }));
+  const seccionesVisibles = seccionesTodas.filter((g) => g.bloques.length > 0);
+  // Avance: solo campos aplicables (visibles), obligatorios o condicionales, ya respondidos.
+  // Es una guía; qué falta oficialmente lo dice el backend al calcular.
+  const avanceDe = (campos: CampoFormulario[]) => {
+    const cuentan = campos.filter((c) => tipoObligatoriedad(c.obligatoriedad) !== "opcional" && c.obligatoriedad);
+    return { total: cuentan.length, hechas: cuentan.filter((c) => tieneValor(valores[c.identificador])).length };
+  };
+  const etapasDatos: Etapa[] = seccionesTodas.map(({ seccion, bloques }) => ({
+    id: `sec-${seccion.codigo}`,
+    etiqueta: seccion.etiqueta,
+    tipo: "datos",
+    sub: SUBTITULO_ETAPA[seccion.codigo] ?? null,
+    na: bloques.length === 0,
+    campos: bloques.flatMap((b) => b.campos.map((c) => c.identificador)),
+    avance: avanceDe(bloques.flatMap((b) => b.campos)),
+    faltan: 0,
+  }));
+  const extra = (id: string, etiqueta: string, tipo: Etapa["tipo"], sub: string, campos: string[] = []): Etapa => ({
+    id, etiqueta, tipo, sub, na: false, campos, avance: null, faltan: 0,
+  });
+  const etapas: Etapa[] = [
+    ...etapasDatos,
+    extra("sec-fotografias", "Fotografías", "fotos", "Fotografías de esta inspección. Puedes volver a cualquier etapa sin perder lo respondido.", ["fotografias_arbol"]),
+    extra("sec-revision", "Revisión", "revision", "Revisa qué falta antes de calcular y finalizar. Toca una etapa para volver a ella."),
+    ...(calculo ? [extra("sec-resultado", "Resultado", "resultado", "Resultado que entrega SIVU con las reglas vigentes.")] : []),
+    ...(calculo && calculo.puede_finalizar && !finalizada
+      ? [extra("sec-ajustes", "Ajustes", "ajustes", "Opcional: ajusta la categoría con tu criterio técnico y revisa las próximas fechas.")]
+      : []),
+  ].map((e) => ({ ...e, faltan: e.campos.filter((c) => faltantes.has(c)).length }));
+  const flujo = etapas.filter((e) => !e.na);
+  const conAvance = flujo.filter((e) => e.avance && e.avance.total > 0);
+  const totalPreguntas = conAvance.reduce((s, e) => s + (e.avance?.total ?? 0), 0);
+  const totalHechas = conAvance.reduce((s, e) => s + (e.avance?.hechas ?? 0), 0);
+  const etapasListas = conAvance.filter((e) => e.avance && e.avance.hechas === e.avance.total).length;
+  const pct = totalPreguntas ? Math.round((totalHechas / totalPreguntas) * 100) : 0;
+  const activa = flujo.find((e) => e.id === etapa)?.id ?? flujo[0].id;
+  const iActiva = flujo.findIndex((e) => e.id === activa);
+  const etapaActiva = flujo[iActiva];
+  const anterior = flujo[iActiva - 1];
+  const siguiente = flujo[iActiva + 1];
+  const pendientes = totalPreguntas - totalHechas;
+  /** Desde la lista de faltantes: abre la etapa del campo y lo centra. */
+  const irACampo = (campo: string) => {
+    const destino = etapas.find((e) => e.campos.includes(campo));
+    if (destino) irAEtapa(destino.id, campo === "fotografias_arbol" ? undefined : `wrap-campo-${campo}`);
+  };
+
   return (
-    <div className="sivu-insp">
+    <div className="sivu-insp sivu-insp--guiada">
       <Link to={`/inspector/projects/${ot.proyecto.id}/ot-inspeccion`} className="sivu-insp__back">
         <Icon name="arrow-left" size={14} /> Inspección
       </Link>
-      <header className="page-header">
+      <header className="page-header sivu-insp__cabecera">
         <div>
           <h1>
             {ot.accion.etiqueta}
@@ -455,27 +532,44 @@ export default function InspectionFormPage() {
         </div>
       )}
 
-      <section className="card card--pad sivu-insp__section">
-        <FechaInspeccion valor={fechaTerreno} maximo={fechaMaxima} bloqueada={bloqueado}
-          cambiar={(fecha) => {
-            setFechaTerreno(fecha);
-            ediciones.current += 1;
-            setSinGuardar(true);
-            setGuardadoOk(null);
-            invalidarCalculo();
-          }} />
-      </section>
+      <div className="sivu-insp__layout">
+      <RecorridoEtapas
+        etapas={etapas}
+        flujo={flujo}
+        activa={activa}
+        onElegir={(id) => irAEtapa(id)}
+        pct={pct}
+        partes={`${etapasListas} de ${conAvance.length} etapas listas`}
+        detalle={pendientes > 0 ? `Faltan ${pendientes} respuestas` : "Todo respondido: ya puedes calcular"}
+        fotos={fotos?.length ?? 0}
+      />
 
-      {grupos.map(({ seccion, bloques }) => {
-        const visibles = bloques
-          .map((b) => ({ ...b, campos: b.campos.filter((c) => cumple(c.condicion_activacion, convertidos)) }))
-          .filter((b) => b.campos.length > 0);
-        if (visibles.length === 0) return null;
+      <div className="sivu-insp__main">
+      <EncabezadoEtapa etapa={etapaActiva} n={iActiva + 1} total={flujo.length} />
+
+      {seccionesVisibles.map(({ seccion, bloques: visibles }) => {
+        if (`sec-${seccion.codigo}` !== activa) return null;
         return (
-          <section key={seccion.codigo} className="card card--pad sivu-insp__section">
-            <h2>{seccion.etiqueta}</h2>
+          <section key={seccion.codigo} id={`sec-${seccion.codigo}`} className="sivu-insp__section sivu-insp__etapa">
+            {/* Fecha de terreno (PR #39): va en la primera etapa, antes de las preguntas. */}
+            {activa === flujo[0].id && (
+              <div className="card sivu-insp__block sivu-insp__fecha">
+                <FechaInspeccion
+                  valor={fechaTerreno}
+                  maximo={fechaMaxima}
+                  bloqueada={bloqueado}
+                  cambiar={(fecha) => {
+                    setFechaTerreno(fecha);
+                    ediciones.current += 1;
+                    setSinGuardar(true);
+                    setGuardadoOk(null);
+                    invalidarCalculo();
+                  }}
+                />
+              </div>
+            )}
             {visibles.map((b, i) => (
-            <div key={b.subtitulo ?? i} className="sivu-insp__block">
+            <div key={b.subtitulo ?? i} className="card sivu-insp__block">
             {b.subtitulo && <h3 className="sivu-insp__subhead">{b.subtitulo}</h3>}
             <div className="sivu-insp__grid">
               {b.campos.map((c) => (
@@ -488,7 +582,6 @@ export default function InspectionFormPage() {
                   referencia={referenciaArbol(ot, c.identificador)}
                   faltante={faltantes.get(c.identificador)}
                   projectId={ot.proyecto.id}
-                  etiquetaDe={(id) => etiquetaDe.get(id)}
                 />
               ))}
             </div>
@@ -498,7 +591,8 @@ export default function InspectionFormPage() {
         );
       })}
 
-      <section className="card card--pad sivu-insp__section">
+      {activa === "sec-fotografias" && (
+      <section id="sec-fotografias" className="card card--pad sivu-insp__section">
         <h2>Fotografías</h2>
         <p className="sivu-insp__intro">
           Para finalizar una Evaluación inicial, Reevaluación o Levantamiento se requieren al menos dos fotos válidas y distintas de esta inspección. Las vistas de árbol completo, base, tronco y copa son recomendadas. JPG o PNG, hasta 10 MB. Mientras la inspección esté en borrador, una foto subida por error se puede eliminar.
@@ -576,11 +670,20 @@ export default function InspectionFormPage() {
           </p>
         )}
       </section>
+      )}
 
-      {calculo && <ResultadoCalculo calculo={calculo} finalizada={!!final} etiqueta={etiqueta} etiquetaCampo={(c) => etiquetaDe.get(c) ?? (c === "fotografias_arbol" ? "Fotografías del árbol" : nombreLegible(c))} />}
+      {calculo && activa === "sec-resultado" && (
+        <ResultadoCalculo
+          calculo={calculo}
+          finalizada={!!final}
+          etiqueta={etiqueta}
+          etiquetaCampo={(c) => etiquetaDe.get(c) ?? (c === "fotografias_arbol" ? "Fotografías del árbol" : nombreLegible(c))}
+          onIrACampo={irACampo}
+        />
+      )}
 
-      {calculo && calculo.puede_finalizar && !finalizada && (
-        <section className="card card--pad sivu-insp__section">
+      {calculo && calculo.puede_finalizar && !finalizada && activa === "sec-ajustes" && (
+        <section id="sec-ajustes" className="card card--pad sivu-insp__section">
           <h2>Ajustes del Inspector</h2>
           <p className="sivu-insp__intro">
             Opcional. Si tu criterio técnico difiere del resultado calculado, elige otra categoría y justifícala. El valor calculado se
@@ -678,6 +781,47 @@ export default function InspectionFormPage() {
         </section>
       )}
 
+      {activa === "sec-revision" && (
+        <section id="sec-revision" className="sivu-insp__section sivu-insp__revision">
+          <div className="card sivu-insp__block">
+            {flujo
+              .filter((e) => e.tipo === "datos" || e.tipo === "fotos")
+              .map((e) => {
+                const lista = e.tipo === "fotos" ? (fotos?.length ?? 0) > 0 && e.faltan === 0 : !!e.avance && e.avance.hechas === e.avance.total && e.faltan === 0;
+                const faltanRespuestas = e.avance ? e.avance.total - e.avance.hechas : 0;
+                const texto =
+                  e.tipo === "fotos"
+                    ? `${fotos?.length ?? 0} foto(s) subida(s)`
+                    : e.faltan > 0
+                    ? `Faltan ${e.faltan} según el cálculo`
+                    : lista
+                    ? "Lista"
+                    : `Faltan ${faltanRespuestas}`;
+                return (
+                  <div key={e.id} className="sivu-insp__revision-fila">
+                    <span className={`sivu-insp__nodo ${lista ? "is-lista" : ""}`} aria-hidden="true">
+                      {lista ? <Icon name="check" size={13} /> : flujo.indexOf(e) + 1}
+                    </span>
+                    <span className="sivu-insp__revision-nombre">{e.etiqueta}</span>
+                    <span className={`sivu-insp__chip ${lista ? "is-ok" : "is-falta"}`}>{texto}</span>
+                    <button type="button" className="btn btn-ghost btn-sm" onClick={() => irAEtapa(e.id)}>
+                      Ir
+                    </button>
+                  </div>
+                );
+              })}
+          </div>
+          <div className="sivu-insp__revision-nota">
+            <strong>{calculo ? "Ya calculaste esta inspección" : "Cuando termines, calcula"}</strong>
+            <span>
+              {calculo
+                ? "El resultado está en la etapa Resultado. Si cambias una respuesta, vuelve a calcular."
+                : "«Calcular» aplica las reglas vigentes de SIVU y muestra el resultado o lo que falte. Primero guarda el borrador."}
+            </span>
+          </div>
+        </section>
+      )}
+
       {final && (
         <section className={`card card--pad sivu-insp__section ${final.finalizada ? "sivu-insp__done" : ""}`} role="status">
           {final.finalizada ? (
@@ -700,13 +844,34 @@ export default function InspectionFormPage() {
 
       <div className="sivu-insp__bar">
         <div className="sivu-insp__bar-msg">
+          {!hayInvalidos && !fechaInvalida && !guardadoError && !calculoError && !finalError && !guardadoOk && !sinGuardar && (
+            <span className="sivu-insp__bar-falta">
+              <span className={`sivu-insp__punto ${pendientes > 0 ? "is-falta" : "is-ok"}`} aria-hidden="true" />
+              {pendientes > 0 ? `Faltan ${pendientes} respuestas` : "Todo respondido"}
+            </span>
+          )}
           {hayInvalidos && <span className="sivu-state--error">Hay números mal escritos.</span>}
+          {fechaInvalida && <span className="sivu-state--error">Revisa la fecha de inspección (etapa {flujo[0].etiqueta}).</span>}
           {guardadoError && <span className="sivu-state--error">{guardadoError}</span>}
           {calculoError && <span className="sivu-state--error">{calculoError}</span>}
           {finalError && <span className="sivu-state--error">{finalError}</span>}
           {!guardadoError && guardadoOk && <span className="sivu-state--ok">{guardadoOk}</span>}
           {sinGuardar && !guardadoError && <span>Cambios sin guardar.</span>}
         </div>
+        <div className="sivu-insp__bar-fila">
+        {anterior ? (
+          <button
+            type="button"
+            className="btn btn-ghost sivu-insp__paso-ant"
+            onClick={() => irAEtapa(anterior.id)}
+            aria-label={`Etapa anterior: ${anterior.etiqueta}`}
+            title={`Etapa anterior: ${anterior.etiqueta}`}
+          >
+            <Icon name="arrow-left" size={16} />
+          </button>
+        ) : (
+          <span className="sivu-insp__paso-ant is-vacio" aria-hidden="true" />
+        )}
         {confirmando ? (
           <div className="sivu-insp__bar-actions">
             <span>¿Finalizar la inspección? No se podrá editar después.</span>
@@ -735,8 +900,196 @@ export default function InspectionFormPage() {
             </button>
           </div>
         )}
+        {siguiente && (
+          <button type="button" className="btn btn-primary sivu-insp__paso-sig" onClick={() => irAEtapa(siguiente.id)}>
+            Siguiente · {siguiente.etiqueta} <Icon name="arrow-right" size={14} />
+          </button>
+        )}
+        </div>
+      </div>
+      </div>
       </div>
     </div>
+  );
+}
+
+/** Una línea por etapa de presentación (maqueta aprobada); sin texto, la etapa no lleva bajada. */
+const SUBTITULO_ETAPA: Record<string, string> = {
+  identificacion: "Dónde está el árbol y qué especie es.",
+  medidas: "Tamaño del árbol y de su copa. Si algo no existe, márcalo en «no presenta».",
+  zona_objetivo: "Qué hay bajo el árbol y con qué frecuencia se ocupa.",
+  raices_cuello: "Revisa la base del árbol. Las preguntas de detalle aparecen solo cuando corresponden.",
+  tronco: "Cavidades, heridas, grietas y uniones del tronco.",
+  copa_ramas: "Ramas, follaje y estructura de la copa.",
+  tutorado: "Aparece solo cuando corresponde según las medidas del árbol.",
+  infraestructura: "Lo que rodea al árbol: vereda, calzada, suelo, elementos verticales y redes.",
+};
+
+type Etapa = {
+  id: string;
+  etiqueta: string;
+  tipo: "datos" | "fotos" | "revision" | "resultado" | "ajustes";
+  /** Bajada de la etapa (maqueta aprobada). */
+  sub: string | null;
+  /** Ningún campo de la etapa aplica con las respuestas actuales. */
+  na: boolean;
+  campos: string[];
+  /** Faltantes que devolvió /calcular en esta etapa. */
+  faltan: number;
+  /** Preguntas aplicables obligatorias o condicionales y cuántas tienen respuesta. */
+  avance: { total: number; hechas: number } | null;
+};
+
+const etapaLista = (e: Etapa) => !!e.avance && e.avance.total > 0 && e.avance.hechas === e.avance.total && e.faltan === 0;
+
+/** Encabezado de la etapa activa: «Parte N de M», título, bajada y avance de la etapa. */
+function EncabezadoEtapa({ etapa, n, total }: { etapa: Etapa; n: number; total: number }) {
+  const a = etapa.avance;
+  const pct = a && a.total ? Math.round((a.hechas / a.total) * 100) : 100;
+  return (
+    <header className="sivu-insp__etapa-head" id="etapa-actual">
+      <span className="sivu-insp__etapa-n">
+        Parte {n} de {total}
+      </span>
+      <h2>{etapa.etiqueta}</h2>
+      {etapa.sub && <p className="sivu-insp__etapa-sub">{etapa.sub}</p>}
+      {a && a.total > 0 && (
+        <div className="sivu-insp__etapa-avance">
+          <div className="sivu-insp__barra" role="progressbar" aria-valuemin={0} aria-valuemax={a.total} aria-valuenow={a.hechas} aria-label="Respuestas de esta etapa">
+            <span style={{ width: `${pct}%` }} />
+          </div>
+          <span>
+            {a.hechas} de {a.total} respuestas{a.hechas === a.total ? " · ¡etapa lista!" : ` · faltan ${a.total - a.hechas}`}
+          </span>
+        </div>
+      )}
+    </header>
+  );
+}
+
+/**
+ * Recorrido de etapas (maqueta aprobada): en escritorio, panel lateral con el
+ * anillo de avance general y la lista vertical de etapas (lista, actual, por
+ * hacer, no aplica). En pantallas angostas se resume en una barra segmentada
+ * con «Ver etapas». Solo cambia lo que se ve; los valores siguen en la página.
+ */
+function RecorridoEtapas({
+  etapas,
+  flujo,
+  activa,
+  onElegir,
+  pct,
+  partes,
+  detalle,
+  fotos,
+}: {
+  etapas: Etapa[];
+  flujo: Etapa[];
+  activa: string;
+  onElegir: (id: string) => void;
+  pct: number;
+  partes: string;
+  detalle: string;
+  fotos: number;
+}) {
+  const [abierto, setAbierto] = useState(false);
+  const circ = 2 * Math.PI * 26;
+  const actual = flujo.find((e) => e.id === activa);
+  const nActual = flujo.findIndex((e) => e.id === activa) + 1;
+  const meta = (e: Etapa): string => {
+    if (e.na) return "No aplica con las respuestas actuales";
+    if (e.tipo === "fotos") return fotos ? `${fotos} foto(s) subida(s)` : "Sin fotografías aún";
+    if (e.tipo === "revision") return detalle;
+    if (e.tipo === "resultado") return "Del último cálculo";
+    if (e.tipo === "ajustes") return "Opcional";
+    if (e.faltan > 0) return `Faltan ${e.faltan} según el cálculo`;
+    if (!e.avance || e.avance.total === 0) return "Solo preguntas opcionales";
+    return e.avance.hechas === e.avance.total ? `Lista · ${e.avance.total} respuestas` : `${e.avance.hechas} de ${e.avance.total} respondidas`;
+  };
+  const lista = (
+    <ol className="sivu-insp__etapas">
+      {etapas.map((e) => {
+        const n = flujo.indexOf(e) + 1;
+        const esActual = e.id === activa;
+        const hecha = e.tipo === "fotos" ? fotos > 0 && e.faltan === 0 : etapaLista(e);
+        const estado = e.na ? "is-na" : esActual ? "is-actual" : hecha ? "is-lista" : "";
+        return (
+          <li key={e.id}>
+            <button
+              type="button"
+              className={`sivu-insp__etapa-item ${estado}`}
+              aria-current={esActual ? "step" : undefined}
+              disabled={e.na}
+              onClick={() => {
+                onElegir(e.id);
+                setAbierto(false);
+              }}
+            >
+              <span className="sivu-insp__nodo" aria-hidden="true">
+                {e.na ? "–" : hecha && !esActual ? <Icon name="check" size={13} /> : n}
+              </span>
+              <span className="sivu-insp__etapa-txt">
+                <span className="sivu-insp__etapa-nombre">{e.etiqueta}</span>
+                <span className="sivu-insp__etapa-meta">{meta(e)}</span>
+              </span>
+              {e.faltan > 0 && (
+                <span className="sivu-insp__indice-falta" aria-label={`faltan ${e.faltan} según el cálculo`}>
+                  {e.faltan}
+                </span>
+              )}
+            </button>
+          </li>
+        );
+      })}
+    </ol>
+  );
+  return (
+    <aside className="sivu-insp__recorrido" aria-label="Etapas de la evaluación">
+      <div className="sivu-insp__progreso">
+        <svg width="64" height="64" viewBox="0 0 64 64" role="img" aria-label={`Avance ${pct} por ciento`}>
+          <circle cx="32" cy="32" r="26" className="sivu-insp__anillo-fondo" />
+          <circle
+            cx="32"
+            cy="32"
+            r="26"
+            className="sivu-insp__anillo"
+            strokeDasharray={`${(pct / 100) * circ} ${circ}`}
+            transform="rotate(-90 32 32)"
+          />
+          <text x="32" y="37" textAnchor="middle" className="sivu-insp__anillo-txt">
+            {pct}%
+          </text>
+        </svg>
+        <div className="sivu-insp__progreso-txt">
+          <strong>{partes}</strong>
+          <span>{detalle}</span>
+        </div>
+      </div>
+
+      {/* Escritorio: lista vertical siempre visible. */}
+      <div className="sivu-insp__recorrido-lista">{lista}</div>
+
+      {/* Pantalla angosta: barra segmentada y lista desplegable. */}
+      <div className="sivu-insp__recorrido-movil">
+        <div className="sivu-insp__segmentos" aria-hidden="true">
+          {flujo.map((e) => (
+            <span
+              key={e.id}
+              className={e.id === activa ? "is-actual" : (e.tipo === "fotos" ? fotos > 0 : etapaLista(e)) ? "is-lista" : ""}
+            />
+          ))}
+        </div>
+        <button type="button" className="sivu-insp__ver-etapas" aria-expanded={abierto} onClick={() => setAbierto((v) => !v)}>
+          <span>
+            Parte {nActual} de {flujo.length} · {actual?.etiqueta}
+          </span>
+          <span className="sivu-insp__ver-etapas-pct">
+            {pct}% · {abierto ? "Ocultar" : "Ver etapas"}
+          </span>
+        </button>
+        {abierto && lista}
+      </div>
+    </aside>
   );
 }
 
@@ -752,11 +1105,14 @@ function ResultadoCalculo({
   finalizada,
   etiqueta,
   etiquetaCampo,
+  onIrACampo,
 }: {
   calculo: CalculoRespuesta;
   finalizada: boolean;
   etiqueta: (catalogo: string, codigo: unknown) => string;
   etiquetaCampo: (campo: string) => string;
+  /** Abre la etapa del campo faltante. */
+  onIrACampo: (campo: string) => void;
 }) {
   const r = calculo.resultado;
   const filas: [string, string][] = [
@@ -774,7 +1130,7 @@ function ResultadoCalculo({
     ["Prioridad ajustada", etiqueta("clasificacion_prioridad", r.clasificacion_prioridad_ajustada)],
   ].filter(([, v]) => v !== "—") as [string, string][];
   return (
-    <section className="card card--pad sivu-insp__section" aria-live="polite">
+    <section id="sec-resultado" className="card card--pad sivu-insp__section" aria-live="polite">
       <h2>Resultado del cálculo</h2>
       <p className={calculo.puede_finalizar ? "sivu-state sivu-state--ok" : "sivu-state"}>
         {finalizada
@@ -796,7 +1152,16 @@ function ResultadoCalculo({
         <ul className="sivu-insp__missing">
           {calculo.campos_faltantes.map((f) => (
             <li key={`${f.hoja}-${f.campo}`}>
-              <a href={`#wrap-campo-${f.campo}`}>{etiquetaCampo(f.campo)}</a> — {f.motivo}
+              <a
+                href={`#wrap-campo-${f.campo}`}
+                onClick={(e) => {
+                  e.preventDefault();
+                  onIrACampo(f.campo);
+                }}
+              >
+                {etiquetaCampo(f.campo)}
+              </a>{" "}
+              — {f.motivo}
             </li>
           ))}
         </ul>

@@ -1,0 +1,813 @@
+/* ==================================================
+   Evaluación guiada (maqueta aprobada «Evaluación guiada SIVU», 2026-11-22).
+   Port fiel de la maqueta: panel lateral con anillo de avance y etapas,
+   una sola etapa visible, tarjetas compactas con preguntas en filas,
+   pastillas y cápsula de acciones. Solo presentación; usa las variables
+   de tema de SIVU (claro y oscuro con <html data-theme>).
+   ================================================== */
+.sivu-insp--guiada {
+  --insp-sel: var(--sivu-primary);
+  --insp-sel-text: #fbfcf8;
+  --insp-sel-soft: var(--sivu-primary-surface);
+  --insp-ok: var(--sivu-accent);
+  --insp-ok-text: #fff;
+  --insp-ok-soft: rgba(47, 122, 82, 0.12);
+  --insp-chip: var(--surface-subtle);
+  --insp-line: var(--border-green);
+  --insp-follow: rgba(72, 86, 53, 0.06);
+  --insp-rail: rgba(30, 45, 25, 0.035);
+  --insp-warn-bg: var(--badge-medium-bg);
+  --insp-warn-fg: var(--badge-medium-fg);
+  max-width: 1240px;
+  padding-bottom: 32px;
+}
+:root[data-theme="dark"] .sivu-insp--guiada {
+  --insp-sel: var(--sivu-accent);
+  --insp-sel-text: #0f1a0d;
+  --insp-ok-text: #0f1a0d;
+  --insp-ok-soft: rgba(168, 230, 195, 0.14);
+  --insp-follow: rgba(168, 230, 195, 0.05);
+  --insp-rail: rgba(255, 255, 255, 0.025);
+}
+
+/* Cabecera compacta */
+.sivu-insp--guiada .sivu-insp__cabecera {
+  margin: 4px 0 10px;
+}
+.sivu-insp--guiada .sivu-insp__cabecera h1 {
+  font-size: 20px;
+}
+.sivu-insp--guiada .sivu-insp__notes {
+  margin-bottom: 10px;
+}
+
+/* Disposición: panel lateral + etapa */
+.sivu-insp__layout {
+  display: grid;
+  grid-template-columns: 280px minmax(0, 1fr);
+  gap: 24px;
+  align-items: start;
+}
+.sivu-insp__main {
+  min-width: 0;
+  max-width: 800px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* Panel lateral */
+.sivu-insp__recorrido {
+  position: sticky;
+  top: calc(var(--shell-topbar-h, 64px) + 12px);
+  max-height: calc(100vh - var(--shell-topbar-h, 64px) - 24px);
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 14px 12px;
+  border-radius: 26px;
+  background: var(--insp-rail);
+  border: 1px solid var(--border-soft);
+}
+.sivu-insp__progreso {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px;
+  border-radius: 22px;
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
+}
+.sivu-insp__anillo-fondo,
+.sivu-insp__anillo {
+  fill: none;
+  stroke-width: 8;
+}
+.sivu-insp__anillo-fondo {
+  stroke: var(--insp-chip);
+}
+.sivu-insp__anillo {
+  stroke: var(--insp-ok);
+  stroke-linecap: round;
+  transition: stroke-dasharray 0.4s ease;
+}
+.sivu-insp__anillo-txt {
+  fill: var(--text);
+  font: 700 15px var(--font-body);
+}
+.sivu-insp__progreso-txt {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+.sivu-insp__progreso-txt strong {
+  font-size: 14.5px;
+  font-weight: 600;
+}
+.sivu-insp__progreso-txt span {
+  font-size: 12.5px;
+  color: var(--text-muted);
+}
+.sivu-insp__etapas {
+  position: relative;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.sivu-insp__recorrido-lista .sivu-insp__etapas::before {
+  content: "";
+  position: absolute;
+  left: 26px;
+  top: 22px;
+  bottom: 22px;
+  width: 2px;
+  border-radius: 2px;
+  background: var(--insp-line);
+}
+.sivu-insp__etapa-item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 50px;
+  padding: 7px 12px;
+  border: 0;
+  border-radius: 18px;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.sivu-insp__etapa-item:hover:not(:disabled):not(.is-actual) {
+  background: var(--surface-subtle);
+}
+.sivu-insp__etapa-item.is-actual {
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
+}
+.sivu-insp__etapa-item:disabled {
+  cursor: default;
+}
+.sivu-insp__nodo {
+  box-sizing: border-box;
+  position: relative;
+  z-index: 1;
+  flex: none;
+  width: 30px;
+  height: 30px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 600;
+  background: var(--surface);
+  color: var(--text-muted);
+  border: 2px solid var(--insp-line);
+}
+.is-lista > .sivu-insp__nodo,
+.sivu-insp__nodo.is-lista {
+  background: var(--insp-ok);
+  border-color: var(--insp-ok);
+  color: var(--insp-ok-text);
+}
+.is-actual > .sivu-insp__nodo {
+  color: var(--text);
+  border-color: var(--insp-sel);
+  box-shadow: 0 0 0 5px var(--insp-sel-soft);
+}
+.is-na > .sivu-insp__nodo {
+  border-style: dashed;
+  background: transparent;
+}
+.sivu-insp__etapa-txt {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.sivu-insp__etapa-nombre {
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.3;
+}
+.is-actual .sivu-insp__etapa-nombre {
+  font-weight: 650;
+}
+.is-na .sivu-insp__etapa-nombre {
+  color: var(--text-muted);
+}
+.sivu-insp__etapa-meta {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+.sivu-insp__indice-falta {
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 18px;
+  text-align: center;
+  background: var(--insp-warn-bg);
+  color: var(--insp-warn-fg);
+  border: 1px solid var(--badge-medium-border);
+}
+.sivu-insp__recorrido-movil {
+  display: none;
+}
+
+/* Encabezado de la etapa */
+.sivu-insp__etapa-head {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  scroll-margin-top: calc(var(--shell-topbar-h, 64px) + 16px);
+}
+.sivu-insp__etapa-n {
+  align-self: flex-start;
+  height: 26px;
+  padding: 0 12px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  font-size: 12.5px;
+  font-weight: 600;
+  background: var(--insp-ok-soft);
+  color: var(--sivu-primary-dark);
+}
+.sivu-insp__etapa-head h2 {
+  margin: 0;
+  font-size: 28px;
+  line-height: 1.15;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+}
+.sivu-insp__etapa-sub {
+  margin: 0;
+  max-width: 620px;
+  font-size: 14.5px;
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+.sivu-insp__etapa-avance {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 12.5px;
+  color: var(--text-muted);
+}
+.sivu-insp__etapa-avance > span {
+  white-space: nowrap;
+}
+.sivu-insp__barra {
+  flex: 1;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--insp-chip);
+  overflow: hidden;
+}
+.sivu-insp__barra > span {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--insp-ok);
+  transition: width 0.3s ease;
+}
+
+/* Secciones dentro de la etapa: el título ya está en el encabezado. */
+.sivu-insp__main > .sivu-insp__section {
+  margin: 0;
+}
+.sivu-insp__main > .card.sivu-insp__section {
+  padding: 16px 20px;
+  border-radius: 26px;
+}
+.sivu-insp__main > .card.sivu-insp__section > h2:first-child {
+  display: none;
+}
+.sivu-insp__main > .card.sivu-insp__section.sivu-insp__done > h2:first-child {
+  display: block;
+}
+.sivu-insp__etapa,
+.sivu-insp__revision {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Grupos de preguntas: tarjetas redondeadas y compactas */
+.sivu-insp--guiada .sivu-insp__block {
+  margin: 0;
+  padding: 4px 20px 6px;
+  border-radius: 26px;
+}
+.sivu-insp--guiada .sivu-insp__block > .sivu-insp__subhead {
+  margin: 10px 0 0;
+  padding: 0;
+  border: 0;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+.sivu-insp__etapa .sivu-insp__grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+.sivu-insp__etapa .sivu-insp-field {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 6px 18px;
+  padding: 10px 0;
+  border: 0;
+  border-top: 1px solid var(--border-soft);
+  border-radius: 0;
+}
+.sivu-insp__etapa .sivu-insp__grid > .sivu-insp-field:first-child {
+  border-top: 0;
+}
+.sivu-insp__etapa .sivu-insp-field.is-child {
+  margin: 0 0 6px 32px;
+  padding: 9px 14px;
+  border-top: 0;
+  border-radius: 18px;
+  background: var(--insp-follow);
+}
+.sivu-insp__etapa .sivu-insp-field.is-missing {
+  margin: 4px 0;
+  padding: 9px 14px;
+  border: 1px solid var(--red-500);
+  border-radius: 18px;
+  background: var(--red-50);
+}
+.sivu-insp__etapa .sivu-insp-field > :not(.sivu-insp-field__head):not(.sivu-insp-field__control) {
+  grid-column: 1 / -1;
+  margin-left: 34px;
+}
+.sivu-insp__etapa .sivu-insp-field__head {
+  flex-wrap: nowrap;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 6px 12px;
+}
+.sivu-insp__etapa .sivu-insp-field__name {
+  font-size: 14.5px;
+  font-weight: 500;
+  line-height: 1.4;
+  padding-top: 1px;
+}
+.sivu-insp-field__mark {
+  box-sizing: border-box;
+  flex: none;
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid var(--insp-line);
+}
+.sivu-insp-field__mark.is-opt {
+  border-style: dotted;
+}
+.sivu-insp-field.is-answered .sivu-insp-field__mark {
+  border: 0;
+  background: var(--insp-ok);
+  color: var(--insp-ok-text);
+}
+.sivu-insp__etapa .sivu-insp-field__control {
+  justify-self: end;
+  min-width: 0;
+}
+/* Controles anchos (tarjetas, notas, varias opciones o 4+ pastillas) bajan a su propia línea. */
+.sivu-insp__etapa .sivu-insp-field__control:has(> .sivu-insp-field__cards, > textarea, > .sivu-insp-field__seg--chips, > .sivu-insp-field__seg:not(.sivu-insp-field__seg--escala) > button:nth-child(4)) {
+  grid-column: 1 / -1;
+  justify-self: stretch;
+  margin-left: 34px;
+}
+.sivu-insp__etapa .sivu-insp-field__control > input,
+.sivu-insp__etapa .sivu-insp-field__control > select {
+  width: 200px;
+}
+/* Especie: el input y su ayuda («Especie del catálogo») van uno bajo el otro. */
+.sivu-insp__etapa .sivu-insp-field__control:has(> datalist) {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+}
+.sivu-insp__etapa .sivu-insp-field__control:has(> datalist) > :not(input):not(datalist) {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+/* Controles redondeados */
+.sivu-insp__etapa .sivu-insp-field input[type="text"],
+.sivu-insp__etapa .sivu-insp-field input[type="date"],
+.sivu-insp__etapa .sivu-insp-field select {
+  height: 42px;
+  border-radius: 14px;
+  padding: 0 14px;
+  font-size: 15px;
+}
+.sivu-insp__etapa .sivu-insp-field textarea {
+  min-height: 72px;
+  border-radius: 18px;
+  padding: 10px 14px;
+  font-size: 14.5px;
+}
+.sivu-insp--guiada .sivu-insp-field__seg {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.sivu-insp--guiada .sivu-insp-field__seg button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-width: 68px;
+  height: 40px;
+  padding: 0 18px;
+  border-radius: 999px;
+  border: 1px solid var(--insp-line);
+  background: var(--insp-chip);
+  color: var(--text);
+  font-size: 14.5px;
+  font-weight: 500;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+.sivu-insp--guiada .sivu-insp-field__seg--chips button {
+  min-width: 0;
+  height: 38px;
+  padding: 0 15px;
+  font-size: 14px;
+}
+.sivu-insp--guiada .sivu-insp-field__seg--escala button {
+  min-width: 0;
+  width: 42px;
+  height: 42px;
+  padding: 0;
+  font-weight: 600;
+}
+.sivu-insp--guiada .sivu-insp-field__seg button.is-on {
+  background: var(--insp-sel);
+  border-color: var(--insp-sel);
+  color: var(--insp-sel-text);
+  font-weight: 600;
+}
+.sivu-insp--guiada .sivu-insp-field__seg button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+.sivu-insp-field__cards {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.sivu-insp-field__cards button {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 46px;
+  padding: 9px 16px;
+  border-radius: 18px;
+  border: 1px solid var(--insp-line);
+  background: var(--insp-chip);
+  color: var(--text);
+  font: inherit;
+  font-size: 14.5px;
+  text-align: left;
+  cursor: pointer;
+}
+.sivu-insp-field__cards button.is-on {
+  border-color: var(--insp-sel);
+  box-shadow: inset 0 0 0 1px var(--insp-sel);
+  background: var(--insp-sel-soft);
+  font-weight: 600;
+}
+.sivu-insp-field__dot {
+  box-sizing: border-box;
+  flex: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 999px;
+  border: 2px solid var(--insp-line);
+  background: var(--surface);
+}
+.sivu-insp-field__cards button.is-on .sivu-insp-field__dot {
+  border: 6px solid var(--insp-sel);
+}
+
+/* Fecha de terreno en la primera etapa: etiqueta a la izquierda, fecha a la derecha. */
+.sivu-insp--guiada .sivu-insp__etapa .sivu-insp__fecha .sivu-insp-field {
+  grid-template-columns: minmax(0, 1fr) auto;
+  border-top: 0;
+}
+.sivu-insp--guiada .sivu-insp__etapa .sivu-insp__fecha .sivu-insp-field > label {
+  grid-column: 1;
+  margin: 0;
+  font-size: 14.5px;
+  font-weight: 500;
+}
+.sivu-insp--guiada .sivu-insp__etapa .sivu-insp__fecha .sivu-insp-field > input {
+  grid-column: 2;
+  grid-row: 1;
+  width: 200px;
+  margin: 0;
+}
+.sivu-insp--guiada .sivu-insp__etapa .sivu-insp__fecha .sivu-insp-field > small {
+  margin-left: 0;
+}
+
+/* Ayuda «i»: significado del campo y cómo se obtiene (dos párrafos del Excel). */
+.sivu-insp--guiada .sivu-insp-field__info:hover::after,
+.sivu-insp--guiada .sivu-insp-field__info:focus::after {
+  left: 0;
+  right: auto;
+  width: max-content;
+  max-width: min(340px, 80vw);
+  padding: 10px 12px;
+  border-radius: 14px;
+  font-size: 12.5px;
+  line-height: 1.45;
+  white-space: pre-line;
+}
+
+/* Revisión final */
+.sivu-insp__revision-fila {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 0;
+  border-top: 1px solid var(--border-soft);
+}
+.sivu-insp__revision-fila:first-child {
+  border-top: 0;
+}
+.sivu-insp__revision-nombre {
+  flex: 1;
+  min-width: 0;
+  font-size: 14.5px;
+  font-weight: 500;
+}
+.sivu-insp__chip {
+  display: inline-flex;
+  align-items: center;
+  height: 26px;
+  padding: 0 11px;
+  border-radius: 999px;
+  font-size: 12.5px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.sivu-insp__chip.is-ok {
+  background: var(--insp-ok-soft);
+  color: var(--sivu-primary-dark);
+}
+.sivu-insp__chip.is-falta {
+  background: var(--insp-warn-bg);
+  color: var(--insp-warn-fg);
+}
+.sivu-insp__revision-fila .btn {
+  border-radius: 999px;
+}
+.sivu-insp__revision-nota {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 16px 20px;
+  border-radius: 24px;
+  border: 2px dashed var(--insp-line);
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+.sivu-insp__revision-nota strong {
+  color: var(--text);
+  font-size: 15px;
+}
+
+/* Barra inferior (maqueta): estado arriba; anterior, acciones y siguiente en una fila.
+   Va fija abajo, así la navegación nunca queda tapada. */
+.sivu-insp--guiada .sivu-insp__bar {
+  position: sticky;
+  bottom: 12px;
+  margin-top: 4px;
+  padding: 8px 10px 10px;
+  border-radius: 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 6px;
+}
+.sivu-insp--guiada .sivu-insp__bar-msg {
+  padding: 0 8px;
+  font-size: 12.5px;
+  min-height: 16px;
+}
+.sivu-insp__bar-fila {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.sivu-insp--guiada .sivu-insp__bar-actions {
+  flex: 1;
+  justify-content: flex-start;
+  flex-wrap: nowrap;
+}
+.sivu-insp--guiada .sivu-insp__bar .btn {
+  height: 42px;
+  padding: 0 16px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+.sivu-insp--guiada .sivu-insp__bar .sivu-insp__paso-ant {
+  flex: none;
+  width: 42px;
+  padding: 0;
+  justify-content: center;
+  border: 1px solid var(--insp-line);
+}
+.sivu-insp__paso-ant.is-vacio {
+  display: inline-block;
+  width: 42px;
+  height: 42px;
+  border: 0 !important;
+}
+.sivu-insp--guiada .sivu-insp__bar .sivu-insp__paso-sig {
+  flex: none;
+  height: 46px;
+  padding: 0 22px;
+  font-weight: 600;
+}
+.sivu-insp__bar-falta {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+}
+.sivu-insp__punto {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--insp-ok);
+}
+.sivu-insp__punto.is-falta {
+  background: var(--risk-text-medium);
+}
+
+/* Pantallas angostas: el panel lateral pasa arriba como barra segmentada */
+@media (max-width: 900px) {
+  .sivu-insp__layout {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 14px;
+  }
+  .sivu-insp__recorrido {
+    position: sticky;
+    top: var(--shell-topbar-h, 64px);
+    z-index: 25;
+    max-height: none;
+    overflow: visible;
+    gap: 0;
+    padding: 10px 12px;
+    border-radius: 20px;
+    background: var(--surface);
+    box-shadow: var(--shadow-sm);
+  }
+  .sivu-insp__progreso,
+  .sivu-insp__recorrido-lista {
+    display: none;
+  }
+  .sivu-insp__recorrido-movil {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .sivu-insp__recorrido-movil .sivu-insp__etapas {
+    max-height: 55vh;
+    overflow-y: auto;
+    margin-top: 4px;
+  }
+  .sivu-insp__segmentos {
+    display: flex;
+    gap: 4px;
+  }
+  .sivu-insp__segmentos > span {
+    flex: 1;
+    height: 6px;
+    border-radius: 999px;
+    background: var(--insp-line);
+  }
+  .sivu-insp__segmentos > span.is-lista {
+    background: var(--insp-ok);
+  }
+  .sivu-insp__segmentos > span.is-actual {
+    background: var(--insp-sel);
+    box-shadow: 0 0 0 2px var(--insp-sel-soft);
+  }
+  .sivu-insp__ver-etapas {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 36px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: var(--text);
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+  }
+  .sivu-insp__ver-etapas > span:first-child {
+    flex: 1;
+    min-width: 0;
+    font-size: 14px;
+    font-weight: 600;
+  }
+  .sivu-insp__ver-etapas-pct {
+    font-size: 12.5px;
+    color: var(--text-muted);
+    white-space: nowrap;
+  }
+  .sivu-insp__main {
+    max-width: none;
+  }
+  .sivu-insp__etapa-head {
+    scroll-margin-top: calc(var(--shell-topbar-h, 64px) + 90px);
+  }
+}
+@media (max-width: 640px) {
+  .sivu-insp--guiada .sivu-insp__block {
+    padding: 2px 14px 6px;
+    border-radius: 22px;
+  }
+  .sivu-insp__etapa-head h2 {
+    font-size: 24px;
+  }
+  .sivu-insp__etapa .sivu-insp-field {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .sivu-insp__etapa .sivu-insp-field__control {
+    justify-self: stretch;
+    margin-left: 34px;
+  }
+  .sivu-insp__etapa .sivu-insp-field__control > input,
+  .sivu-insp__etapa .sivu-insp-field__control > select {
+    width: 100%;
+  }
+  .sivu-insp__etapa .sivu-insp-field.is-child {
+    margin-left: 10px;
+  }
+  .sivu-insp__etapa-avance > span {
+    white-space: normal;
+  }
+  .sivu-insp__bar-fila {
+    flex-wrap: wrap;
+  }
+  .sivu-insp--guiada .sivu-insp__bar-actions {
+    order: -1;
+    flex: 1 1 100%;
+  }
+  .sivu-insp--guiada .sivu-insp__bar-actions .btn {
+    flex: 1;
+    padding: 0 8px;
+    font-size: 13px;
+    height: 38px;
+  }
+  .sivu-insp--guiada .sivu-insp__bar .sivu-insp__paso-sig {
+    flex: 1;
+    min-width: 0;
+    white-space: normal;
+    line-height: 1.2;
+    justify-content: center;
+  }
+  .sivu-insp__paso-ant.is-vacio {
+    display: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .sivu-insp--guiada .sivu-insp__etapa .sivu-insp__fecha .sivu-insp-field {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .sivu-insp--guiada .sivu-insp__etapa .sivu-insp__fecha .sivu-insp-field > input {
+    grid-column: 1;
+    grid-row: auto;
+    width: 100%;
+  }
+}

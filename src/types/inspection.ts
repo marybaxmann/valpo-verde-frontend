@@ -63,6 +63,8 @@ export interface CampoFormulario {
   /** Bandera «no presenta» que puede reemplazar el valor (p. ej. `altura_primera_rama_no_presenta`). */
   marca: string | null;
   condicion_texto: string | null;
+  /** Qué significa el campo (DICCIONARIO_CAMPOS, columna F). Ausente en APIs anteriores. */
+  definicion?: string | null;
 }
 
 export interface EsquemaFormulario {

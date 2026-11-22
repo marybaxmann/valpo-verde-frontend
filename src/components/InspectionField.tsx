@@ -1,5 +1,6 @@
 import type { CampoFormulario } from "../types/inspection";
-import { nombreLegible, valorInvalido, type ValorCrudo } from "../lib/inspectionForm";
+import { valorInvalido, type ValorCrudo } from "../lib/inspectionForm";
+import { etiquetaVisible, tieneValor, tipoObligatoriedad } from "../lib/inspectionPresentacion";
 import { SpeciesInput } from "./SpeciesInput";
 
 /**
@@ -16,7 +17,6 @@ export function InspectionField({
   referencia,
   faltante,
   projectId,
-  etiquetaDe,
 }: {
   campo: CampoFormulario;
   valor: ValorCrudo | undefined;
@@ -28,15 +28,14 @@ export function InspectionField({
   faltante?: string;
   /** Proyecto de la OT, para sugerir especies del catálogo (CC-053). */
   projectId?: string;
-  /** Etiqueta de otro campo del formulario, para leer la condición en palabras (B16). */
-  etiquetaDe?: (identificador: string) => string | undefined;
 }) {
   const id = `campo-${campo.identificador}`;
   const invalido = valorInvalido(campo, valor);
   const opciones = campo.opciones ?? [];
 
   let control;
-  switch (campo.tipo_entrada) {
+  const tipoControl = campo.identificador === ESCALA_CLE && campo.tipo_entrada === "entero" ? "escala" : campo.tipo_entrada;
+  switch (tipoControl) {
     case "booleano":
       control = (
         <div className="sivu-insp-field__seg" role="radiogroup" aria-labelledby={`${id}-label`}>
@@ -56,44 +55,100 @@ export function InspectionField({
         </div>
       );
       break;
-    case "seleccion":
-      control = (
-        <select id={id} value={typeof valor === "string" ? valor : ""} onChange={(e) => onChange(e.target.value || null)} disabled={disabled}>
-          <option value="">—</option>
-          {opciones.map((o) => (
-            <option key={String(o.codigo)} value={String(o.codigo)}>
-              {o.etiqueta}
-            </option>
-          ))}
-        </select>
-      );
+    case "seleccion": {
+      // Presentación según las opciones (mismo código guardado que la lista desplegable).
+      const actual = typeof valor === "string" ? valor : "";
+      const largas = opciones.some((o) => o.etiqueta.length > 24);
+      const forma = opciones.length > 8 ? "lista" : largas ? "tarjetas" : "pastillas";
+      control =
+        forma === "lista" ? (
+          <select id={id} value={actual} onChange={(e) => onChange(e.target.value || null)} disabled={disabled}>
+            <option value="">—</option>
+            {opciones.map((o) => (
+              <option key={String(o.codigo)} value={String(o.codigo)}>
+                {o.etiqueta}
+              </option>
+            ))}
+          </select>
+        ) : (
+          <div
+            className={forma === "tarjetas" ? "sivu-insp-field__cards" : "sivu-insp-field__seg"}
+            role="radiogroup"
+            aria-labelledby={`${id}-label`}
+          >
+            {opciones.map((o) => {
+              const codigo = String(o.codigo);
+              const on = actual === codigo;
+              return (
+                <button
+                  key={codigo}
+                  id={codigo === String(opciones[0].codigo) ? id : undefined}
+                  type="button"
+                  role="radio"
+                  aria-checked={on}
+                  className={on ? "is-on" : ""}
+                  onClick={() => onChange(on ? null : codigo)}
+                  disabled={disabled}
+                >
+                  {forma === "tarjetas" && <span className="sivu-insp-field__dot" aria-hidden="true" />}
+                  {o.etiqueta}
+                </button>
+              );
+            })}
+          </div>
+        );
       break;
+    }
     case "seleccion_multiple": {
       const marcados = Array.isArray(valor) ? valor : [];
       control = (
-        <div className="sivu-insp-field__multi" role="group" aria-labelledby={`${id}-label`}>
+        <div className="sivu-insp-field__seg sivu-insp-field__seg--chips" role="group" aria-labelledby={`${id}-label`}>
           {opciones.map((o) => {
             const codigo = String(o.codigo);
+            const on = marcados.includes(codigo);
             return (
-              <label key={codigo}>
-                <input
-                  type="checkbox"
-                  checked={marcados.includes(codigo)}
-                  onChange={(e) =>
-                    onChange(e.target.checked ? [...marcados, codigo] : marcados.filter((m) => m !== codigo))
-                  }
-                  disabled={disabled}
-                />
+              <button
+                key={codigo}
+                type="button"
+                aria-pressed={on}
+                className={on ? "is-on" : ""}
+                onClick={() => onChange(on ? marcados.filter((m) => m !== codigo) : [...marcados, codigo])}
+                disabled={disabled}
+              >
+                {on && <Check />}
                 {o.etiqueta}
-              </label>
+              </button>
             );
           })}
         </div>
       );
       break;
     }
-    case "decimal":
+    case "escala": {
+      // CLE: escala de 0 a 5 en círculos; se guarda el mismo número como texto.
+      const actual = typeof valor === "string" ? valor.trim() : "";
+      control = (
+          <div className="sivu-insp-field__seg sivu-insp-field__seg--escala" role="radiogroup" aria-labelledby={`${id}-label`}>
+            {["0", "1", "2", "3", "4", "5"].map((n) => (
+              <button
+                key={n}
+                id={n === "0" ? id : undefined}
+                type="button"
+                role="radio"
+                aria-checked={actual === n}
+                className={actual === n ? "is-on" : ""}
+                onClick={() => onChange(actual === n ? null : n)}
+                disabled={disabled}
+              >
+                {n}
+              </button>
+            ))}
+          </div>
+        );
+      break;
+    }
     case "entero":
+    case "decimal":
     case "lista_decimal":
       control = (
         <input
@@ -102,7 +157,7 @@ export function InspectionField({
           inputMode="decimal"
           value={typeof valor === "string" ? valor : ""}
           onChange={(e) => onChange(e.target.value)}
-          placeholder={campo.tipo_entrada === "lista_decimal" ? "Valores separados por espacio o punto y coma" : undefined}
+          placeholder={campo.tipo_entrada === "lista_decimal" ? "Ej.: 18; 22,5; 15" : undefined}
           aria-invalid={invalido}
           disabled={disabled}
         />
@@ -129,16 +184,42 @@ export function InspectionField({
       );
   }
 
+  const tipo = tipoObligatoriedad(campo.obligatoriedad);
+  // Ayuda «i»: qué significa lo que se pide, tal como lo define el Excel (DICCIONARIO_CAMPOS, columna F).
+  const ayuda = campo.definicion?.trim() ?? "";
+
+  const respondido = tieneValor(valor);
+  const hijo = !!campo.condicion_activacion && campo.condicion_activacion.op !== "siempre";
+
   return (
-    <div className={`sivu-insp-field ${faltante ? "is-missing" : ""}`} id={`wrap-${id}`}>
+    <div
+      className={`sivu-insp-field ${faltante ? "is-missing" : ""} ${hijo ? "is-child" : ""} ${respondido ? "is-answered" : ""}`}
+      id={`wrap-${id}`}
+    >
       <div className="sivu-insp-field__head">
+        <span className={`sivu-insp-field__mark ${tipo === "opcional" ? "is-opt" : ""}`} aria-hidden="true">
+          {respondido && <Check />}
+        </span>
         <label id={`${id}-label`} htmlFor={id} className="sivu-insp-field__name">
-          {campo.etiqueta}
+          {etiquetaVisible(campo.etiqueta)}
           {mostrarUnidad(campo) && <span className="sivu-insp-field__unit">{campo.unidad}</span>}
+          {tipo === "obligatorio" && (
+            <span className="sivu-insp-field__ast" aria-label="obligatorio" title="Obligatorio">
+              *
+            </span>
+          )}
         </label>
-        {campo.obligatoriedad && <span className="sivu-insp-field__req">{campo.obligatoriedad}</span>}
+        {tipo === "opcional" && <span className="sivu-insp-field__opt">opcional</span>}
+        {ayuda && (
+          <span className="sivu-insp-field__info" tabIndex={0} role="note" aria-label={ayuda} data-tip={ayuda}>
+            i
+          </span>
+        )}
       </div>
-      {control}
+      <div className="sivu-insp-field__control">{control}</div>
+      {campo.tipo_entrada === "lista_decimal" && (
+        <small className="sivu-insp-field__hint">Un valor por fuste, separados por punto y coma. Ejemplo: 18; 22,5; 15</small>
+      )}
       {referencia && <small className="sivu-insp-field__hint">Registrado en el árbol: {referencia}</small>}
       {/* D-13, CC-053: la especie entra al catálogo solo si el Inspector la confirma en la inspección. */}
       {referencia && campo.identificador === "especie_cientifica" && !valor && !disabled && (
@@ -146,10 +227,19 @@ export function InspectionField({
           Confirmar «{referencia}»
         </button>
       )}
-      {campo.condicion_texto && <small className="sivu-insp-field__hint">{condicionLegible(campo.condicion_texto, etiquetaDe)}</small>}
       {invalido && <small className="sivu-insp-field__error">No es un número válido.</small>}
       {faltante && <small className="sivu-insp-field__error">{faltante}</small>}
     </div>
+  );
+}
+
+const ESCALA_CLE = "exposicion_luminica_copa_cle";
+
+function Check() {
+  return (
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M5 12.5l4.5 4.5L19 7.5" />
+    </svg>
   );
 }
 
@@ -158,12 +248,4 @@ function mostrarUnidad(campo: CampoFormulario): boolean {
   const u = campo.unidad;
   if (!u || u === "Sin unidad") return false;
   return !campo.etiqueta.includes(`(${u}`) && !campo.etiqueta.includes(`(${u.split(" ")[0]}`);
-}
-
-/** Condición del Excel con los nombres técnicos de otros campos reemplazados por su etiqueta. */
-function condicionLegible(texto: string, etiquetaDe?: (id: string) => string | undefined): string {
-  if (!etiquetaDe) return texto;
-  return texto.replace(/[a-z]+(?:_[a-z0-9]+)+/g, (id) => {
-    return `«${etiquetaDe(id) ?? nombreLegible(id)}»`;
-  });
 }

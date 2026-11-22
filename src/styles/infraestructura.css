@@ -141,7 +141,8 @@
 .sivu-infra-lsep { width: 1px; height: 20px; align-self: center; background: var(--shell-line); margin: 0 2px; }
 /* ---------- Rueda de componentes (filtro único por componente, opción A) ---------- */
 .sivu-infra-rueda { display: flex; flex-direction: column; align-items: center; gap: 4px; }
-.sivu-infra-rueda svg { width: 100%; max-width: 250px; height: auto; display: block; overflow: visible; }
+.sivu-infra-rueda { max-width: 100%; overflow: hidden; }
+.sivu-infra-rueda svg { width: 100%; max-width: 320px; height: auto; display: block; }
 .sivu-infra-rueda__seg { cursor: pointer; outline: none; transition: opacity 0.15s ease; }
 .sivu-infra-rueda__seg path { stroke: var(--shell-glass-strong); stroke-width: 1.5; transition: d 0.2s ease; }
 .sivu-infra-rueda__seg--sev path { fill: var(--classification-high); }
