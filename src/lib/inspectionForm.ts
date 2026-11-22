@@ -122,7 +122,8 @@ export function armarBody(
   camposArbol: CampoFormulario[],
   crudos: ValoresCrudos,
   tipo: string,
-  subtipo: string | null
+  subtipo: string | null,
+  fechaInspeccion?: string
 ): BorradorBody {
   const todos = valoresConvertidos([...variables, ...camposArbol], crudos);
   const bloque = (campos: CampoFormulario[]) => {
@@ -134,6 +135,7 @@ export function armarBody(
     return out;
   };
   return {
+    ...(fechaInspeccion === undefined ? {} : { fecha_inspeccion: fechaInspeccion }),
     tipo_inspeccion_realizada: tipo,
     subtipo_inspeccion: subtipo,
     variables: bloque(variables),

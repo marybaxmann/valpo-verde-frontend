@@ -513,6 +513,27 @@
   border: 6px solid var(--insp-sel);
 }
 
+/* Fecha de terreno en la primera etapa: etiqueta a la izquierda, fecha a la derecha. */
+.sivu-insp--guiada .sivu-insp__etapa .sivu-insp__fecha .sivu-insp-field {
+  grid-template-columns: minmax(0, 1fr) auto;
+  border-top: 0;
+}
+.sivu-insp--guiada .sivu-insp__etapa .sivu-insp__fecha .sivu-insp-field > label {
+  grid-column: 1;
+  margin: 0;
+  font-size: 14.5px;
+  font-weight: 500;
+}
+.sivu-insp--guiada .sivu-insp__etapa .sivu-insp__fecha .sivu-insp-field > input {
+  grid-column: 2;
+  grid-row: 1;
+  width: 200px;
+  margin: 0;
+}
+.sivu-insp--guiada .sivu-insp__etapa .sivu-insp__fecha .sivu-insp-field > small {
+  margin-left: 0;
+}
+
 /* Ayuda «i»: significado del campo y cómo se obtiene (dos párrafos del Excel). */
 .sivu-insp--guiada .sivu-insp-field__info:hover::after,
 .sivu-insp--guiada .sivu-insp-field__info:focus::after {
@@ -777,5 +798,16 @@
   }
   .sivu-insp__paso-ant.is-vacio {
     display: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .sivu-insp--guiada .sivu-insp__etapa .sivu-insp__fecha .sivu-insp-field {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .sivu-insp--guiada .sivu-insp__etapa .sivu-insp__fecha .sivu-insp-field > input {
+    grid-column: 1;
+    grid-row: auto;
+    width: 100%;
   }
 }

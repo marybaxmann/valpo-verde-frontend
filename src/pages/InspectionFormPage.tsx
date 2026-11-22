@@ -44,7 +44,8 @@ import {
   type ValoresCrudos,
   type ValorCrudo,
 } from "../lib/inspectionForm";
-import { fechaChile } from "../lib/dates";
+import { fechaChile, hoyChile } from "../lib/dates";
+import FechaInspeccion, { fechaInspeccionValida } from "../components/FechaInspeccion";
 import { ordenarParaPresentacion } from "../lib/ordenFormulario";
 
 /** Las cuatro vistas recomendadas de la evaluación completa (D-27); su etiqueta viene del catálogo `vista_foto`. */
@@ -116,6 +117,8 @@ export default function InspectionFormPage() {
   const [errorCarga, setErrorCarga] = useState<string | null>(null);
 
   const [inspectionId, setInspectionId] = useState<string | null>(null);
+  const [fechaTerreno, setFechaTerreno] = useState(hoyChile);
+  const [fechaRegistro, setFechaRegistro] = useState<string | null>(null);
   const [valores, setValores] = useState<ValoresCrudos>({});
   const [finalizadasPrevias, setFinalizadasPrevias] = useState(0);
   const [sinGuardar, setSinGuardar] = useState(false);
@@ -175,6 +178,8 @@ export default function InspectionFormPage() {
         if (cancelado || !r) return;
         const [e, inspecciones] = r;
         const borrador = [...inspecciones].reverse().find((i) => i.estado_registro === "preguardado") ?? null;
+        setFechaTerreno(borrador?.fecha_inspeccion ?? hoyChile());
+        setFechaRegistro(borrador?.fecha_registro ?? null);
         if (borrador) {
           setInspectionId(borrador.inspection_id);
           setValores(valoresDeBorrador(borrador));
@@ -219,6 +224,9 @@ export default function InspectionFormPage() {
   const finalizada = final?.finalizada === true;
   // Guardar no bloquea los campos: lo escrito durante el guardado queda como «sin guardar».
   const bloqueado = finalizando || finalizada;
+  const hoy = hoyChile();
+  const fechaMaxima = fechaRegistro && fechaRegistro < hoy ? fechaRegistro : hoy;
+  const fechaInvalida = !fechaInspeccionValida(fechaTerreno, fechaMaxima);
 
   /** Etiqueta de un código de catálogo; el código si el catálogo no lo trae. */
   const etiqueta = (catalogo: string, codigo: unknown): string => {
@@ -274,14 +282,17 @@ export default function InspectionFormPage() {
   }
 
   async function guardar() {
-    if (!esquema || !ot || hayInvalidos) return;
+    if (!esquema || !ot || hayInvalidos || fechaInvalida || bloqueado) return;
     setGuardando(true);
     setGuardadoError(null);
     setGuardadoOk(null);
     const edicionesAlGuardar = ediciones.current;
     try {
-      const body = armarBody(esquema.variables, esquema.campos_arbol, valores, ot.accion.codigo, ot.subtipo?.codigo ?? null);
+      const body = armarBody(
+        esquema.variables, esquema.campos_arbol, valores, ot.accion.codigo, ot.subtipo?.codigo ?? null, fechaTerreno,
+      );
       const res = inspectionId ? await guardarBorrador(inspectionId, body) : await crearBorrador(workOrderId, body);
+      if (!inspectionId) setFechaRegistro(hoy);
       setInspectionId(res.inspection_id);
       const editadoMientras = ediciones.current !== edicionesAlGuardar;
       setSinGuardar(editadoMientras);
@@ -540,6 +551,23 @@ export default function InspectionFormPage() {
         if (`sec-${seccion.codigo}` !== activa) return null;
         return (
           <section key={seccion.codigo} id={`sec-${seccion.codigo}`} className="sivu-insp__section sivu-insp__etapa">
+            {/* Fecha de terreno (PR #39): va en la primera etapa, antes de las preguntas. */}
+            {activa === flujo[0].id && (
+              <div className="card sivu-insp__block sivu-insp__fecha">
+                <FechaInspeccion
+                  valor={fechaTerreno}
+                  maximo={fechaMaxima}
+                  bloqueada={bloqueado}
+                  cambiar={(fecha) => {
+                    setFechaTerreno(fecha);
+                    ediciones.current += 1;
+                    setSinGuardar(true);
+                    setGuardadoOk(null);
+                    invalidarCalculo();
+                  }}
+                />
+              </div>
+            )}
             {visibles.map((b, i) => (
             <div key={b.subtitulo ?? i} className="card sivu-insp__block">
             {b.subtitulo && <h3 className="sivu-insp__subhead">{b.subtitulo}</h3>}
@@ -816,13 +844,14 @@ export default function InspectionFormPage() {
 
       <div className="sivu-insp__bar">
         <div className="sivu-insp__bar-msg">
-          {!hayInvalidos && !guardadoError && !calculoError && !finalError && !guardadoOk && !sinGuardar && (
+          {!hayInvalidos && !fechaInvalida && !guardadoError && !calculoError && !finalError && !guardadoOk && !sinGuardar && (
             <span className="sivu-insp__bar-falta">
               <span className={`sivu-insp__punto ${pendientes > 0 ? "is-falta" : "is-ok"}`} aria-hidden="true" />
               {pendientes > 0 ? `Faltan ${pendientes} respuestas` : "Todo respondido"}
             </span>
           )}
           {hayInvalidos && <span className="sivu-state--error">Hay números mal escritos.</span>}
+          {fechaInvalida && <span className="sivu-state--error">Revisa la fecha de inspección (etapa {flujo[0].etiqueta}).</span>}
           {guardadoError && <span className="sivu-state--error">{guardadoError}</span>}
           {calculoError && <span className="sivu-state--error">{calculoError}</span>}
           {finalError && <span className="sivu-state--error">{finalError}</span>}
@@ -855,7 +884,7 @@ export default function InspectionFormPage() {
           </div>
         ) : (
           <div className="sivu-insp__bar-actions">
-            <button type="button" className="btn btn-secondary btn-sm" onClick={guardar} disabled={bloqueado || guardando || hayInvalidos || (!sinGuardar && !!inspectionId)}>
+            <button type="button" className="btn btn-secondary btn-sm" onClick={guardar} disabled={bloqueado || guardando || hayInvalidos || fechaInvalida || (!sinGuardar && !!inspectionId)}>
               {guardando ? "Guardando…" : "Guardar borrador"}
             </button>
             <button
