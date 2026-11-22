@@ -9,6 +9,8 @@
 export interface ArbolInventario {
   id: string;
   tree_code: string;
+  /** Código público por lugar (P-VIC-001, PM-001; CC-086, migración 049). Solo en la plataforma, nunca en la ficha pública. `null` si el árbol no cae en ningún lugar con prefijo. */
+  codigo_publico?: string | null;
   sector_id: string;
   sector: string | null;
   ubicacion_descriptiva: string | null;
