@@ -1,20 +1,19 @@
 import { useEffect, useMemo, useState } from "react";
-import { useNavigate, useParams, useSearchParams } from "react-router-dom";
-import { listarInventarioCompleto } from "../api/inventory";
-import { listarDiagnosticos } from "../api/diagnosticos";
-import { obtenerCatalogos } from "../api/catalogs";
-import { buscarEspeciesCatalogo } from "../api/species";
-import { useCurrentProject } from "../hooks/useCurrentProject";
-import { Icon } from "../components/Icons";
-import { ClassificationBadge, getClassificationTone } from "../components/ClassificationBadge";
-import { fotoDeEspecie } from "../components/conecta/fotosEspecie";
-import type { ArbolInventario } from "../types/inventory";
-import type { Diagnostico, CodigoEtiqueta } from "../types/diagnostico";
-import type { Catalogos } from "../types/catalogs";
-import type { EspecieCatalogo } from "../types/species";
+import { useSearchParams } from "react-router-dom";
+import { listarInventarioCompleto } from "../../api/inventory";
+import { listarDiagnosticos } from "../../api/diagnosticos";
+import { obtenerCatalogos } from "../../api/catalogs";
+import { buscarEspeciesCatalogo } from "../../api/species";
+import { Icon } from "../Icons";
+import { ClassificationBadge, getClassificationTone } from "../ClassificationBadge";
+import { fotoDeEspecie } from "../conecta/fotosEspecie";
+import type { ArbolInventario } from "../../types/inventory";
+import type { Diagnostico, CodigoEtiqueta } from "../../types/diagnostico";
+import type { Catalogos } from "../../types/catalogs";
+import type { EspecieCatalogo } from "../../types/species";
 
 /**
- * Catálogo de especies del proyecto (Inventario; pedido de la responsable,
+ * Apartado «Especies» del módulo Inventario (pedido de la responsable,
  * 2026-11-22). Tabla con las especies que tienen árboles en el inventario y
  * lo registrado en el catálogo (CC-053); al elegir una, su ficha con los
  * árboles de esa especie y su clasificación de riesgo vigente (B18, CC-050).
@@ -47,10 +46,7 @@ interface Especie {
 
 type Carga<T> = { estado: "cargando" } | { estado: "listo"; datos: T } | { estado: "error"; mensaje: string };
 
-export default function SpeciesPage() {
-  const { projectId = "" } = useParams();
-  const { project } = useCurrentProject();
-  const navigate = useNavigate();
+export function CatalogoEspecies({ projectId, onArbol }: { projectId: string; onArbol: (treeId: string) => void }) {
   const [params, setParams] = useSearchParams();
   const elegida = params.get("especie");
 
@@ -152,15 +148,9 @@ export default function SpeciesPage() {
 
   return (
     <div className="sivu-esp">
-      <header className="sivu-esp__head">
-        <div>
-          <span className="sivu-esp__eyebrow">Inventario · {project?.nombre_proyecto ?? "Proyecto"}</span>
-          <h1>Catálogo de especies</h1>
-          <p>
-            {datos ? `${especies.filter((e) => e.cientifico).length} especies con árboles en el inventario · ${totalArboles} árboles` : "Especies del proyecto y lo registrado en el catálogo."}
-          </p>
-        </div>
-      </header>
+      <p className="sivu-esp__resumen">
+        {datos ? `${especies.filter((e) => e.cientifico).length} especies con árboles en el inventario · ${totalArboles} árboles` : "Especies del proyecto y lo registrado en el catálogo."}
+      </p>
 
       <div className="sivu-esp__tools">
         <label className="sivu-esp__search">
@@ -263,7 +253,7 @@ export default function SpeciesPage() {
           totalArboles={totalArboles}
           etiqueta={etiqueta}
           onCerrar={() => abrir(null)}
-          onArbol={(id) => navigate(`../mapa?arbol=${encodeURIComponent(id)}`, { relative: "path" })}
+          onArbol={onArbol}
         />
       )}
     </div>
@@ -400,7 +390,7 @@ function FichaEspecie({
           <ul className="sivu-esp__arboles">
             {arboles.map(({ arbol, riesgo }) => (
               <li key={arbol.id}>
-                <button type="button" onClick={() => onArbol(arbol.id)} title="Abrir en el mapa del inventario">
+                <button type="button" onClick={() => onArbol(arbol.id)} title="Abrir la ficha del árbol">
                   <span className="sivu-esp__arbol-id">
                     <strong>{arbol.tree_code}</strong>
                     <small>{arbol.ubicacion_descriptiva ?? arbol.sector ?? "Sin ubicación descriptiva"}</small>

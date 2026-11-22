@@ -45,7 +45,6 @@ export const NAV_GROUPS: NavGroup[] = [
     icon: "leaf",
     modules: [
       { path: "mapa", label: "Inventario", hint: "Árboles del proyecto", icon: "leaf" },
-      { path: "especies", label: "Catálogo de especies", hint: "Especies del proyecto y sus árboles", icon: "sort" },
       // /inspeccion es Riesgo Arbóreo (CC-059 mantuvo esa ruta).
       { path: "inspeccion", label: "Riesgo Arbóreo", hint: "Resultados de riesgo en el territorio", icon: "check-square" },
       { path: "infraestructura", label: "Infraestructura", hint: "Conflictos árbol–infraestructura", icon: "building" },

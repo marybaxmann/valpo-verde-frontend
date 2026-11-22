@@ -3,13 +3,22 @@
    Tabla de especies con su riesgo vigente y ficha lateral con
    los árboles de cada especie. Variables de tema de SIVU.
    ================================================== */
+/* Apartado «Especies» dentro del módulo Inventario: usa el ancho del módulo. */
 .sivu-esp {
-  max-width: 1240px;
-  margin: 0 auto;
-  padding: 8px 16px 48px;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 14px;
+  padding-bottom: 32px;
+}
+.sivu-esp__resumen {
+  margin: 0;
+  font-size: 13.5px;
+  color: var(--text-muted);
+}
+/* Selector «Árboles | Especies» bajo el encabezado del Inventario. */
+.sivu-inv__vistas {
+  align-self: flex-start;
+  margin: 0 0 14px;
 }
 .sivu-esp__head h1 {
   margin: 4px 0 4px;

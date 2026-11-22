@@ -1,5 +1,5 @@
 import { lazy, Suspense, useEffect, useMemo, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useSearchParams } from "react-router-dom";
 import { getProjectWithSector } from "../api/projects";
 import { listarInventario, listarInventarioCompleto } from "../api/inventory";
 import type { ProjectWithSector } from "../types/project";
@@ -12,6 +12,7 @@ import { ClassificationBadge } from "../components/ClassificationBadge";
 import { Icon } from "../components/Icons";
 import { TreeSheet } from "../components/TreeSheet";
 import { NewTreeModal } from "../components/NewTreeModal";
+import { CatalogoEspecies } from "../components/inventario/CatalogoEspecies";
 import { useAuth } from "../hooks/useAuth";
 import { ESTADO_PROYECTO_LABEL } from "../lib/projects";
 import { getArcgisApiKey } from "../lib/arcgis";
@@ -57,6 +58,18 @@ export default function InventoryPage() {
   const [mapError, setMapError] = useState<string | null>(null);
   // `?arbol=<id>` abre la ficha de ese árbol (enlace desde Incidencias).
   const [selectedId, setSelectedId] = useState<string | null>(() => new URLSearchParams(window.location.search).get("arbol"));
+  // Apartado del módulo (2026-11-22): «Árboles» (tabla y mapa) o «Especies» (catálogo), en `?vista=especies`.
+  const [params, setParams] = useSearchParams();
+  const vistaEspecies = params.get("vista") === "especies";
+  const cambiarVista = (especies: boolean) => {
+    const p = new URLSearchParams(params);
+    if (especies) p.set("vista", "especies");
+    else {
+      p.delete("vista");
+      p.delete("especie");
+    }
+    setParams(p, { replace: true });
+  };
   // Etiquetas del ciclo de vida desde el catálogo de la API (provisionales, D-28).
   const [cicloLabel, setCicloLabel] = useState<Record<string, string>>({});
   // Evaluación vigente por árbol (B18 `vigente`, CC-050): la columna de riesgo la muestra tal como llega.
@@ -221,6 +234,27 @@ export default function InventoryPage() {
       )}
 
       {!projectError && (
+        <div className="sivu-seg sivu-inv__vistas" role="tablist" aria-label="Apartado del inventario">
+          <button type="button" role="tab" aria-selected={!vistaEspecies} className={`sivu-seg__opt ${!vistaEspecies ? "is-on" : ""}`} onClick={() => cambiarVista(false)}>
+            Árboles
+          </button>
+          <button type="button" role="tab" aria-selected={vistaEspecies} className={`sivu-seg__opt ${vistaEspecies ? "is-on" : ""}`} onClick={() => cambiarVista(true)}>
+            Especies
+          </button>
+        </div>
+      )}
+
+      {!projectError && vistaEspecies && (
+        <CatalogoEspecies
+          projectId={projectId}
+          onArbol={(id) => {
+            cambiarVista(false);
+            setSelectedId(id);
+          }}
+        />
+      )}
+
+      {!projectError && !vistaEspecies && (
         <div className="sivu-inv__layout">
           <article className="sivu-panel sivu-inv__table">
             <div className="sivu-inv__toolbar">
