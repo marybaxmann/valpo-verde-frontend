@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import type { AlcanceInspeccion } from "../types/inspection";
 import { Link, useParams } from "react-router-dom";
 import { listarMisOts } from "../api/workOrders";
 import {
@@ -125,6 +126,7 @@ export default function InspectionFormPage() {
 
   const [inspectionId, setInspectionId] = useState<string | null>(null);
   const [fechaTerreno, setFechaTerreno] = useState(hoyChile);
+  const [alcance, setAlcance] = useState<AlcanceInspeccion>("ambos");
   const [fechaRegistro, setFechaRegistro] = useState<string | null>(null);
   const [valores, setValores] = useState<ValoresCrudos>({});
   const [finalizadasPrevias, setFinalizadasPrevias] = useState(0);
@@ -186,6 +188,7 @@ export default function InspectionFormPage() {
         const [e, inspecciones] = r;
         const borrador = [...inspecciones].reverse().find((i) => i.estado_registro === "preguardado") ?? null;
         setFechaTerreno(borrador?.fecha_inspeccion ?? hoyChile());
+        setAlcance(borrador?.alcance_inspeccion ?? "ambos");
         setFechaRegistro(borrador?.fecha_registro ?? null);
         if (borrador) {
           setInspectionId(borrador.inspection_id);
@@ -214,12 +217,15 @@ export default function InspectionFormPage() {
     };
   }, [inspectionId]);
 
+  const admiteAlcance = !!esquema?.campos_infraestructura &&
+    (ot?.accion.codigo === "evaluacion_inicial" || ot?.accion.codigo === "reevaluacion");
+  const alcanceActivo = admiteAlcance ? alcance : "ambos";
   const palm01 = esquema?.rule_version === "3.4";
   const projectId = ot?.proyecto.id;
   const especieEscrita = valores.especie_cientifica;
   const especie = (typeof especieEscrita === "string" ? especieEscrita.trim() : "") ||
     ot?.arbol?.especie_cientifica?.trim() || "";
-  const claveEspecie = projectId && especie.length >= 2 ? `${projectId}/${especie.toLowerCase()}` : "";
+  const claveEspecie = alcanceActivo !== "infraestructura" && projectId && especie.length >= 2 ? `${projectId}/${especie.toLowerCase()}` : "";
   useEffect(() => {
     if (!palm01 || !projectId || !claveEspecie) return;
     let cancelado = false;
@@ -244,13 +250,16 @@ export default function InspectionFormPage() {
     (tipoEspecie?.clave !== claveEspecie || tipoEspecie?.error === true);
   const contexto = useMemo(() => ({ tipo_hoja: tipoHoja }), [tipoHoja]);
   const camposArbol = useMemo(
-    () => ordenar((esquema?.campos_arbol ?? []).filter((c) => aplicaEnProtocolo(c, palm01, tipoHoja))),
-    [esquema, palm01, tipoHoja],
+    () => alcanceActivo === "infraestructura" ? [] :
+      ordenar((esquema?.campos_arbol ?? []).filter((c) => aplicaEnProtocolo(c, palm01, tipoHoja))),
+    [esquema, alcanceActivo, palm01, tipoHoja],
   );
-  const variables = useMemo(
-    () => ordenar((esquema?.variables ?? []).filter((c) => aplicaEnProtocolo(c, palm01, tipoHoja))),
-    [esquema, palm01, tipoHoja],
-  );
+  const variables = useMemo(() => {
+    if (!esquema) return [];
+    const infraestructura = new Set(esquema.campos_infraestructura);
+    return ordenar(esquema.variables.filter(c => aplicaEnProtocolo(c, palm01, tipoHoja) &&
+      (alcanceActivo === "ambos" || infraestructura.has(c.identificador) === (alcanceActivo === "infraestructura"))));
+  }, [esquema, alcanceActivo, palm01, tipoHoja]);
   const todos = useMemo(() => [...camposArbol, ...variables], [camposArbol, variables]);
   const grupos = useMemo(() => ordenarParaPresentacion(todos, esquema?.secciones ?? []), [todos, esquema]);
   const etiquetaDe = useMemo(() => new Map(todos.map((c) => [c.identificador, c.etiqueta])), [todos]);
@@ -290,8 +299,8 @@ export default function InspectionFormPage() {
 
   const sugeridaInspeccion = calculo?.fechas_sugeridas.fecha_proxima_inspeccion.fecha ?? "";
   const sugeridaMonitoreo = calculo?.fechas_sugeridas.fecha_proximo_monitoreo.fecha ?? "";
-  const fechaInspeccionCambiada = !!fechaInspeccion && fechaInspeccion !== sugeridaInspeccion;
-  const fechaMonitoreoCambiada = !!fechaMonitoreo && fechaMonitoreo !== sugeridaMonitoreo;
+  const fechaInspeccionCambiada = alcanceActivo !== "infraestructura" && !!fechaInspeccion && fechaInspeccion !== sugeridaInspeccion;
+  const fechaMonitoreoCambiada = alcanceActivo !== "infraestructura" && !!fechaMonitoreo && fechaMonitoreo !== sugeridaMonitoreo;
   const fechasSinJustificar = (fechaInspeccionCambiada || fechaMonitoreoCambiada) && !justificacionFecha.trim();
 
   /** Cambia de etapa sin tocar los valores (viven en esta página) y vuelve al inicio de la etapa. */
@@ -339,6 +348,7 @@ export default function InspectionFormPage() {
       const body = armarBody(
         variables, camposArbol, valores, ot.accion.codigo, ot.subtipo?.codigo ?? null, fechaTerreno, contexto,
       );
+      if (admiteAlcance) body.alcance_inspeccion = alcanceActivo;
       const res = inspectionId ? await guardarBorrador(inspectionId, body) : await crearBorrador(workOrderId, body);
       if (!inspectionId) setFechaRegistro(hoy);
       setInspectionId(res.inspection_id);
@@ -580,6 +590,25 @@ export default function InspectionFormPage() {
         </div>
       )}
 
+{admiteAlcance && (
+      <section className="card card--pad sivu-insp__section">
+          <label>
+            Alcance de la inspección
+            <select value={alcance} disabled={bloqueado} onChange={event => {
+              setAlcance(event.target.value as AlcanceInspeccion);
+              ediciones.current += 1;
+              setSinGuardar(true);
+              setGuardadoOk(null);
+              invalidarCalculo();
+            }}>
+              <option value="ambos">Árbol e infraestructura</option>
+              <option value="arbol">Árbol</option>
+              <option value="infraestructura">Infraestructura</option>
+            </select>
+          </label>
+      </section>
+      )}
+
       <div className="sivu-insp__layout">
       <RecorridoEtapas
         etapas={etapas}
@@ -793,7 +822,7 @@ export default function InspectionFormPage() {
                 type="date"
                 value={fechaInspeccion}
                 onChange={(e) => setFechaInspeccion(e.target.value)}
-                disabled={finalizando || calculo.fechas_sugeridas.fecha_proxima_inspeccion.inmediato_y_continuo}
+                disabled={alcanceActivo === "infraestructura" || finalizando || calculo.fechas_sugeridas.fecha_proxima_inspeccion.inmediato_y_continuo}
               />
               <small className="sivu-insp-field__hint">Sugerida: {fechaSugeridaTexto(calculo.fechas_sugeridas.fecha_proxima_inspeccion)}</small>
             </div>
@@ -806,7 +835,7 @@ export default function InspectionFormPage() {
                 type="date"
                 value={fechaMonitoreo}
                 onChange={(e) => setFechaMonitoreo(e.target.value)}
-                disabled={finalizando || calculo.fechas_sugeridas.fecha_proximo_monitoreo.inmediato_y_continuo}
+                disabled={alcanceActivo === "infraestructura" || finalizando || calculo.fechas_sugeridas.fecha_proximo_monitoreo.inmediato_y_continuo}
               />
               <small className="sivu-insp-field__hint">Sugerida: {fechaSugeridaTexto(calculo.fechas_sugeridas.fecha_proximo_monitoreo)}</small>
             </div>

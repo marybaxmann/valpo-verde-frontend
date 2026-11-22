@@ -70,6 +70,7 @@ export interface CampoFormulario {
 }
 
 export interface EsquemaFormulario {
+  campos_infraestructura?: string[];
   tipo: string;
   rule_version?: string;
   secciones?: SeccionFormulario[];
@@ -78,9 +79,11 @@ export interface EsquemaFormulario {
 }
 
 export type ValorCampo = string | number | boolean | null | string[] | number[];
+export type AlcanceInspeccion = "ambos" | "arbol" | "infraestructura";
 
 /** Body de POST /work-orders/:id/inspections y PATCH /inspections/:id (estado COMPLETO, nunca un delta). */
 export interface BorradorBody {
+  alcance_inspeccion?: AlcanceInspeccion;
   fecha_inspeccion?: string;
   /** Debe corresponder a la acción de la OT (D-196). */
   tipo_inspeccion_realizada: string;
@@ -181,6 +184,7 @@ export interface InspeccionDeOt {
   /** preguardado | finalizado | anulado */
   estado_registro: string;
   tipo_inspeccion_realizada: string | null;
+  alcance_inspeccion?: AlcanceInspeccion | null;
   subtipo_inspeccion: string | null;
   metodo_instrumental: string | null;
   fecha_inspeccion: string;
