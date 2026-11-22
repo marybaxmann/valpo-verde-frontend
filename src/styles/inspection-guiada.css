@@ -513,6 +513,20 @@
   border: 6px solid var(--insp-sel);
 }
 
+/* Ayuda «i»: significado del campo y cómo se obtiene (dos párrafos del Excel). */
+.sivu-insp--guiada .sivu-insp-field__info:hover::after,
+.sivu-insp--guiada .sivu-insp-field__info:focus::after {
+  left: 0;
+  right: auto;
+  width: max-content;
+  max-width: min(340px, 80vw);
+  padding: 10px 12px;
+  border-radius: 14px;
+  font-size: 12.5px;
+  line-height: 1.45;
+  white-space: pre-line;
+}
+
 /* Revisión final */
 .sivu-insp__revision-fila {
   display: flex;
@@ -567,44 +581,58 @@
   font-size: 15px;
 }
 
-/* Anterior / Siguiente */
-.sivu-insp--guiada .sivu-insp__pasos {
+/* Barra inferior (maqueta): estado arriba; anterior, acciones y siguiente en una fila.
+   Va fija abajo, así la navegación nunca queda tapada. */
+.sivu-insp--guiada .sivu-insp__bar {
+  position: sticky;
+  bottom: 12px;
+  margin-top: 4px;
+  padding: 8px 10px 10px;
+  border-radius: 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 6px;
+}
+.sivu-insp--guiada .sivu-insp__bar-msg {
+  padding: 0 8px;
+  font-size: 12.5px;
+  min-height: 16px;
+}
+.sivu-insp__bar-fila {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  margin: 2px 0 0;
+  gap: 8px;
 }
-.sivu-insp__pasos .btn {
-  height: 46px;
-  padding: 0 20px;
-  border-radius: 999px;
-  font-size: 14.5px;
-}
-.sivu-insp__paso-ant {
-  border: 1px solid var(--insp-line);
-}
-.sivu-insp__paso-sig {
-  height: 50px;
-  padding: 0 24px;
-  font-weight: 600;
-}
-
-/* Cápsula de acciones: compacta, no tapa contenido */
-.sivu-insp--guiada .sivu-insp__bar {
-  align-self: center;
-  width: auto;
-  max-width: 100%;
-  margin-top: 4px;
-  padding: 6px 6px 6px 18px;
-  border-radius: 999px;
-  justify-content: center;
-  gap: 8px 14px;
+.sivu-insp--guiada .sivu-insp__bar-actions {
+  flex: 1;
+  justify-content: flex-start;
+  flex-wrap: nowrap;
 }
 .sivu-insp--guiada .sivu-insp__bar .btn {
-  height: 40px;
+  height: 42px;
   padding: 0 16px;
   border-radius: 999px;
+  white-space: nowrap;
+}
+.sivu-insp--guiada .sivu-insp__bar .sivu-insp__paso-ant {
+  flex: none;
+  width: 42px;
+  padding: 0;
+  justify-content: center;
+  border: 1px solid var(--insp-line);
+}
+.sivu-insp__paso-ant.is-vacio {
+  display: inline-block;
+  width: 42px;
+  height: 42px;
+  border: 0 !important;
+}
+.sivu-insp--guiada .sivu-insp__bar .sivu-insp__paso-sig {
+  flex: none;
+  height: 46px;
+  padding: 0 22px;
+  font-weight: 600;
 }
 .sivu-insp__bar-falta {
   display: inline-flex;
@@ -727,29 +755,27 @@
   .sivu-insp__etapa-avance > span {
     white-space: normal;
   }
-  .sivu-insp__pasos .btn {
-    flex: 1 1 0;
-    min-width: 0;
-    height: auto;
-    min-height: 48px;
-    padding: 8px 14px;
-    white-space: normal;
-    line-height: 1.25;
-    justify-content: center;
-    text-align: center;
-  }
-  .sivu-insp--guiada .sivu-insp__bar {
-    align-self: stretch;
-    border-radius: 22px;
-    padding: 8px 10px;
+  .sivu-insp__bar-fila {
+    flex-wrap: wrap;
   }
   .sivu-insp--guiada .sivu-insp__bar-actions {
-    flex-wrap: nowrap;
-    width: 100%;
+    order: -1;
+    flex: 1 1 100%;
   }
-  .sivu-insp--guiada .sivu-insp__bar .btn {
+  .sivu-insp--guiada .sivu-insp__bar-actions .btn {
     flex: 1;
     padding: 0 8px;
     font-size: 13px;
+    height: 38px;
+  }
+  .sivu-insp--guiada .sivu-insp__bar .sivu-insp__paso-sig {
+    flex: 1;
+    min-width: 0;
+    white-space: normal;
+    line-height: 1.2;
+    justify-content: center;
+  }
+  .sivu-insp__paso-ant.is-vacio {
+    display: none;
   }
 }

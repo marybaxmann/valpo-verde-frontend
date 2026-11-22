@@ -1,5 +1,5 @@
 import type { CampoFormulario } from "../types/inspection";
-import { nombreLegible, valorInvalido, type ValorCrudo } from "../lib/inspectionForm";
+import { valorInvalido, type ValorCrudo } from "../lib/inspectionForm";
 import { etiquetaVisible, tieneValor, tipoObligatoriedad } from "../lib/inspectionPresentacion";
 import { SpeciesInput } from "./SpeciesInput";
 
@@ -17,7 +17,6 @@ export function InspectionField({
   referencia,
   faltante,
   projectId,
-  etiquetaDe,
 }: {
   campo: CampoFormulario;
   valor: ValorCrudo | undefined;
@@ -29,8 +28,6 @@ export function InspectionField({
   faltante?: string;
   /** Proyecto de la OT, para sugerir especies del catálogo (CC-053). */
   projectId?: string;
-  /** Etiqueta de otro campo del formulario, para leer la condición en palabras (B16). */
-  etiquetaDe?: (identificador: string) => string | undefined;
 }) {
   const id = `campo-${campo.identificador}`;
   const invalido = valorInvalido(campo, valor);
@@ -188,12 +185,13 @@ export function InspectionField({
   }
 
   const tipo = tipoObligatoriedad(campo.obligatoriedad);
-  // Ayuda contextual: precisión de la obligatoriedad (p. ej., «cuando existe copa») y por qué aparece el campo.
-  const ayudas = [
-    tipo === "obligatorio" && campo.obligatoriedad && campo.obligatoriedad.trim() !== "Obligatorio" ? `${campo.obligatoriedad.trim().replace(/\.+$/, "")}.` : null,
-    campo.condicion_texto ? `Cuándo se pide: ${condicionLegible(campo.condicion_texto, etiquetaDe).replace(/\.+$/, "")}.` : null,
-  ].filter(Boolean) as string[];
-  const ayuda = ayudas.join(" ");
+  // Ayuda «i»: qué significa lo que se pide y cómo se obtiene, tal como lo define el Excel (DICCIONARIO_CAMPOS F y E).
+  const ayuda = [
+    campo.definicion?.trim(),
+    campo.como_se_obtiene?.trim() ? `Cómo se obtiene: ${campo.como_se_obtiene.trim()}` : null,
+  ]
+    .filter(Boolean)
+    .join("\n\n");
 
   const respondido = tieneValor(valor);
   const hijo = !!campo.condicion_activacion && campo.condicion_activacion.op !== "siempre";
@@ -252,12 +250,4 @@ function mostrarUnidad(campo: CampoFormulario): boolean {
   const u = campo.unidad;
   if (!u || u === "Sin unidad") return false;
   return !campo.etiqueta.includes(`(${u}`) && !campo.etiqueta.includes(`(${u.split(" ")[0]}`);
-}
-
-/** Condición del Excel con los nombres técnicos de otros campos reemplazados por su etiqueta. */
-function condicionLegible(texto: string, etiquetaDe?: (id: string) => string | undefined): string {
-  if (!etiquetaDe) return texto;
-  return texto.replace(/\b[a-z]+(?:_[a-z0-9]+)+\b/g, (id) => {
-    return `«${etiquetaVisible(etiquetaDe(id) ?? nombreLegible(id))}»`;
-  });
 }

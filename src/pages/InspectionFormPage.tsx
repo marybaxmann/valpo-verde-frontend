@@ -554,7 +554,6 @@ export default function InspectionFormPage() {
                   referencia={referenciaArbol(ot, c.identificador)}
                   faltante={faltantes.get(c.identificador)}
                   projectId={ot.proyecto.id}
-                  etiquetaDe={(id) => etiquetaDe.get(id)}
                 />
               ))}
             </div>
@@ -795,23 +794,6 @@ export default function InspectionFormPage() {
         </section>
       )}
 
-      <nav className="sivu-insp__pasos" aria-label="Cambiar de etapa">
-        {anterior ? (
-          <button type="button" className="btn btn-ghost sivu-insp__paso-ant" onClick={() => irAEtapa(anterior.id)}>
-            <Icon name="arrow-left" size={14} /> {anterior.etiqueta}
-          </button>
-        ) : (
-          <span />
-        )}
-        {siguiente ? (
-          <button type="button" className="btn btn-primary sivu-insp__paso-sig" onClick={() => irAEtapa(siguiente.id)}>
-            Siguiente · {siguiente.etiqueta} <Icon name="arrow-right" size={14} />
-          </button>
-        ) : (
-          <span />
-        )}
-      </nav>
-
       {final && (
         <section className={`card card--pad sivu-insp__section ${final.finalizada ? "sivu-insp__done" : ""}`} role="status">
           {final.finalizada ? (
@@ -847,6 +829,20 @@ export default function InspectionFormPage() {
           {!guardadoError && guardadoOk && <span className="sivu-state--ok">{guardadoOk}</span>}
           {sinGuardar && !guardadoError && <span>Cambios sin guardar.</span>}
         </div>
+        <div className="sivu-insp__bar-fila">
+        {anterior ? (
+          <button
+            type="button"
+            className="btn btn-ghost sivu-insp__paso-ant"
+            onClick={() => irAEtapa(anterior.id)}
+            aria-label={`Etapa anterior: ${anterior.etiqueta}`}
+            title={`Etapa anterior: ${anterior.etiqueta}`}
+          >
+            <Icon name="arrow-left" size={16} />
+          </button>
+        ) : (
+          <span className="sivu-insp__paso-ant is-vacio" aria-hidden="true" />
+        )}
         {confirmando ? (
           <div className="sivu-insp__bar-actions">
             <span>¿Finalizar la inspección? No se podrá editar después.</span>
@@ -875,6 +871,12 @@ export default function InspectionFormPage() {
             </button>
           </div>
         )}
+        {siguiente && (
+          <button type="button" className="btn btn-primary sivu-insp__paso-sig" onClick={() => irAEtapa(siguiente.id)}>
+            Siguiente · {siguiente.etiqueta} <Icon name="arrow-right" size={14} />
+          </button>
+        )}
+        </div>
       </div>
       </div>
       </div>
