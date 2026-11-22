@@ -2,11 +2,11 @@
  * Columnas por especie (pedido de la responsable, 2026-11-22): las cinco más
  * registradas y «Otras» con el resto, en número de árboles y % del inventario
  * (B7 `especies_top`, que trae hasta 10). Se usa en el Dashboard y en el
- * Inventario. Paleta «Naranja y ladrillo» elegida por la responsable: verde,
- * ladrillo, naranja, naranja claro y crema, de la especie con más árboles a
+ * Inventario. Paleta otoñal «Ámbar y caramelo» elegida por la responsable:
+ * ámbar, caramelo, cobre, óxido y granate, de la especie con más árboles a
  * la quinta.
  */
-const PALETA_ESPECIES = ["#5C8A2C", "#C6442C", "#E8692F", "#F4A85C", "#FDE5C8"] as const;
+const PALETA_ESPECIES = ["#D9B05E", "#CB8D4A", "#B76E3A", "#A3443A", "#8C302E"] as const;
 
 export function GraficoEspecies({
   especies,
