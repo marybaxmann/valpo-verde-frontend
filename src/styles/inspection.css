@@ -399,6 +399,45 @@
 .sivu-insp__indice-seg .sivu-seg__opt {
   flex: none;
   white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.sivu-insp__indice-n {
+  font-size: 11px;
+  font-weight: 600;
+  opacity: 0.65;
+}
+.sivu-insp__indice-falta {
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 18px;
+  text-align: center;
+  background: var(--badge-medium-bg);
+  color: var(--badge-medium-fg);
+  border: 1px solid var(--badge-medium-border);
+}
+/* Anterior / Siguiente al pie de cada etapa. */
+.sivu-insp__pasos {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 4px 0 16px;
+}
+.sivu-insp__pasos-n {
+  font-size: 13px;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+@media (max-width: 560px) {
+  .sivu-insp__pasos-n {
+    display: none;
+  }
 }
 .sivu-insp__section {
   scroll-margin-top: calc(var(--shell-topbar-h, 64px) + 60px);

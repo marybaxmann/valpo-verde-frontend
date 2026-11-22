@@ -1,0 +1,348 @@
+/* ==================================================
+   Evaluación guiada (2026-11-22, maqueta aprobada):
+   una etapa a la vez, avance visible, preguntas en
+   filas y controles redondeados. Solo presentación:
+   usa las variables de SIVU, así el modo oscuro se
+   adapta solo.
+   ================================================== */
+.sivu-insp {
+  --insp-sel: var(--sivu-primary);
+  --insp-sel-text: #fbfcf8;
+  --insp-sel-soft: var(--sivu-primary-surface);
+  --insp-ok: var(--sivu-accent);
+  --insp-ok-text: #fff;
+  --insp-chip: var(--surface-subtle);
+  --insp-follow: rgba(72, 86, 53, 0.06);
+}
+:root[data-theme="dark"] .sivu-insp {
+  --insp-sel: var(--sivu-accent);
+  --insp-sel-text: #0f1a0d;
+  --insp-ok-text: #0f1a0d;
+  --insp-follow: rgba(168, 230, 195, 0.05);
+}
+
+/* Barra de avance (resumen y por etapa) */
+.sivu-insp__barra {
+  flex: 1;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--insp-chip);
+  border: 1px solid var(--border-soft);
+  overflow: hidden;
+}
+.sivu-insp__barra > span {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--insp-ok);
+  transition: width 0.3s ease;
+}
+.sivu-insp__indice-resumen {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+  font-size: 12.5px;
+  color: var(--text-muted);
+}
+.sivu-insp__indice-resumen > span {
+  white-space: nowrap;
+}
+.sivu-insp__indice-seg .sivu-seg__opt.is-lista:not(.is-on) .sivu-insp__indice-n {
+  opacity: 1;
+  color: var(--insp-ok);
+}
+
+/* Encabezado de la etapa (al cambiar de etapa queda bajo la barra fija de etapas) */
+.sivu-insp .sivu-insp__section {
+  scroll-margin-top: calc(var(--shell-topbar-h, 64px) + 104px);
+}
+.sivu-insp__etapa {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.sivu-insp__etapa-head {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 2px 2px;
+}
+.sivu-insp__etapa-n {
+  align-self: flex-start;
+  height: 26px;
+  padding: 0 12px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  font-size: 12.5px;
+  font-weight: 600;
+  background: var(--insp-sel-soft);
+  color: var(--sivu-primary-dark);
+}
+.sivu-insp__etapa-head h2 {
+  margin: 0;
+  font-size: 26px;
+  line-height: 1.2;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+}
+.sivu-insp__etapa-avance {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+.sivu-insp__etapa-avance > span {
+  white-space: nowrap;
+}
+
+/* Bloques como tarjetas redondeadas con preguntas en filas */
+.sivu-insp__etapa .sivu-insp__block {
+  margin: 0;
+  padding: 6px 22px 10px;
+  border-radius: 26px;
+}
+.sivu-insp__etapa .sivu-insp__block > .sivu-insp__subhead {
+  margin: 10px 0 2px;
+  padding: 0;
+  border: 0;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+.sivu-insp__etapa .sivu-insp__grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+.sivu-insp__etapa .sivu-insp-field {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px 20px;
+  padding: 14px 2px;
+  border: 0;
+  border-top: 1px solid var(--border-soft);
+  border-radius: 0;
+}
+.sivu-insp__etapa .sivu-insp__grid > .sivu-insp-field:first-child {
+  border-top: 0;
+}
+.sivu-insp__etapa .sivu-insp-field.is-child {
+  margin: 0 0 8px 32px;
+  padding: 12px 16px;
+  border-top: 0;
+  border-radius: 20px;
+  background: var(--insp-follow);
+}
+.sivu-insp__etapa .sivu-insp-field.is-missing {
+  border-radius: 20px;
+  padding: 12px 16px;
+  border: 1px solid var(--red-500);
+  background: var(--red-50);
+}
+.sivu-insp__etapa .sivu-insp-field > :not(.sivu-insp-field__head):not(.sivu-insp-field__control) {
+  grid-column: 1 / -1;
+  margin-left: 34px;
+}
+.sivu-insp__etapa .sivu-insp-field__head {
+  flex-wrap: nowrap;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 8px 12px;
+}
+.sivu-insp__etapa .sivu-insp-field__name {
+  font-size: 14.5px;
+  font-weight: 500;
+  line-height: 1.4;
+  padding-top: 1px;
+}
+.sivu-insp-field__mark {
+  box-sizing: border-box;
+  flex: none;
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid var(--border-green);
+}
+.sivu-insp-field__mark.is-opt {
+  border-style: dotted;
+}
+.sivu-insp-field.is-answered .sivu-insp-field__mark {
+  border: 0;
+  background: var(--insp-ok);
+  color: var(--insp-ok-text);
+}
+.sivu-insp__etapa .sivu-insp-field__control {
+  justify-self: end;
+  min-width: 0;
+}
+/* Controles anchos (tarjetas, notas, varias opciones o 4+ pastillas) bajan a su propia línea. */
+.sivu-insp__etapa .sivu-insp-field__control:has(> .sivu-insp-field__cards, > textarea, > .sivu-insp-field__seg--chips, > .sivu-insp-field__seg:not(.sivu-insp-field__seg--escala) > button:nth-child(4)) {
+  grid-column: 1 / -1;
+  justify-self: stretch;
+  margin-left: 34px;
+}
+.sivu-insp__etapa .sivu-insp-field__control > input,
+.sivu-insp__etapa .sivu-insp-field__control > select {
+  width: 240px;
+}
+
+/* Controles redondeados */
+.sivu-insp__etapa .sivu-insp-field input[type="text"],
+.sivu-insp__etapa .sivu-insp-field input[type="date"],
+.sivu-insp__etapa .sivu-insp-field select {
+  height: 44px;
+  border-radius: 16px;
+  padding: 0 14px;
+  font-size: 15px;
+}
+.sivu-insp__etapa .sivu-insp-field textarea {
+  border-radius: 18px;
+  padding: 10px 14px;
+  font-size: 14.5px;
+}
+.sivu-insp__etapa .sivu-insp-field__seg {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.sivu-insp__etapa .sivu-insp-field__seg button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-width: 72px;
+  height: 44px;
+  padding: 0 18px;
+  border-radius: 999px;
+  border: 1px solid var(--border-green);
+  background: var(--insp-chip);
+  color: var(--text);
+  font-size: 14.5px;
+  font-weight: 500;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+.sivu-insp__etapa .sivu-insp-field__seg--chips button {
+  min-width: 0;
+  height: 40px;
+  padding: 0 15px;
+  font-size: 14px;
+}
+.sivu-insp__etapa .sivu-insp-field__seg--escala button {
+  min-width: 0;
+  width: 44px;
+  padding: 0;
+  font-weight: 600;
+}
+.sivu-insp__etapa .sivu-insp-field__seg button.is-on {
+  background: var(--insp-sel);
+  border-color: var(--insp-sel);
+  color: var(--insp-sel-text);
+  font-weight: 600;
+}
+.sivu-insp__etapa .sivu-insp-field__seg button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+.sivu-insp-field__cards {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.sivu-insp-field__cards button {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 50px;
+  padding: 10px 16px;
+  border-radius: 20px;
+  border: 1px solid var(--border-green);
+  background: var(--insp-chip);
+  color: var(--text);
+  font: inherit;
+  font-size: 14.5px;
+  text-align: left;
+  cursor: pointer;
+}
+.sivu-insp-field__cards button.is-on {
+  border-color: var(--insp-sel);
+  box-shadow: inset 0 0 0 1px var(--insp-sel);
+  background: var(--insp-sel-soft);
+  font-weight: 600;
+}
+.sivu-insp-field__dot {
+  box-sizing: border-box;
+  flex: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 999px;
+  border: 2px solid var(--border-green);
+  background: var(--surface);
+}
+.sivu-insp-field__cards button.is-on .sivu-insp-field__dot {
+  border: 6px solid var(--insp-sel);
+}
+
+/* Anterior / Siguiente y barra de acciones */
+.sivu-insp__pasos .btn {
+  height: 48px;
+  padding: 0 22px;
+  border-radius: 999px;
+  font-size: 15px;
+}
+.sivu-insp__bar {
+  border-radius: 24px;
+}
+
+@media (max-width: 640px) {
+  .sivu-insp__etapa .sivu-insp__block {
+    padding: 4px 14px 8px;
+    border-radius: 22px;
+  }
+  .sivu-insp__etapa .sivu-insp-field {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .sivu-insp__etapa .sivu-insp-field__control {
+    justify-self: stretch;
+    margin-left: 34px;
+  }
+  .sivu-insp__etapa .sivu-insp-field__control > input,
+  .sivu-insp__etapa .sivu-insp-field__control > select {
+    width: 100%;
+  }
+  .sivu-insp__etapa .sivu-insp-field.is-child {
+    margin-left: 12px;
+  }
+  .sivu-insp__pasos .btn {
+    flex: 1 1 0;
+    min-width: 0;
+    height: auto;
+    min-height: 48px;
+    padding: 8px 16px;
+    white-space: normal;
+    line-height: 1.25;
+    justify-content: center;
+    text-align: center;
+  }
+  .sivu-insp__indice-resumen {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 4px;
+  }
+  .sivu-insp__indice-resumen > .sivu-insp__barra {
+    flex: none;
+  }
+  .sivu-insp__indice-resumen > span,
+  .sivu-insp__etapa-avance > span {
+    white-space: normal;
+  }
+}
