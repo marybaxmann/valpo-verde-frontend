@@ -693,8 +693,18 @@
   background: var(--sivu-primary-light);
   transition: height 0.5s ease;
 }
-.sivu-colchart__barra.is-primera {
-  background: var(--sivu-primary);
+.sivu-colchart--compacto .sivu-colchart__barras {
+  height: 140px;
+  gap: 5px;
+}
+.sivu-colchart--compacto .sivu-colchart__nombres {
+  gap: 5px;
+}
+.sivu-colchart--compacto .sivu-colchart__nombres span {
+  font-size: 11px;
+}
+.sivu-colchart--compacto .sivu-colchart__valor {
+  font-size: 12px;
 }
 .sivu-colchart__barra.is-otras {
   background: repeating-linear-gradient(135deg, var(--shell-soft, #e3e8dc) 0 5px, transparent 5px 10px);
@@ -709,5 +719,6 @@
   line-height: 1.2;
   text-align: center;
   color: var(--text-muted);
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
+  hyphens: auto;
 }

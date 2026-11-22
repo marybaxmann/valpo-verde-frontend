@@ -13,6 +13,9 @@ import { Icon } from "../components/Icons";
 import { TreeSheet } from "../components/TreeSheet";
 import { NewTreeModal } from "../components/NewTreeModal";
 import { CatalogoEspecies } from "../components/inventario/CatalogoEspecies";
+import { GraficoEspecies } from "../components/GraficoEspecies";
+import { obtenerResumen } from "../api/resumen";
+import type { ResumenProyecto } from "../types/resumen";
 import { useAuth } from "../hooks/useAuth";
 import { ESTADO_PROYECTO_LABEL } from "../lib/projects";
 import { getArcgisApiKey } from "../lib/arcgis";
@@ -61,6 +64,18 @@ export default function InventoryPage() {
   // Apartado del módulo (2026-11-22): «Árboles» (tabla y mapa) o «Especies» (catálogo), en `?vista=especies`.
   const [params, setParams] = useSearchParams();
   const vistaEspecies = params.get("vista") === "especies";
+  // Composición por especie (B7), la misma del Dashboard.
+  const [resumen, setResumen] = useState<{ id: string; datos: ResumenProyecto } | null>(null);
+  useEffect(() => {
+    let cancelado = false;
+    obtenerResumen(projectId)
+      .then((datos) => !cancelado && setResumen({ id: projectId, datos }))
+      .catch(() => {});
+    return () => {
+      cancelado = true;
+    };
+  }, [projectId]);
+  const composicion = resumen?.id === projectId ? resumen.datos : null;
   const cambiarVista = (especies: boolean) => {
     const p = new URLSearchParams(params);
     if (especies) p.set("vista", "especies");
@@ -187,7 +202,7 @@ export default function InventoryPage() {
 
   return (
     <div className={`sivu-inv ${selected ? "has-sheet" : ""}`}>
-      <header className="sivu-phead">
+      <header className="sivu-phead sivu-inv__head">
         <div>
           <div className="sivu-phead__eyebrow">
             {project && (
@@ -215,6 +230,16 @@ export default function InventoryPage() {
             Nuevo árbol
           </button>
         )}
+        {!projectError && (
+          <div className="sivu-seg sivu-inv__vistas" role="tablist" aria-label="Apartado del inventario">
+            <button type="button" role="tab" aria-selected={!vistaEspecies} className={`sivu-seg__opt ${!vistaEspecies ? "is-on" : ""}`} onClick={() => cambiarVista(false)}>
+              Árboles
+            </button>
+            <button type="button" role="tab" aria-selected={vistaEspecies} className={`sivu-seg__opt ${vistaEspecies ? "is-on" : ""}`} onClick={() => cambiarVista(true)}>
+              Especies
+            </button>
+          </div>
+        )}
       </header>
 
       {created.length > 0 && (
@@ -230,17 +255,6 @@ export default function InventoryPage() {
             ))}
             .
           </span>
-        </div>
-      )}
-
-      {!projectError && (
-        <div className="sivu-seg sivu-inv__vistas" role="tablist" aria-label="Apartado del inventario">
-          <button type="button" role="tab" aria-selected={!vistaEspecies} className={`sivu-seg__opt ${!vistaEspecies ? "is-on" : ""}`} onClick={() => cambiarVista(false)}>
-            Árboles
-          </button>
-          <button type="button" role="tab" aria-selected={vistaEspecies} className={`sivu-seg__opt ${vistaEspecies ? "is-on" : ""}`} onClick={() => cambiarVista(true)}>
-            Especies
-          </button>
         </div>
       )}
 
@@ -431,6 +445,20 @@ export default function InventoryPage() {
                 )}
               </div>
             </article>
+            {composicion && (
+              <article className="sivu-panel sivu-inv__comp">
+                <div className="sivu-panel__head">
+                  <h2>Composición del inventario</h2>
+                  <button type="button" className="sivu-panel__link sivu-inv__comp-link" onClick={() => cambiarVista(true)}>
+                    Especies <Icon name="arrow-right" size={12} />
+                  </button>
+                </div>
+                <p className="sivu-comp__resumen">
+                  <strong>{composicion.arboles_total}</strong> árboles · <strong>{composicion.especies_distintas}</strong> especies
+                </p>
+                <GraficoEspecies especies={composicion.especies_top} total={composicion.arboles_total} compacto />
+              </article>
+            )}
           </aside>
         </div>
       )}

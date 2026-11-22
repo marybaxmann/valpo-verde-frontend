@@ -15,10 +15,26 @@
   font-size: 13.5px;
   color: var(--text-muted);
 }
-/* Selector «Árboles | Especies» bajo el encabezado del Inventario. */
+/* Encabezado del Inventario: «Nuevo árbol» junto al título y el selector
+   «Árboles | Especies» a la derecha (pedido de la responsable, 2026-11-22). */
+.sivu-inv__head {
+  justify-content: flex-start;
+}
 .sivu-inv__vistas {
-  align-self: flex-start;
-  margin: 0 0 14px;
+  margin-left: auto;
+}
+/* Gráfico de especies bajo el mapa, en la columna lateral. */
+.sivu-inv__comp-link {
+  border: 0;
+  background: none;
+  padding: 0;
+  font: inherit;
+  cursor: pointer;
+}
+@media (max-width: 640px) {
+  .sivu-inv__vistas {
+    margin-left: 0;
+  }
 }
 .sivu-esp__head h1 {
   margin: 4px 0 4px;

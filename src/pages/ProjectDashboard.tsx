@@ -4,6 +4,7 @@ import { getProjectWithSector } from "../api/projects";
 import type { ProjectWithSector } from "../types/project";
 import { Icon, type IconName } from "../components/Icons";
 import { PendingNotice } from "../components/PendingNotice";
+import { GraficoEspecies } from "../components/GraficoEspecies";
 import { ESTADO_PROYECTO_LABEL } from "../lib/projects";
 import { obtenerResumen } from "../api/resumen";
 import { listarDiagnosticos } from "../api/diagnosticos";
@@ -487,60 +488,5 @@ export default function ProjectDashboard() {
         </>
       )}
     </div>
-  );
-}
-
-/**
- * Columnas por especie (pedido de la responsable, 2026-11-22): las seis más
- * registradas y «Otras» con el resto, en número de árboles y % del inventario
- * (B7 `especies_top`, que trae hasta 10). Verdes de SIVU: no usa la paleta de riesgo.
- */
-function GraficoEspecies({
-  especies,
-  total,
-}: {
-  especies: { especie_cientifica: string | null; nombre_comun: string | null; total: number }[];
-  total: number;
-}) {
-  const top = especies.slice(0, 6);
-  const enTop = top.reduce((s, e) => s + e.total, 0);
-  const otras = Math.max(0, total - enTop);
-  const columnas = [
-    ...top.map((e) => ({
-      clave: e.especie_cientifica ?? e.nombre_comun ?? "sin",
-      nombre: e.nombre_comun ?? e.especie_cientifica ?? "Sin especie",
-      detalle: e.especie_cientifica ?? "",
-      total: e.total,
-      otras: false,
-    })),
-    ...(otras > 0 ? [{ clave: "otras", nombre: "Otras", detalle: "Resto de las especies", total: otras, otras: true }] : []),
-  ];
-  const max = Math.max(1, ...columnas.map((c) => c.total));
-  if (columnas.length === 0) return <p className="sivu-state">Sin especies registradas.</p>;
-  return (
-    <figure className="sivu-colchart" aria-label="Árboles por especie">
-      <div className="sivu-colchart__barras" style={{ gridTemplateColumns: `repeat(${columnas.length}, minmax(0, 1fr))` }}>
-        {columnas.map((c, i) => {
-          const pct = total > 0 ? Math.round((c.total / total) * 100) : 0;
-          return (
-            <div key={c.clave} className="sivu-colchart__col" title={`${c.nombre}${c.detalle ? ` (${c.detalle})` : ""}: ${c.total} árboles, ${pct} %`}>
-              <span className="sivu-colchart__valor">
-                {c.total}
-                <small>{pct}%</small>
-              </span>
-              <span
-                className={`sivu-colchart__barra ${i === 0 ? "is-primera" : ""} ${c.otras ? "is-otras" : ""}`}
-                style={{ height: `${Math.max(4, (c.total / max) * 100)}%` }}
-              />
-            </div>
-          );
-        })}
-      </div>
-      <div className="sivu-colchart__nombres" style={{ gridTemplateColumns: `repeat(${columnas.length}, minmax(0, 1fr))` }}>
-        {columnas.map((c) => (
-          <span key={c.clave}>{c.nombre}</span>
-        ))}
-      </div>
-    </figure>
   );
 }
