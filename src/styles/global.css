@@ -4,7 +4,8 @@
      Valores tomados de la maqueta «SIVU Lab» (prototype/sivu-maqueta-lab,
      6817fb2): verde oliva del logotipo, fondos y superficies, tipografía.
      Se conservan los nombres de variables de INV-1C para no tocar los
-     componentes. La paleta de clasificación de riesgo NO cambia.
+     componentes. La paleta de clasificación de riesgo es la de PR-016 v8.0
+     (CC-082) y solo cambia con un CC.
      ================================================== */
   --sivu-olive: #485635;
   --sivu-olive-2: #5f7146;
@@ -123,7 +124,7 @@
    MODO OSCURO — se activa con <html data-theme="dark">
    (index.html resuelve la preferencia antes de pintar).
    Valores de la maqueta SIVU Lab en oscuro. La paleta de
-   clasificación de riesgo NO cambia.
+   clasificación de riesgo (CC-082) solo cambia con un CC.
    ================================================== */
 :root[data-theme="dark"] {
   --sivu-accent: #a8e6c3;
