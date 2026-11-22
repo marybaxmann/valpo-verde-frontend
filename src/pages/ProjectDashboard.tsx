@@ -327,42 +327,16 @@ export default function ProjectDashboard() {
             <article className="sivu-panel sivu-dash__comp">
               <div className="sivu-panel__head">
                 <h2>Composición del inventario</h2>
-                <Link to="../mapa" relative="path" className="sivu-panel__link">
-                  Inventario <Icon name="arrow-right" size={12} />
+                <Link to="../especies" relative="path" className="sivu-panel__link">
+                  Catálogo de especies <Icon name="arrow-right" size={12} />
                 </Link>
               </div>
               {r ? (
                 <>
-                  <div className="sivu-lifecycle">
-                    {r.por_ciclo_vida.map((c) => (
-                      <div key={c.codigo ?? "sin"}>
-                        <strong>{c.total}</strong>
-                        <span>{c.etiqueta ?? c.codigo ?? "—"}</span>
-                      </div>
-                    ))}
-                  </div>
-                  <span className="sivu-panel__sub">Especies más registradas</span>
-                  {/* Como la maqueta: las 3 principales en filas de una línea, % sobre el total de árboles (B7). */}
-                  <ul className="sivu-bars">
-                    {r.especies_top.slice(0, 3).map((e) => {
-                      const pct = r.arboles_total > 0 ? Math.round((e.total / r.arboles_total) * 100) : 0;
-                      const max = r.especies_top[0]?.total || 1;
-                      return (
-                        <li key={e.especie_cientifica ?? e.nombre_comun ?? "sin"} title={`${e.especie_cientifica ?? ""} · ${e.total} árboles`}>
-                          <span>{e.nombre_comun ?? e.especie_cientifica ?? "Sin especie"}</span>
-                          <i>
-                            <b style={{ width: `${(e.total / max) * 100}%` }} />
-                          </i>
-                          <strong>{pct}%</strong>
-                        </li>
-                      );
-                    })}
-                  </ul>
-                  {r.especies_distintas > 3 && (
-                    <Link to="../mapa" relative="path" className="sivu-panel__link sivu-dash__more">
-                      Ver las {r.especies_distintas} especies <Icon name="arrow-right" size={12} />
-                    </Link>
-                  )}
+                  <p className="sivu-comp__resumen">
+                    <strong>{r.arboles_total}</strong> árboles · <strong>{r.especies_distintas}</strong> especies
+                  </p>
+                  <GraficoEspecies especies={r.especies_top} total={r.arboles_total} />
                 </>
               ) : (
                 <p className="sivu-state">{errorResumen ? "Sin datos." : "Cargando…"}</p>
@@ -513,5 +487,60 @@ export default function ProjectDashboard() {
         </>
       )}
     </div>
+  );
+}
+
+/**
+ * Columnas por especie (pedido de la responsable, 2026-11-22): las seis más
+ * registradas y «Otras» con el resto, en número de árboles y % del inventario
+ * (B7 `especies_top`, que trae hasta 10). Verdes de SIVU: no usa la paleta de riesgo.
+ */
+function GraficoEspecies({
+  especies,
+  total,
+}: {
+  especies: { especie_cientifica: string | null; nombre_comun: string | null; total: number }[];
+  total: number;
+}) {
+  const top = especies.slice(0, 6);
+  const enTop = top.reduce((s, e) => s + e.total, 0);
+  const otras = Math.max(0, total - enTop);
+  const columnas = [
+    ...top.map((e) => ({
+      clave: e.especie_cientifica ?? e.nombre_comun ?? "sin",
+      nombre: e.nombre_comun ?? e.especie_cientifica ?? "Sin especie",
+      detalle: e.especie_cientifica ?? "",
+      total: e.total,
+      otras: false,
+    })),
+    ...(otras > 0 ? [{ clave: "otras", nombre: "Otras", detalle: "Resto de las especies", total: otras, otras: true }] : []),
+  ];
+  const max = Math.max(1, ...columnas.map((c) => c.total));
+  if (columnas.length === 0) return <p className="sivu-state">Sin especies registradas.</p>;
+  return (
+    <figure className="sivu-colchart" aria-label="Árboles por especie">
+      <div className="sivu-colchart__barras" style={{ gridTemplateColumns: `repeat(${columnas.length}, minmax(0, 1fr))` }}>
+        {columnas.map((c, i) => {
+          const pct = total > 0 ? Math.round((c.total / total) * 100) : 0;
+          return (
+            <div key={c.clave} className="sivu-colchart__col" title={`${c.nombre}${c.detalle ? ` (${c.detalle})` : ""}: ${c.total} árboles, ${pct} %`}>
+              <span className="sivu-colchart__valor">
+                {c.total}
+                <small>{pct}%</small>
+              </span>
+              <span
+                className={`sivu-colchart__barra ${i === 0 ? "is-primera" : ""} ${c.otras ? "is-otras" : ""}`}
+                style={{ height: `${Math.max(4, (c.total / max) * 100)}%` }}
+              />
+            </div>
+          );
+        })}
+      </div>
+      <div className="sivu-colchart__nombres" style={{ gridTemplateColumns: `repeat(${columnas.length}, minmax(0, 1fr))` }}>
+        {columnas.map((c) => (
+          <span key={c.clave}>{c.nombre}</span>
+        ))}
+      </div>
+    </figure>
   );
 }

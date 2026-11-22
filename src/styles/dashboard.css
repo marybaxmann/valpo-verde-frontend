@@ -638,3 +638,76 @@
 .sivu-indgrid strong { font-size: 22px; font-weight: 600; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
 .sivu-indgrid strong small { margin-left: 4px; font-size: 12px; font-weight: 500; color: var(--text-muted); letter-spacing: 0; }
 .sivu-indgrid__sub { font-size: 11px; color: var(--text-muted); }
+
+/* Composición: columnas por especie (2026-11-22). */
+.sivu-comp__resumen {
+  margin: 0 0 10px;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+.sivu-comp__resumen strong {
+  color: var(--text);
+  font-size: 15px;
+  font-weight: 600;
+}
+.sivu-colchart {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.sivu-colchart__barras {
+  display: grid;
+  align-items: end;
+  gap: 8px;
+  height: 180px;
+  padding-bottom: 2px;
+  border-bottom: 1px solid var(--border);
+}
+.sivu-colchart__col {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: stretch;
+  gap: 4px;
+  min-width: 0;
+}
+.sivu-colchart__valor {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.1;
+  color: var(--text);
+}
+.sivu-colchart__valor small {
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--text-muted);
+}
+.sivu-colchart__barra {
+  display: block;
+  border-radius: 8px 8px 3px 3px;
+  background: var(--sivu-primary-light);
+  transition: height 0.5s ease;
+}
+.sivu-colchart__barra.is-primera {
+  background: var(--sivu-primary);
+}
+.sivu-colchart__barra.is-otras {
+  background: repeating-linear-gradient(135deg, var(--shell-soft, #e3e8dc) 0 5px, transparent 5px 10px);
+  box-shadow: inset 0 0 0 1px var(--border-green);
+}
+.sivu-colchart__nombres {
+  display: grid;
+  gap: 8px;
+}
+.sivu-colchart__nombres span {
+  font-size: 11.5px;
+  line-height: 1.2;
+  text-align: center;
+  color: var(--text-muted);
+  overflow-wrap: anywhere;
+}

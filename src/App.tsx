@@ -26,6 +26,7 @@ const IncidenciaPage = lazy(() => import("./pages/IncidenciaPage"));
 const TreeHistoryPage = lazy(() => import("./pages/TreeHistoryPage"));
 const ArbolPublicoPage = lazy(() => import("./pages/ArbolPublicoPage"));
 const IndicesPage = lazy(() => import("./pages/IndicesPage"));
+const SpeciesPage = lazy(() => import("./pages/SpeciesPage"));
 const ConectaPage = lazy(() => import("./pages/ConectaPage"));
 const InventoryPage = lazy(() => import("./pages/InventoryPage"));
 const RiskPage = lazy(() => import("./pages/RiskPage"));
@@ -68,6 +69,7 @@ function projectRoutes() {
       <Route path="projects/:projectId/mapa" element={<InventoryRoute />} />
       <Route path="projects/:projectId/arboles/:treeId" element={<TreeHistoryPage />} />
       <Route path="projects/:projectId/inventario" element={<Navigate to="../mapa" relative="path" replace />} />
+      <Route path="projects/:projectId/especies" element={<SpeciesPage />} />
       <Route path="projects/:projectId/inspeccion" element={<RiskPage />} />
       <Route path="projects/:projectId/infraestructura" element={<InfrastructurePage />} />
       <Route path="projects/:projectId/mantencion" element={<MaintenancePage />} />
