@@ -136,10 +136,10 @@ function token(nombre: string, respaldo: string): string {
 /** Colores literales para el pin (un SVG como imagen no lee variables CSS). Paleta de clasificación de PR-016. */
 export function coloresPin() {
   return {
-    sev: token("--classification-high", "#F04A32"),
-    mod: token("--classification-medium", "#F9B52B"),
-    lev: token("--classification-low", "#DCE8A9"),
-    crit: token("--classification-critical", "#C7252B"),
+    sev: token("--classification-high", "#F59A23"),
+    mod: token("--classification-medium", "#F6D03F"),
+    lev: token("--classification-low", "#4FA35B"),
+    crit: token("--classification-critical", "#B3121F"),
     sin: "#CFE8F7",
     pend: "#A7B0AB",
   };
