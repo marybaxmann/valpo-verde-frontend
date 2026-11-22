@@ -372,7 +372,10 @@ export default function InventoryPage() {
                         className={`sivu-table__row--interactive ${a.id === selectedId ? "is-sel" : ""}`}
                         onClick={() => setSelectedId(a.id)}
                       >
-                        <td className="sivu-inv__code">{a.tree_code}</td>
+                        <td className="sivu-inv__code">
+                          {a.codigo_publico && <strong className="sivu-inv__codpub">{a.codigo_publico}</strong>}
+                          <span>{a.tree_code}</span>
+                        </td>
                         <td>
                           <span className="sivu-inv__species">
                             <strong>{a.nombre_comun ?? a.especie_cientifica ?? "—"}</strong>

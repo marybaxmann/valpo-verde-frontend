@@ -151,7 +151,10 @@ export function TreeSheet({
     <aside className={`sivu-sheet ${drawer ? "sivu-sheet--drawer" : ""}`} aria-label={`Ficha del árbol ${arbol.tree_code}`}>
       <div className="sivu-sheet__head">
         <div>
-          <span className="sivu-sheet__code">{arbol.tree_code}</span>
+          <span className="sivu-sheet__code">
+            {arbol.codigo_publico && <strong className="sivu-sheet__codpub">{arbol.codigo_publico}</strong>}
+            {arbol.tree_code}
+          </span>
           <h2>{arbol.nombre_comun ?? arbol.especie_cientifica ?? "Sin especie"}</h2>
           {arbol.nombre_comun && arbol.especie_cientifica && <p>{arbol.especie_cientifica}</p>}
         </div>

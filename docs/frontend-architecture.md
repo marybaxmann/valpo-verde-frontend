@@ -374,6 +374,11 @@ email, nunca hardcodeado.
 - Veracidad: el carbono deja de ser la tarjeta principal (fila 14 de INDICES sigue «Pendiente»; 3 de 98 árboles) y va «En validación»; el origen se marca «Dato incompleto» cuando hay árboles de especies sin origen en el catálogo (en el Piloto, 31 de 98: el 0 % de nativos no es un dato cerrado).
 - Se quitó «Los que más aportan» y la carga de hasta 60 fichas para ordenar el carbono; la ficha (B2) se pide solo al abrir un árbol en «Por árbol».
 
+### Fase 7 · Código público del árbol (CC-086)
+**Fecha:** 2026-11-22. Pedido de la responsable: un código que diga dónde está el árbol (P-VIC-017, PM-001), asignado por la base desde las coordenadas (backend, migración 049).
+- `ArbolInventario.codigo_publico` (B1): columna Código del inventario y ficha lateral (`TreeSheet`) muestran el código público y, debajo, el `tree_code`; la lista de Placas QR también.
+- Solo en la plataforma: la ficha pública (`ExperienciaArbol`) y la placa impresa no lo muestran; la API pública no lo entrega.
+
 ## 5. Limitaciones conocidas (revisado 2026-11-19)
 
 - **Agregar miembro** a un proyecto todavía pide el `user_id` (UUID) en un campo de texto. El backend ya expone `GET /api/sivu/projects/:id/available-users`, pero el frontend aún no lo usa: es una mejora pendiente.

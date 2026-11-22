@@ -129,6 +129,7 @@ export function PlacasQr({ projectId, arboles, municipal }: { projectId: string;
                   <tr key={a.id} className={a.id === arbol?.id ? "is-sel" : ""} onClick={() => setElegido(a.id)}>
                     <td className="sivu-placas__code">
                       <button type="button" aria-pressed={a.id === arbol?.id} onClick={() => setElegido(a.id)}>
+                        {a.codigo_publico && <strong className="sivu-placas__codpub">{a.codigo_publico}</strong>}
                         {a.tree_code}
                       </button>
                     </td>
@@ -153,7 +154,7 @@ export function PlacasQr({ projectId, arboles, municipal }: { projectId: string;
         <aside className="sivu-panel sivu-placas__preview" aria-label="Vista previa de la placa">
           <div className="sivu-placas__phead">
             <div>
-              <span className="sivu-placas__eyebrow">{arbol.tree_code}</span>
+              <span className="sivu-placas__eyebrow">{arbol.codigo_publico ? `${arbol.codigo_publico} · ${arbol.tree_code}` : arbol.tree_code}</span>
               <h2>Vista previa de la placa</h2>
             </div>
             <span className={`sivu-placas__pill ${arbol.estado_ciclo_vida === "activo" ? "is-on" : ""}`}>
