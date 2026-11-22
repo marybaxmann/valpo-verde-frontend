@@ -157,7 +157,7 @@ export function InspectionField({
           inputMode="decimal"
           value={typeof valor === "string" ? valor : ""}
           onChange={(e) => onChange(e.target.value)}
-          placeholder={campo.tipo_entrada === "lista_decimal" ? "Valores separados por espacio o punto y coma" : undefined}
+          placeholder={campo.tipo_entrada === "lista_decimal" ? "Ej.: 18; 22,5; 15" : undefined}
           aria-invalid={invalido}
           disabled={disabled}
         />
@@ -217,6 +217,9 @@ export function InspectionField({
         )}
       </div>
       <div className="sivu-insp-field__control">{control}</div>
+      {campo.tipo_entrada === "lista_decimal" && (
+        <small className="sivu-insp-field__hint">Un valor por fuste, separados por punto y coma. Ejemplo: 18; 22,5; 15</small>
+      )}
       {referencia && <small className="sivu-insp-field__hint">Registrado en el árbol: {referencia}</small>}
       {/* D-13, CC-053: la especie entra al catálogo solo si el Inspector la confirma en la inspección. */}
       {referencia && campo.identificador === "especie_cientifica" && !valor && !disabled && (
