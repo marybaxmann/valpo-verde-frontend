@@ -12,6 +12,7 @@ import {
   obtenerEsquemaFormulario,
   subirFoto,
 } from "../api/inspections";
+import { buscarEspeciesCatalogo } from "../api/species";
 import { obtenerCatalogos } from "../api/catalogs";
 import { ApiError } from "../api/client";
 import type { OtListada } from "../types/workOrder";
@@ -104,6 +105,11 @@ function referenciaArbol(ot: OtListada, campo: string): string | null {
   return null;
 }
 
+function aplicaEnProtocolo(campo: CampoFormulario, palm01: boolean, tipoHoja: string | null): boolean {
+  if (campo.desde_version === "3.4") return palm01 && tipoHoja === "palmera";
+  return !(palm01 && tipoHoja === "palmera" && campo.no_aplica_palmera);
+}
+
 interface AjusteEditable {
   valor: string;
   justificacion: string;
@@ -115,6 +121,7 @@ export default function InspectionFormPage() {
   const [esquema, setEsquema] = useState<EsquemaFormulario | null>(null);
   const [catalogos, setCatalogos] = useState<Catalogos>({});
   const [errorCarga, setErrorCarga] = useState<string | null>(null);
+  const [tipoEspecie, setTipoEspecie] = useState<{ clave: string; tipo: string | null; error?: boolean } | null>(null);
 
   const [inspectionId, setInspectionId] = useState<string | null>(null);
   const [fechaTerreno, setFechaTerreno] = useState(hoyChile);
@@ -207,12 +214,47 @@ export default function InspectionFormPage() {
     };
   }, [inspectionId]);
 
-  const camposArbol = useMemo(() => (esquema ? ordenar(esquema.campos_arbol) : []), [esquema]);
-  const variables = useMemo(() => (esquema ? ordenar(esquema.variables) : []), [esquema]);
+  const palm01 = esquema?.rule_version === "3.4";
+  const projectId = ot?.proyecto.id;
+  const especieEscrita = valores.especie_cientifica;
+  const especie = (typeof especieEscrita === "string" ? especieEscrita.trim() : "") ||
+    ot?.arbol?.especie_cientifica?.trim() || "";
+  const claveEspecie = projectId && especie.length >= 2 ? `${projectId}/${especie.toLowerCase()}` : "";
+  useEffect(() => {
+    if (!palm01 || !projectId || !claveEspecie) return;
+    let cancelado = false;
+    const timer = window.setTimeout(() => {
+      buscarEspeciesCatalogo(projectId, especie)
+        .then((candidatas) => {
+          const exacta = candidatas.find((c) => c.especie_cientifica.trim().toLowerCase() === especie.toLowerCase());
+          if (!cancelado) setTipoEspecie({ clave: claveEspecie, tipo: exacta?.tipo_hoja ?? null });
+        })
+        .catch(() => {
+          if (!cancelado) setTipoEspecie({ clave: claveEspecie, tipo: null, error: true });
+        });
+    }, 250);
+    return () => {
+      cancelado = true;
+      window.clearTimeout(timer);
+    };
+  }, [palm01, projectId, claveEspecie, especie]);
+
+  const tipoHoja = palm01 && tipoEspecie?.clave === claveEspecie ? tipoEspecie.tipo : null;
+  const especieSinResolver = palm01 && Boolean(claveEspecie) &&
+    (tipoEspecie?.clave !== claveEspecie || tipoEspecie?.error === true);
+  const contexto = useMemo(() => ({ tipo_hoja: tipoHoja }), [tipoHoja]);
+  const camposArbol = useMemo(
+    () => ordenar((esquema?.campos_arbol ?? []).filter((c) => aplicaEnProtocolo(c, palm01, tipoHoja))),
+    [esquema, palm01, tipoHoja],
+  );
+  const variables = useMemo(
+    () => ordenar((esquema?.variables ?? []).filter((c) => aplicaEnProtocolo(c, palm01, tipoHoja))),
+    [esquema, palm01, tipoHoja],
+  );
   const todos = useMemo(() => [...camposArbol, ...variables], [camposArbol, variables]);
   const grupos = useMemo(() => ordenarParaPresentacion(todos, esquema?.secciones ?? []), [todos, esquema]);
   const etiquetaDe = useMemo(() => new Map(todos.map((c) => [c.identificador, c.etiqueta])), [todos]);
-  const convertidos = useMemo(() => valoresConvertidos(todos, valores), [todos, valores]);
+  const convertidos = useMemo(() => ({ ...contexto, ...valoresConvertidos(todos, valores) }), [contexto, todos, valores]);
   const faltantes = useMemo(() => {
     const m = new Map<string, string>();
     for (const f of calculo?.campos_faltantes ?? []) m.set(f.campo, f.motivo);
@@ -282,6 +324,12 @@ export default function InspectionFormPage() {
   }
 
   async function guardar() {
+    if (especieSinResolver) {
+      setGuardadoError(tipoEspecie?.error
+        ? "No se pudo consultar el catálogo de especies. Vuelve a abrir el formulario para reintentar."
+        : "Espera a que se verifique la especie en el catálogo.");
+      return;
+    }
     if (!esquema || !ot || hayInvalidos || fechaInvalida || bloqueado) return;
     setGuardando(true);
     setGuardadoError(null);
@@ -289,7 +337,7 @@ export default function InspectionFormPage() {
     const edicionesAlGuardar = ediciones.current;
     try {
       const body = armarBody(
-        esquema.variables, esquema.campos_arbol, valores, ot.accion.codigo, ot.subtipo?.codigo ?? null, fechaTerreno,
+        variables, camposArbol, valores, ot.accion.codigo, ot.subtipo?.codigo ?? null, fechaTerreno, contexto,
       );
       const res = inspectionId ? await guardarBorrador(inspectionId, body) : await crearBorrador(workOrderId, body);
       if (!inspectionId) setFechaRegistro(hoy);

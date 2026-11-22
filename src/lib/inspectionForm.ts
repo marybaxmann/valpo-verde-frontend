@@ -123,9 +123,10 @@ export function armarBody(
   crudos: ValoresCrudos,
   tipo: string,
   subtipo: string | null,
-  fechaInspeccion?: string
+  fechaInspeccion?: string,
+  contexto: Readonly<Record<string, ValorCampo>> = {},
 ): BorradorBody {
-  const todos = valoresConvertidos([...variables, ...camposArbol], crudos);
+  const todos = { ...contexto, ...valoresConvertidos([...variables, ...camposArbol], crudos) };
   const bloque = (campos: CampoFormulario[]) => {
     const out: Record<string, ValorCampo> = {};
     for (const c of campos) {
