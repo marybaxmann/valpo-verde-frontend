@@ -1,3 +1,4 @@
+import { CarbonoIntegradoPanel } from "./CarbonoIntegrado";
 import { DiagnosticoArbolado } from "./DiagnosticoArbolado";
 import type { IndicadoresProyecto, NivelTaxonomico } from "../../types/indicadores";
 import { co2Anual, masa, MOTIVO_SECUESTRO, num, pct } from "./formato";
@@ -356,6 +357,7 @@ export function HuellaVerde({ d, onVerArboles }: { d: IndicadoresProyecto; onVer
       </section>
 
       <CarbonoProyecto d={d} onVerArboles={onVerArboles} />
+      {d.estimacion_carbono_integrada && <CarbonoIntegradoPanel d={d.estimacion_carbono_integrada} />}
 
       <section className="bio-cgrid">
         <Diversidad d={d} />

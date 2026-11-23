@@ -120,6 +120,8 @@ export interface IndicadoresProyecto {
   estimacion_secuestro_anual?: SecuestroAgregado;
   /** Carbono aéreo total con hojas (carbono directo, 2026-11-21): solo cobertura; ausente en la API publicada. */
   estimacion_carbono_aereo_total?: CarbonoAereoTotalAgregado;
+  /** Propuesta experimental (Valej, 2026-11-22). Ausente en la API publicada. */
+  estimacion_carbono_integrada?: CarbonoIntegrado;
   /** Propuesta experimental (2026-11-21): solo cobertura de la variación anual del carbono aéreo total. */
   /** Propuesta experimental: indicadores descriptivos con datos medidos y vigentes. Ausente en la API publicada. */
   diagnostico_descriptivo?: DiagnosticoDescriptivo;
@@ -332,3 +334,47 @@ export type CarbonoArbol =
       limitaciones: string[];
     }
   | { valor: null; categoria: CategoriaSinCarbono; motivo: string; detalle: string; metodo: MetodoCarbono; limitaciones: string[] };
+
+/** Carbono almacenado con el mejor modelo por árbol (propuesta experimental, Valej 2026-11-22). */
+export interface ComponenteCarbonoIntegrado {
+  biomasa_kg: number | null;
+  carbono_kg: number;
+  co2e_kg: number;
+  componente: "aerea_lenosa" | "aerea_total" | "total";
+  incluye: string[];
+  modelo: { id: string; version: number; forma: string; fuente: string; especie_ecuacion: string; confianza: string; estado: "aprobado" | "exploratorio"; fraccion_carbono: number | null };
+  variables: Record<string, number>;
+  advertencias: string[];
+}
+export interface CarbonoIntegradoArbol {
+  tree_id: string;
+  tree_code: string | null;
+  especie: string | null;
+  estado: "aprobado" | "exploratorio" | "no_estimable";
+  aereo: ComponenteCarbonoIntegrado | null;
+  total: ComponenteCarbonoIntegrado | null;
+  comparacion: ComponenteCarbonoIntegrado[];
+  motivo: string | null;
+  fecha_calculo: string;
+}
+export interface CarbonoIntegrado {
+  indicador: "estimacion_carbono_integrada";
+  estado_metodologico: string;
+  fecha_calculo: string;
+  arboles_presentes: number;
+  con_estimacion: number;
+  aprobados: number;
+  exploratorios: number;
+  no_estimables: number;
+  aereo: {
+    arboles: number;
+    carbono_kg_aprobado: number;
+    carbono_kg_exploratorio: number;
+    carbono_kg: number;
+    por_componente: { aerea_lenosa: { arboles: number; carbono_kg: number }; aerea_total: { arboles: number; carbono_kg: number } };
+    co2e_kg: number;
+  };
+  total: { arboles: number; carbono_kg: number; co2e_kg: number };
+  pendientes: Record<string, number>;
+  arboles: CarbonoIntegradoArbol[];
+}
