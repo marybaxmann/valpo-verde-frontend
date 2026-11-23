@@ -35,7 +35,11 @@ export default function IndicesPage() {
   const [indicadores, setIndicadores] = useState<{ clave: string; carga: Carga<IndicadoresProyecto> } | null>(null);
   const clave = `${projectId}|${barrio ?? ""}|${reintento}`;
 
+  // Los indicadores del proyecto se piden solo al abrir «Proyecto»: «Por árbol» no los usa
+  // y competían con la lista y la ficha (2026-11-23).
+  const indicadoresPedidos = indicadores?.clave === clave;
   useEffect(() => {
+    if (vista !== "proyecto" || indicadoresPedidos) return;
     let cancelado = false;
     obtenerIndicadores(projectId, barrio)
       .then((datos) => !cancelado && setIndicadores({ clave, carga: { estado: "listo", datos } }))
@@ -43,11 +47,13 @@ export default function IndicesPage() {
     return () => {
       cancelado = true;
     };
-  }, [projectId, barrio, clave]);
+  }, [projectId, barrio, clave, vista, indicadoresPedidos]);
 
   // Árboles con evaluación vigente (B18): los que se pueden abrir en la vista «Por árbol».
   const [evaluados, setEvaluados] = useState<{ id: string; carga: Carga<ArbolLista[]> } | null>(null);
+  const evaluadosPedidos = evaluados?.id === projectId;
   useEffect(() => {
+    if (vista !== "arbol" || evaluadosPedidos) return;
     let cancelado = false;
     // La ubicación corta (calle y sector) sale del inventario (B1); si falla, el selector funciona sin ella.
     Promise.all([listarDiagnosticos(projectId), listarInventarioCompleto(projectId, {}).catch(() => [])])
@@ -68,10 +74,29 @@ export default function IndicesPage() {
     return () => {
       cancelado = true;
     };
-  }, [projectId]);
+  }, [projectId, vista, evaluadosPedidos]);
   const listaEvaluados = evaluados?.id === projectId && evaluados.carga.estado === "listo" ? evaluados.carga.datos : null;
 
-  const arbolSel = arbolParam ?? listaEvaluados?.[0]?.id ?? null;
+  // El último árbol abierto se recuerda por proyecto: su ficha se pide de inmediato, en paralelo con
+  // la lista, en vez de esperar a que la lista llegue (2026-11-23).
+  const claveRecordado = `sivu.indices.arbol.${projectId}`;
+  const recordado = (() => {
+    try {
+      return localStorage.getItem(claveRecordado);
+    } catch {
+      return null;
+    }
+  })();
+  const recordadoValido = recordado && (!listaEvaluados || listaEvaluados.some((a) => a.id === recordado)) ? recordado : null;
+  const arbolSel = arbolParam ?? recordadoValido ?? listaEvaluados?.[0]?.id ?? null;
+  useEffect(() => {
+    if (vista !== "arbol" || !arbolSel) return;
+    try {
+      localStorage.setItem(claveRecordado, arbolSel);
+    } catch {
+      // Sin almacenamiento local: solo se pierde el recuerdo del último árbol.
+    }
+  }, [vista, arbolSel, claveRecordado]);
   const [fichaSuelta, setFichaSuelta] = useState<{ id: string; carga: Carga<FichaArbol> } | null>(null);
   // La ficha (B2) se pide solo al abrir un árbol; ya no se leen todas para ordenar el carbono.
   useEffect(() => {
@@ -188,14 +213,14 @@ export default function IndicesPage() {
 
       {vista === "arbol" && (
         <>
-          {!listaEvaluados && evaluados?.carga.estado !== "error" && <SivuLoader message="Buscando los árboles evaluados…" />}
+          {!listaEvaluados && !arbolSel && evaluados?.carga.estado !== "error" && <SivuLoader message="Buscando los árboles evaluados…" />}
           {listaEvaluados && listaEvaluados.length === 0 && !arbolParam && (
             <div className="bio-card bio-vacio">
               <strong>Ningún árbol tiene todavía una evaluación vigente.</strong>
               <span>La ficha biométrica se llena cuando el Usuario municipal completa una OT de Inspección.</span>
             </div>
           )}
-          {ficha?.estado === "cargando" && listaEvaluados && <SivuLoader message="Abriendo la ficha del árbol…" />}
+          {ficha?.estado === "cargando" && <SivuLoader message="Abriendo la ficha del árbol…" />}
           {ficha?.estado === "error" && (
             <div className="bio-card bio-error" role="alert">
               <strong>No se pudo abrir la ficha.</strong>
