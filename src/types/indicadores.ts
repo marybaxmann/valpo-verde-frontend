@@ -88,6 +88,16 @@ export interface IndicadoresProyecto {
     denominador_evaluados?: number;
     denominador_presentes?: number;
   };
+  /** Cobertura de copa del sector: área de copa / superficie (Valej, 2026-11-22). Ausente en la API publicada hasta su despliegue. */
+  cobertura_copa?: {
+    unidad: "porcentaje";
+    valor: number | null;
+    area_copa_m2: number | null;
+    superficie_m2: number | null;
+    n_con_area: number;
+    denominador_evaluados: number;
+    motivo: string | null;
+  };
   area_proyectada_copa: {
     unidad: "m2";
     total_m2: number | null;

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { nombreCientifico, num } from "./formato";
+import { ESPECIE_NO_IDENTIFICADA, nombreCientifico, num, ORIGEN_SIN_DETERMINAR } from "./formato";
 
 /**
  * Selector compacto de árboles de la ficha biométrica: busca por nombre común,
@@ -28,7 +28,7 @@ export function SelectorArbol({ arboles, sel, onSel }: { arboles: ArbolLista[]; 
   const filtrados = useMemo(() => {
     const t = sinTildes(q.trim());
     if (!t) return arboles;
-    return arboles.filter((a) => sinTildes(`${a.comun ?? ""} ${a.cientifico ?? ""} ${a.codigo} ${a.lugar ?? ""}`).includes(t));
+    return arboles.filter((a) => sinTildes(`${a.comun ?? ""} ${a.cientifico ?? ESPECIE_NO_IDENTIFICADA} ${a.codigo} ${a.lugar ?? ""}`).includes(t));
   }, [q, arboles]);
 
   useEffect(() => {
@@ -54,7 +54,7 @@ export function SelectorArbol({ arboles, sel, onSel }: { arboles: ArbolLista[]; 
         <span className="bx-sel__lupa" aria-hidden="true">⌕</span>
         {actual ? (
           <span className="bx-sel__txt">
-            <strong>{actual.comun ?? nombreCientifico(actual.cientifico) ?? actual.codigo}</strong>
+            <strong>{actual.cientifico ? (actual.comun ?? nombreCientifico(actual.cientifico)) : ESPECIE_NO_IDENTIFICADA}</strong>
             <small>
               {actual.codigo}
               {actual.lugar ? ` · ${actual.lugar}` : ""}
@@ -106,8 +106,8 @@ export function SelectorArbol({ arboles, sel, onSel }: { arboles: ArbolLista[]; 
                 }}
               >
                 <span className="bx-sel__nom">
-                  <strong>{a.comun ?? "Sin nombre común"}</strong>
-                  <em>{nombreCientifico(a.cientifico) || "Especie sin identificar"}</em>
+                  <strong>{a.cientifico ? (a.comun ?? "Sin nombre común") : ESPECIE_NO_IDENTIFICADA}</strong>
+                  <em>{nombreCientifico(a.cientifico) || ORIGEN_SIN_DETERMINAR}</em>
                 </span>
                 <span className="bx-sel__cod">
                   <b>{a.codigo}</b>
