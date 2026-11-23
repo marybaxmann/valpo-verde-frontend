@@ -181,7 +181,10 @@ export default function ProjectMapView({
       const inventario = !p.tone && !p.color;
       const color = p.color ?? (p.tone ? colorDeTono(p.tone) : "#3fb07e");
       const nucleo = inventario ? 10 : 14;
-      const halo = inventario ? nucleo + 6 : nucleo + 8;
+      // Riesgo extremo (CC paleta de riesgo, opción C): anillo sólido del mismo
+      // color tras el borde blanco, para distinguirlo de alto sin depender del tono.
+      const extremo = p.tone === "critical" && !p.color;
+      const halo = inventario ? nucleo + 6 : extremo ? nucleo + 7 : nucleo + 8;
       layer.add(
         new Graphic({
           geometry,
@@ -190,7 +193,7 @@ export default function ProjectMapView({
             type: "simple-marker",
             style: "circle",
             size: halo,
-            color: inventario ? [168, 230, 195, 0.35] : conAlfa(color, 0.28),
+            color: inventario ? [168, 230, 195, 0.35] : conAlfa(color, extremo ? 1 : 0.28),
             outline: { color: [0, 0, 0, 0], width: 0 },
           },
         })

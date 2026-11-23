@@ -1,7 +1,7 @@
 import { lazy, Suspense, useState } from "react";
 import type { FichaArbol } from "../../types/fichaArbol";
 import type { SecuestroArbol } from "../../types/indicadores";
-import { co2Anual, MOTIVO_SECUESTRO, nombreCientifico, num } from "./formato";
+import { co2Anual, MOTIVO_SECUESTRO, nombreCientifico, nombreVisible, num, ORIGEN_SIN_DETERMINAR } from "./formato";
 import type { Forma, Zona } from "./Arbol3D";
 
 /**
@@ -14,9 +14,6 @@ import type { Forma, Zona } from "./Arbol3D";
  */
 
 const Arbol3D = lazy(() => import("./Arbol3D").then((m) => ({ default: m.Arbol3D })));
-/** Nombre común; si falta o el registro dice «Sin identificar» pese a tener especie, el nombre científico. */
-const tituloArbol = (comun: string | null, cientifico: string | null) =>
-  comun && !(cientifico && comun.trim().toLowerCase() === "sin identificar") ? comun : nombreCientifico(cientifico) || (comun ?? "");
 /**
  * Grupo morfológico SOLO para la ilustración: tipo de hoja del catálogo y, si
  * la especie no está vinculada, el género. No interviene en ningún cálculo.
@@ -224,9 +221,9 @@ export function FichaBiometrica({ ficha, lugar = null }: { ficha: FichaArbol; lu
     <div className={`bx-exp ${zona ? `bx-exp--${zona}` : ""}`}>
       <section className="bx-exp__escena" aria-label="Árbol interactivo">
         <header className="bx-exp__titulo">
-          <h2>{tituloArbol(a.nombre_comun as string | null, a.especie_cientifica as string | null)}</h2>
+          <h2>{nombreVisible(a.nombre_comun as string | null, a.especie_cientifica as string | null)}</h2>
           <p>
-            <em>{nombreCientifico(a.especie_cientifica as string | null)}</em> · {a.tree_code as string}
+            <em>{nombreCientifico(a.especie_cientifica as string | null) || ORIGEN_SIN_DETERMINAR}</em> · {a.tree_code as string}
             {lugar ? ` · ${lugar}` : ""}
           </p>
           {clase && <span className="bio-chip">{clase}</span>}

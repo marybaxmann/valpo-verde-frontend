@@ -15,8 +15,10 @@ import { co2Anual, masa, MOTIVO_SECUESTRO, num, pct } from "./formato";
  *   (CC-016): siempre dicen cuántos árboles cubren.
  * - El carbono (fila 14) sigue «Pendiente» en el Excel: no es protagonista,
  *   va como estimación en validación con su cobertura (auditoría 2026-11-16).
- * - Si el catálogo no tiene el origen de algunas especies, el % de nativos
- *   se marca como incompleto en lugar de mostrarse como dato cerrado.
+ * - Origen: «Sin determinar» es una categoría válida del indicador (árboles de
+ *   especie no identificada o sin origen en el catálogo), no un dato incompleto
+ *   (Valej, 2026-11-22).
+ * - Cobertura de copa: área de copa / superficie del sector, calculada por la API.
  */
 
 function Kpi({ etiqueta, valor, unidad, nota }: { etiqueta: string; valor: string; unidad?: string; nota: string }) {
@@ -111,17 +113,17 @@ function PerfilTamanos({ d }: { d: IndicadoresProyecto }) {
 
 function Origen({ d }: { d: IndicadoresProyecto }) {
   const o = d.proporcion_origen;
-  const incompleto = o.origen_no_determinado.arboles > 0;
+  const sinDeterminar = o.origen_no_determinado.arboles;
   const filas: [string, number | null, number, string][] = [
     ["Introducidos", o.introducidos.porcentaje, o.introducidos.arboles, "intro"],
     ["Nativos", o.nativos.porcentaje, o.nativos.arboles, "nat"],
-    ["Origen sin determinar", o.origen_no_determinado.porcentaje, o.origen_no_determinado.arboles, "nd"],
+    ["Sin determinar", o.origen_no_determinado.porcentaje, o.origen_no_determinado.arboles, "nd"],
   ];
   return (
     <article className="bio-card bio-panel bio-cpanel">
       <header className="bio-panel__head">
         <h2>Origen de las especies</h2>
-        {incompleto && <span className="bio-tag bio-tag--pendiente">Dato incompleto</span>}
+        <span className="bio-panel__hint">{num(o.denominador)} árboles presentes</span>
       </header>
       <ul className="bio-corigen">
         {filas.map(([nombre, p, n, clase]) => (
@@ -130,17 +132,14 @@ function Origen({ d }: { d: IndicadoresProyecto }) {
             <span className="bio-corigen__bar">
               <i style={{ width: `${Math.min(100, p ?? 0)}%` }} />
             </span>
-            <strong title={incompleto && clase !== "nd" ? "Mínimo: puede subir cuando se determine el origen de las especies faltantes" : undefined}>
-              {incompleto && clase !== "nd" ? "≥ " : ""}
-              {pct(p)}
-            </strong>
+            <strong>{pct(p)}</strong>
             <small>{num(n)}</small>
           </li>
         ))}
       </ul>
-      {incompleto && (
+      {sinDeterminar > 0 && (
         <p className="bio-panel__foot">
-          {num(o.origen_no_determinado.arboles)} árboles no tienen origen determinado (especie sin vínculo al catálogo o sin identificar): los porcentajes de introducidos y nativos son mínimos. Detalle en «Diagnóstico del arbolado» → Calidad de datos.
+          «Sin determinar» es una categoría del indicador: {num(sinDeterminar)} árboles de especie no identificada o sin origen en el catálogo. Conservan sus mediciones.
         </p>
       )}
     </article>
@@ -329,7 +328,11 @@ export function HuellaVerde({ d, onVerArboles }: { d: IndicadoresProyecto; onVer
         <Kpi
           etiqueta="Riqueza de especies"
           valor={num(d.riqueza_especies.valor)}
-          nota={d.riqueza_especies.n_no_identificados > 0 ? `${num(d.riqueza_especies.n_no_identificados)} árboles sin identificar` : "todas identificadas"}
+          nota={
+            d.riqueza_especies.n_no_identificados > 0
+              ? `más ${num(d.riqueza_especies.n_no_identificados)} árboles de especie no identificada`
+              : "todas identificadas"
+          }
         />
         <Kpi
           etiqueta="Diversidad (Shannon)"
@@ -354,6 +357,18 @@ export function HuellaVerde({ d, onVerArboles }: { d: IndicadoresProyecto; onVer
           unidad="m²"
           nota={area.total_m2 === null ? "ningún evaluado con copa medida" : `suma de ${num(area.n_con_area)} árboles evaluados`}
         />
+        {d.cobertura_copa && (
+          <Kpi
+            etiqueta="Cobertura de copa"
+            valor={num(d.cobertura_copa.valor, 2)}
+            unidad="%"
+            nota={
+              d.cobertura_copa.valor === null
+                ? (d.cobertura_copa.motivo ?? "sin dato")
+                : `${num(d.cobertura_copa.area_copa_m2, 0)} m² de copa sobre ${num(d.cobertura_copa.superficie_m2, 0)} m² del sector`
+            }
+          />
+        )}
       </section>
 
       <CarbonoProyecto d={d} onVerArboles={onVerArboles} />

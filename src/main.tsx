@@ -13,6 +13,8 @@ import "./styles/territory.css";
 import "./styles/maintenance.css";
 import "./styles/project.css";
 import "./styles/inspection.css";
+import "./styles/inspection-guiada.css";
+import "./styles/especies-catalogo.css";
 import "./styles/species.css";
 import "./styles/incidents.css";
 import "./styles/wizard.css";

@@ -323,7 +323,8 @@ function RuedaComponentes({ infra, lente, onLente }: { infra: RespuestaInfraestr
   };
   return (
     <div className="sivu-infra-rueda">
-      <svg viewBox="-112 -98 224 196" role="group" aria-label="Ver el mapa por componente">
+      {/* El ancho incluye los nombres de los sectores laterales (x = ±86 más el texto): nada se dibuja fuera del gráfico. */}
+      <svg viewBox="-144 -98 288 196" role="group" aria-label="Ver el mapa por componente">
         {COMPONENTES.map((c, i) => {
           const k = conteosComponente(infra, c.codigo);
           const tono = k.severa ? "sev" : k.moderada ? "mod" : k.leve ? "lev" : k.sin ? "sin" : "na";

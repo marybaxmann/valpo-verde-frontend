@@ -63,19 +63,28 @@ export interface CampoFormulario {
   /** Bandera «no presenta» que puede reemplazar el valor (p. ej. `altura_primera_rama_no_presenta`). */
   marca: string | null;
   condicion_texto: string | null;
+  /** Qué significa el campo (DICCIONARIO_CAMPOS, columna F). Ausente en APIs anteriores. */
+  definicion?: string | null;
+  desde_version?: string | null;
+  no_aplica_palmera?: boolean;
 }
 
 export interface EsquemaFormulario {
+  campos_infraestructura?: string[];
   tipo: string;
+  rule_version?: string;
   secciones?: SeccionFormulario[];
   variables: CampoFormulario[];
   campos_arbol: CampoFormulario[];
 }
 
 export type ValorCampo = string | number | boolean | null | string[] | number[];
+export type AlcanceInspeccion = "ambos" | "arbol" | "infraestructura";
 
 /** Body de POST /work-orders/:id/inspections y PATCH /inspections/:id (estado COMPLETO, nunca un delta). */
 export interface BorradorBody {
+  alcance_inspeccion?: AlcanceInspeccion;
+  fecha_inspeccion?: string;
   /** Debe corresponder a la acción de la OT (D-196). */
   tipo_inspeccion_realizada: string;
   subtipo_inspeccion: string | null;
@@ -175,9 +184,11 @@ export interface InspeccionDeOt {
   /** preguardado | finalizado | anulado */
   estado_registro: string;
   tipo_inspeccion_realizada: string | null;
+  alcance_inspeccion?: AlcanceInspeccion | null;
   subtipo_inspeccion: string | null;
   metodo_instrumental: string | null;
   fecha_inspeccion: string;
+  fecha_registro?: string | null;
   observaciones: string | null;
   inspector: string | null;
   finalizada_at: string | null;

@@ -46,7 +46,6 @@ export default function ConectaPage() {
       <header className="sivu-phead">
         <div>
           <div className="sivu-phead__eyebrow">
-            <span className="sivu-chip">Prototipo</span>
             <span>Participación ciudadana</span>
           </div>
           <h1 className="sivu-phead__title">Valpo Verde Conecta</h1>
