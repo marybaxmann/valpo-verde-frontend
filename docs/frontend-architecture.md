@@ -374,6 +374,15 @@ email, nunca hardcodeado.
 - Veracidad: el carbono deja de ser la tarjeta principal (fila 14 de INDICES sigue «Pendiente»; 3 de 98 árboles) y va «En validación»; el origen se marca «Dato incompleto» cuando hay árboles de especies sin origen en el catálogo (en el Piloto, 31 de 98: el 0 % de nativos no es un dato cerrado).
 - Se quitó «Los que más aportan» y la carga de hasta 60 fichas para ordenar el carbono; la ficha (B2) se pide solo al abrir un árbol en «Por árbol».
 
+### Fase 7 · Carbono aéreo total con hojas (quillay y peumo)
+**Fecha:** 2026-11-21. Autorización de la responsable; rama `feature/carbono-aereo-total` (backend `feature/carbono-directo`), sin publicar.
+- Ficha (`FichaBiometrica`): la tarjeta de carbono muestra `estimacion_carbono_aereo_total` solo cuando la especie no tiene resultado leñoso, así nunca aparecen juntos ni se suman. Rotulada «Exploratorio», con kg C, kg CO₂e almacenado, «Incluye» / «Excluye» desde `componente` y la referencia con DOI en «Notas del modelo de carbono». La captura anual aclara que la especie no tiene método de crecimiento aprobado.
+- Proyecto (`HuellaVerde`): una nota bajo la barra del carbono almacenado con los árboles que tienen carbono aéreo total; sin total, sin tarjeta nueva y sin sumarlo al leñoso.
+
+### Fase 7 · Propuesta experimental del secuestro anual (2026-11-21)
+Rama `feature/indicadores-experimental`, sin publicar. Backend con modelos UTD por especie y variación anual del carbono aéreo total.
+- `FichaBiometrica`: «Captura anual» pasa a «Secuestro anual de CO₂», explicado como aumento proyectado del carbono en la madera (no captura fotosintética). Si el secuestro leñoso no es estimable y hay `variacion_anual_carbono_aereo_total`, la misma tarjeta la muestra con su rótulo «Simulación experimental» y la aclaración de que incluye hojas. `origenExploratorio` rotula el carbono exploratorio según `modelo.confianza`.
+- `HuellaVerde`: nota con la cobertura de la variación del carbono aéreo total; sin total.
 ### Fase 7 · Código público del árbol (CC-086)
 **Fecha:** 2026-11-22. Pedido de la responsable: un código que diga dónde está el árbol (P-VIC-017, PM-001), asignado por la base desde las coordenadas (backend, migración 049).
 - `ArbolInventario.codigo_publico` (B1): columna Código del inventario y ficha lateral (`TreeSheet`) muestran el código público y, debajo, el `tree_code`; la lista de Placas QR también.

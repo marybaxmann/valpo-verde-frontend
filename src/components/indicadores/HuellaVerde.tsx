@@ -1,3 +1,6 @@
+import type React from "react";
+import { CarbonoIntegradoPanel } from "./CarbonoIntegrado";
+import { DiagnosticoArbolado } from "./DiagnosticoArbolado";
 import type { IndicadoresProyecto, NivelTaxonomico } from "../../types/indicadores";
 import { co2Anual, masa, MOTIVO_SECUESTRO, num, pct } from "./formato";
 
@@ -13,9 +16,27 @@ import { co2Anual, masa, MOTIVO_SECUESTRO, num, pct } from "./formato";
  *   (CC-016): siempre dicen cuántos árboles cubren.
  * - El carbono (fila 14) sigue «Pendiente» en el Excel: no es protagonista,
  *   va como estimación en validación con su cobertura (auditoría 2026-11-16).
- * - Si el catálogo no tiene el origen de algunas especies, el % de nativos
- *   se marca como incompleto en lugar de mostrarse como dato cerrado.
+ * - Origen: «Sin determinar» es una categoría válida del indicador (árboles de
+ *   especie no identificada o sin origen en el catálogo), no un dato incompleto
+ *   (Valej, 2026-11-22).
+ * - Cobertura de copa: área de copa / superficie del sector, calculada por la API.
  */
+
+/** Sección con título: ordena la vista en resumen, composición y carbono (2026-11-23). */
+function Seccion({ id, titulo, bajada, etiqueta, children }: { id: string; titulo: string; bajada: string; etiqueta?: string; children: React.ReactNode }) {
+  return (
+    <section className="bio-seccion" aria-labelledby={`bio-sec-${id}`}>
+      <header className="bio-seccion__head">
+        <div>
+          <h2 id={`bio-sec-${id}`}>{titulo}</h2>
+          <p>{bajada}</p>
+        </div>
+        {etiqueta && <span className="bio-tag bio-tag--pendiente">{etiqueta}</span>}
+      </header>
+      {children}
+    </section>
+  );
+}
 
 function Kpi({ etiqueta, valor, unidad, nota }: { etiqueta: string; valor: string; unidad?: string; nota: string }) {
   return (
@@ -109,17 +130,17 @@ function PerfilTamanos({ d }: { d: IndicadoresProyecto }) {
 
 function Origen({ d }: { d: IndicadoresProyecto }) {
   const o = d.proporcion_origen;
-  const incompleto = o.origen_no_determinado.arboles > 0;
+  const sinDeterminar = o.origen_no_determinado.arboles;
   const filas: [string, number | null, number, string][] = [
     ["Introducidos", o.introducidos.porcentaje, o.introducidos.arboles, "intro"],
     ["Nativos", o.nativos.porcentaje, o.nativos.arboles, "nat"],
-    ["Sin origen en el catálogo", o.origen_no_determinado.porcentaje, o.origen_no_determinado.arboles, "nd"],
+    ["Sin determinar", o.origen_no_determinado.porcentaje, o.origen_no_determinado.arboles, "nd"],
   ];
   return (
     <article className="bio-card bio-panel bio-cpanel">
       <header className="bio-panel__head">
         <h2>Origen de las especies</h2>
-        {incompleto && <span className="bio-tag bio-tag--pendiente">Dato incompleto</span>}
+        <span className="bio-panel__hint">{num(o.denominador)} árboles presentes</span>
       </header>
       <ul className="bio-corigen">
         {filas.map(([nombre, p, n, clase]) => (
@@ -133,9 +154,9 @@ function Origen({ d }: { d: IndicadoresProyecto }) {
           </li>
         ))}
       </ul>
-      {incompleto && (
+      {sinDeterminar > 0 && (
         <p className="bio-panel__foot">
-          {num(o.origen_no_determinado.arboles)} árboles son de especies sin origen registrado en el catálogo; la proporción de nativos puede ser mayor cuando se complete.
+          «Sin determinar» es una categoría del indicador: {num(sinDeterminar)} árboles de especie no identificada o sin origen en el catálogo. Conservan sus mediciones.
         </p>
       )}
     </article>
@@ -169,13 +190,17 @@ function Barra({ partes }: { partes: { n: number; clase: string; etiqueta: strin
 function CarbonoProyecto({ d, onVerArboles }: { d: IndicadoresProyecto; onVerArboles?: () => void }) {
   const s = d.estimacion_secuestro_anual;
   const c = d.estimacion_carbono_aereo_lenoso;
+  const t = d.estimacion_carbono_aereo_total;
+  const v = d.estimacion_variacion_anual_carbono_aereo_total;
+  // Propuesta experimental: si la API trae el resumen por árbol, la tarjeta y los motivos lo usan (una clase por árbol).
+  const rp = d.resumen_proyeccion_anual;
   if (!s || !c) return null;
   const cs = s.cobertura;
   const cc = c.cobertura;
   const sinCarbono = cc.universo_calculo - cc.con_resultado - (cc.con_resultado_exploratorio ?? 0);
   const total = masa(c.total.carbono_t);
   const co2 = masa(c.total.co2e_t);
-  const motivos = Object.entries(cs.motivos)
+  const motivos = Object.entries(rp ? rp.motivos_no_estimable : cs.motivos)
     .filter(([m, v]) => v > 0 && m !== "sin_evaluacion_valida" && m !== "no_presente")
     .sort((a, b) => b[1] - a[1]);
 
@@ -187,7 +212,16 @@ function CarbonoProyecto({ d, onVerArboles }: { d: IndicadoresProyecto; onVerArb
           <span className="bio-tag bio-tag--simulacion">{s.total_fundamentado.co2_kg_anio === null ? "Sin estimación fundamentada" : "Estimación"}</span>
         </header>
         <div className="bx-carbono__cifra">
-          {s.total_fundamentado.co2_kg_anio === null ? (
+          {s.total_fundamentado.co2_kg_anio === null && rp ? (
+            <>
+              <b>{num(rp.con_proyeccion)}</b>
+              <span>
+                de {num(rp.universo_calculo)} árboles evaluados
+                <br />
+                tienen una proyección anual (simulación)
+              </span>
+            </>
+          ) : s.total_fundamentado.co2_kg_anio === null ? (
             <>
               <b>{num(cs.simulacion_exploratoria)}</b>
               <span>
@@ -204,15 +238,32 @@ function CarbonoProyecto({ d, onVerArboles }: { d: IndicadoresProyecto; onVerArb
           )}
         </div>
         <Barra
-          partes={[
-            { n: cs.estimacion_fundamentada, clase: "fund", etiqueta: "fundamentadas" },
-            { n: cs.simulacion_exploratoria, clase: "sim", etiqueta: "simulaciones" },
-            { n: cs.no_estimable, clase: "no", etiqueta: "no estimables" },
-          ]}
+          partes={
+            rp
+              ? [
+                  { n: rp.estimacion_fundamentada, clase: "fund", etiqueta: "fundamentadas" },
+                  { n: rp.simulacion_secuestro_lenoso, clase: "sim", etiqueta: "secuestro en la madera" },
+                  { n: rp.simulacion_variacion_aereo_total, clase: "aereo", etiqueta: "carbono aéreo total (con hojas, aparte)" },
+                  { n: rp.no_estimable, clase: "no", etiqueta: "no estimables" },
+                ]
+              : [
+                  { n: cs.estimacion_fundamentada, clase: "fund", etiqueta: "fundamentadas" },
+                  { n: cs.simulacion_exploratoria, clase: "sim", etiqueta: "simulaciones" },
+                  { n: cs.no_estimable, clase: "no", etiqueta: "no estimables" },
+                ]
+          }
         />
         <p className="bx-carbono__nota">
-          El total oficial suma solo estimaciones fundamentadas. Las simulaciones se ven, con su rango, en la ficha de cada árbol.
+          Aumento proyectado del carbono en la madera por crecimiento; no es la captura fotosintética. El total oficial suma solo estimaciones
+          fundamentadas. Las simulaciones se ven, con su rango, en la ficha de cada árbol.
         </p>
+        {!rp && v && v.cobertura.simulacion_exploratoria > 0 && (
+          <p className="bx-carbono__nota bx-carbono__extra">
+            <span className="bio-tag bio-tag--simulacion">Experimental</span> {num(v.cobertura.simulacion_exploratoria)}{" "}
+            {v.cobertura.simulacion_exploratoria === 1 ? "árbol tiene" : "árboles tienen"} además una simulación de la variación anual del carbono aéreo
+            total, con hojas. Va aparte y no se suma.
+          </p>
+        )}
         {onVerArboles && (
           <button type="button" className="bx-boton" onClick={onVerArboles}>
             Ver árboles →
@@ -240,6 +291,13 @@ function CarbonoProyecto({ d, onVerArboles }: { d: IndicadoresProyecto; onVerArb
             { n: Math.max(0, sinCarbono), clase: "no", etiqueta: "sin estimación" },
           ]}
         />
+        {t && t.cobertura.con_resultado_exploratorio > 0 && (
+          <p className="bx-carbono__nota bx-carbono__extra">
+            <span className="bio-tag bio-tag--simulacion">Exploratorio</span> {num(t.cobertura.con_resultado_exploratorio)}{" "}
+            {t.cobertura.con_resultado_exploratorio === 1 ? "árbol tiene" : "árboles tienen"} además carbono aéreo total con hojas (modelos de la especie,
+            no urbanos). Se ve en su ficha y no suma a este total.
+          </p>
+        )}
       </article>
 
       <article className="bio-card bx-carbono__motivos">
@@ -282,12 +340,17 @@ export function HuellaVerde({ d, onVerArboles }: { d: IndicadoresProyecto; onVer
   const ha = d.densidad_arborea.superficie_m2 ? d.densidad_arborea.superficie_m2 / 10000 : null;
   return (
     <div className="bio-huella bio-compacto">
-      <section className="bio-ckpis">
+      <Seccion id="resumen" titulo="Resumen del arbolado" bajada="Cuántos árboles hay, qué tan diversos son y cuánta copa aportan.">
+      <div className="bio-ckpis">
         <Kpi etiqueta="Árboles presentes" valor={num(d.numero_total_arboles.valor)} nota="en el inventario" />
         <Kpi
           etiqueta="Riqueza de especies"
           valor={num(d.riqueza_especies.valor)}
-          nota={d.riqueza_especies.n_no_identificados > 0 ? `${num(d.riqueza_especies.n_no_identificados)} árboles sin identificar` : "todas identificadas"}
+          nota={
+            d.riqueza_especies.n_no_identificados > 0
+              ? `más ${num(d.riqueza_especies.n_no_identificados)} árboles de especie no identificada`
+              : "todas identificadas"
+          }
         />
         <Kpi
           etiqueta="Diversidad (Shannon)"
@@ -312,15 +375,39 @@ export function HuellaVerde({ d, onVerArboles }: { d: IndicadoresProyecto; onVer
           unidad="m²"
           nota={area.total_m2 === null ? "ningún evaluado con copa medida" : `suma de ${num(area.n_con_area)} árboles evaluados`}
         />
-      </section>
+        {d.cobertura_copa && (
+          <Kpi
+            etiqueta="Cobertura de copa"
+            valor={num(d.cobertura_copa.valor, 2)}
+            unidad="%"
+            nota={
+              d.cobertura_copa.valor === null
+                ? (d.cobertura_copa.motivo ?? "sin dato")
+                : `${num(d.cobertura_copa.area_copa_m2, 0)} m² de copa sobre ${num(d.cobertura_copa.superficie_m2, 0)} m² del sector`
+            }
+          />
+        )}
+      </div>
+      </Seccion>
 
-      <CarbonoProyecto d={d} onVerArboles={onVerArboles} />
+      <Seccion
+        id="carbono"
+        titulo="Carbono"
+        bajada="Carbono almacenado y captura anual. Solo los resultados aprobados suman a los totales oficiales."
+        etiqueta="En validación"
+      >
+        <CarbonoProyecto d={d} onVerArboles={onVerArboles} />
+        {d.estimacion_carbono_integrada && <CarbonoIntegradoPanel d={d.estimacion_carbono_integrada} />}
+      </Seccion>
 
-      <section className="bio-cgrid">
-        <Diversidad d={d} />
-        <PerfilTamanos d={d} />
-        <Origen d={d} />
-      </section>
+      <Seccion id="composicion" titulo="Composición y estructura" bajada="Qué especies dominan, de qué tamaño son los árboles y de dónde provienen.">
+        <div className="bio-cgrid">
+          <Diversidad d={d} />
+          <PerfilTamanos d={d} />
+          <Origen d={d} />
+        </div>
+        {d.diagnostico_descriptivo && <DiagnosticoArbolado d={d.diagnostico_descriptivo} />}
+      </Seccion>
 
       <EnDefinicion d={d} />
     </div>

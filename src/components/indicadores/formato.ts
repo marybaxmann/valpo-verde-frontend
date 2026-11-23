@@ -23,7 +23,7 @@ export function masa(t: number | null | undefined): { valor: string; unidad: str
 export const MOTIVO_CARBONO: Record<string, string> = {
   no_presente: "No presente",
   sin_evaluacion_valida: "Sin evaluación completa vigente",
-  sin_modelo: "Especie sin modelo aprobado",
+  sin_modelo: "Especie sin modelo de carbono aplicable",
   palmera_sin_modelo: "Palmera (sin modelo)",
   multifustal_no_admitido: "Multifustal (el modelo no lo admite)",
   fuera_de_rango: "DAP fuera del rango del modelo",
@@ -50,3 +50,16 @@ export function co2Anual(v: number | null | undefined): string {
 
 /** «acer platanoides» → «Acer platanoides» (algunas claves llegan en minúsculas). */
 export const nombreCientifico = (v: string | undefined | null) => (v ? v.charAt(0).toUpperCase() + v.slice(1) : "");
+
+/**
+ * Árboles sin especie identificada (Valej, 2026-11-22): se muestran como
+ * «Especie no identificada», con el origen «sin determinar». Conservan sus
+ * mediciones; el nombre común registrado («Sin identificar», «Palmera sin
+ * identificar») no se usa como nombre de especie.
+ */
+export const ESPECIE_NO_IDENTIFICADA = "Especie no identificada";
+export const ORIGEN_SIN_DETERMINAR = "origen sin determinar";
+export function nombreVisible(comun: string | null | undefined, cientifico: string | null | undefined): string {
+  if (!cientifico) return ESPECIE_NO_IDENTIFICADA;
+  return comun && comun.trim().toLowerCase() !== "sin identificar" ? comun : nombreCientifico(cientifico);
+}
