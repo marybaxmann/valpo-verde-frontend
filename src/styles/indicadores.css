@@ -2734,3 +2734,18 @@
 .bci__estado.is-aprobado { background: #dcefd0; color: #2b5a12; }
 .bci__estado.is-exploratorio { background: #f8e9c8; color: #7a4f05; }
 .bci__estado.is-no_estimable { background: #ececec; color: #555; }
+
+/* Vista de proyecto ordenada en secciones (2026-11-23). */
+.bio-huella.bio-compacto { display: grid; gap: 32px; }
+.bio-seccion { display: grid; gap: 14px; }
+.bio-seccion__head { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; padding-bottom: 8px; border-bottom: 1px solid var(--border, rgba(0,0,0,.1)); }
+.bio-seccion__head h2 { margin: 0; font-size: 17px; font-weight: 600; }
+.bio-seccion__head p { margin: 2px 0 0; font-size: 13px; color: var(--text-muted); }
+.bio-seccion .bio-cgrid { margin: 0; }
+.bci__detalle { display: grid; gap: 10px; }
+.bci__detalle > summary { cursor: pointer; font-size: 13px; font-weight: 600; color: var(--sivu-accent, #3b6d11); list-style: none; padding: 6px 0; }
+.bci__detalle > summary::-webkit-details-marker { display: none; }
+.bci__detalle > summary::before { content: "▸ "; }
+.bci__detalle[open] > summary::before { content: "▾ "; }
+/* Notas de las tarjetas de resumen: hasta dos líneas, sin cortar con «…». */
+.bio-compacto .bio-ckpi__note { white-space: normal; overflow: hidden; text-overflow: clip; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }

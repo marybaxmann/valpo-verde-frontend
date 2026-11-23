@@ -36,8 +36,8 @@ export function CarbonoIntegradoPanel({ d }: { d: CarbonoIntegrado }) {
   return (
     <section className="bio-card bci" aria-label="Carbono almacenado por árbol">
       <header className="bio-panel__head">
-        <h2>Carbono almacenado por árbol</h2>
-        <span className="bio-tag bio-tag--pendiente">Propuesta experimental</span>
+        <h2>Carbono almacenado con el mejor modelo por árbol</h2>
+        <span className="bio-panel__hint">propuesta experimental</span>
       </header>
       <div className="bci__kpis">
         <div>
@@ -78,6 +78,8 @@ export function CarbonoIntegradoPanel({ d }: { d: CarbonoIntegrado }) {
         {num(d.aereo.por_componente.aerea_total.arboles)} con hojas. El total con raíces es otro conjunto y no se suma al aéreo. Los
         exploratorios no suman a los indicadores oficiales.
       </p>
+      <details className="bci__detalle">
+        <summary>Ver el detalle por árbol ({num(d.arboles.length)})</summary>
       <div className="bci__filtros" role="group" aria-label="Filtrar por estado">
         {(["todos", "aprobado", "exploratorio", "no_estimable"] as const).map((f) => (
           <button key={f} type="button" aria-pressed={filtro === f} onClick={() => setFiltro(f)}>
@@ -120,6 +122,7 @@ export function CarbonoIntegradoPanel({ d }: { d: CarbonoIntegrado }) {
           </tbody>
         </table>
       </div>
+      </details>
     </section>
   );
 }

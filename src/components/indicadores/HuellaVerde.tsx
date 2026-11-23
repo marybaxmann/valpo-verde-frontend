@@ -1,3 +1,4 @@
+import type React from "react";
 import { CarbonoIntegradoPanel } from "./CarbonoIntegrado";
 import { DiagnosticoArbolado } from "./DiagnosticoArbolado";
 import type { IndicadoresProyecto, NivelTaxonomico } from "../../types/indicadores";
@@ -20,6 +21,22 @@ import { co2Anual, masa, MOTIVO_SECUESTRO, num, pct } from "./formato";
  *   (Valej, 2026-11-22).
  * - Cobertura de copa: área de copa / superficie del sector, calculada por la API.
  */
+
+/** Sección con título: ordena la vista en resumen, composición y carbono (2026-11-23). */
+function Seccion({ id, titulo, bajada, etiqueta, children }: { id: string; titulo: string; bajada: string; etiqueta?: string; children: React.ReactNode }) {
+  return (
+    <section className="bio-seccion" aria-labelledby={`bio-sec-${id}`}>
+      <header className="bio-seccion__head">
+        <div>
+          <h2 id={`bio-sec-${id}`}>{titulo}</h2>
+          <p>{bajada}</p>
+        </div>
+        {etiqueta && <span className="bio-tag bio-tag--pendiente">{etiqueta}</span>}
+      </header>
+      {children}
+    </section>
+  );
+}
 
 function Kpi({ etiqueta, valor, unidad, nota }: { etiqueta: string; valor: string; unidad?: string; nota: string }) {
   return (
@@ -323,7 +340,8 @@ export function HuellaVerde({ d, onVerArboles }: { d: IndicadoresProyecto; onVer
   const ha = d.densidad_arborea.superficie_m2 ? d.densidad_arborea.superficie_m2 / 10000 : null;
   return (
     <div className="bio-huella bio-compacto">
-      <section className="bio-ckpis">
+      <Seccion id="resumen" titulo="Resumen del arbolado" bajada="Cuántos árboles hay, qué tan diversos son y cuánta copa aportan.">
+      <div className="bio-ckpis">
         <Kpi etiqueta="Árboles presentes" valor={num(d.numero_total_arboles.valor)} nota="en el inventario" />
         <Kpi
           etiqueta="Riqueza de especies"
@@ -369,18 +387,27 @@ export function HuellaVerde({ d, onVerArboles }: { d: IndicadoresProyecto; onVer
             }
           />
         )}
-      </section>
+      </div>
+      </Seccion>
 
-      <CarbonoProyecto d={d} onVerArboles={onVerArboles} />
-      {d.estimacion_carbono_integrada && <CarbonoIntegradoPanel d={d.estimacion_carbono_integrada} />}
+      <Seccion
+        id="carbono"
+        titulo="Carbono"
+        bajada="Carbono almacenado y captura anual. Solo los resultados aprobados suman a los totales oficiales."
+        etiqueta="En validación"
+      >
+        <CarbonoProyecto d={d} onVerArboles={onVerArboles} />
+        {d.estimacion_carbono_integrada && <CarbonoIntegradoPanel d={d.estimacion_carbono_integrada} />}
+      </Seccion>
 
-      <section className="bio-cgrid">
-        <Diversidad d={d} />
-        <PerfilTamanos d={d} />
-        <Origen d={d} />
-      </section>
-
-      {d.diagnostico_descriptivo && <DiagnosticoArbolado d={d.diagnostico_descriptivo} />}
+      <Seccion id="composicion" titulo="Composición y estructura" bajada="Qué especies dominan, de qué tamaño son los árboles y de dónde provienen.">
+        <div className="bio-cgrid">
+          <Diversidad d={d} />
+          <PerfilTamanos d={d} />
+          <Origen d={d} />
+        </div>
+        {d.diagnostico_descriptivo && <DiagnosticoArbolado d={d.diagnostico_descriptivo} />}
+      </Seccion>
 
       <EnDefinicion d={d} />
     </div>
