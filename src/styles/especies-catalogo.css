@@ -409,14 +409,6 @@
     order: -2;
   }
 }
-@media (min-width: 901px) and (max-width: 1599px) {
-  .sivu-inv.has-sheet .sivu-inv__main {
-    display: contents;
-  }
-  .sivu-inv.has-sheet .sivu-inv__head {
-    order: -2;
-  }
-}
 /* Título del gráfico como enlace al catálogo («Catálogo de especies →»). */
 .sivu-comp__titulo {
   display: inline-flex;

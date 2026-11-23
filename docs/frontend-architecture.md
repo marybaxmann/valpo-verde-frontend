@@ -394,6 +394,10 @@ Rama `feature/indicadores-experimental`, sin publicar. Backend con modelos UTD p
 - `TIPOS_CON_FORMULARIO` incluye `evaluacion_instrumental`: variables según `campos_evaluacion_instrumental` del esquema (B16); la etapa agrega técnica (OT) y `metodo_instrumental` (D-198) en el body. Sin esa clave en la API, el formulario lo avisa y no se abre.
 - Guía de avance: con un componente respondido, el otro queda «No ensayado · opcional» (CC-084); con un cálculo vigente, la guía de la instrumental sigue los faltantes del backend.
 
+### Fase 7 · Inventario con la ficha abierta (2026-11-23)
+
+Pedido de Valej: al abrir la ficha de un árbol en Inventario, el mapa pasa arriba de la tabla, el gráfico «Catálogo de especies» baja debajo de ella y la ficha se abre a la derecha algo más grande. Solo CSS (`inventory.css`): con `.has-sheet`, `__main` y `__side` pasan a `display: contents` y se ordenan cabecera → mapa → tabla → gráfico en una columna, en todo ancho ≥ 901 px; la ficha de Inventario mide 440 px (`.sivu-inv .sivu-sheet--drawer`) y la columna deja 456 px a la derecha. Se quitó la regla duplicada de `especies-catalogo.css`. Se probó antes ponerla sobre la tabla y no gustó.
+
 ## 5. Limitaciones conocidas (revisado 2026-11-19)
 
 - **Agregar miembro** a un proyecto todavía pide el `user_id` (UUID) en un campo de texto. El backend ya expone `GET /api/sivu/projects/:id/available-users`, pero el frontend aún no lo usa: es una mejora pendiente.
