@@ -1144,20 +1144,29 @@ a.sivu-sheet__work--link:focus-visible .sivu-sheet__work-text strong {
 /* Con la ficha abierta, la tabla y el mapa se corren para no quedar debajo de ella. */
 @media (min-width: 901px) {
   .sivu-inv.has-sheet {
-    padding-right: 376px;
+    padding-right: 456px;
   }
 }
 
-/* Con la ficha abierta, la tabla ocupa todo el ancho disponible y el mapa pasa
-   ARRIBA de la tabla, para que el árbol elegido siga a la vista (antes bajaba
-   al final de la tabla). */
-@media (min-width: 901px) and (max-width: 1599px) {
+/* Con la ficha abierta (pedido de la responsable, 2026-11-23): la tabla ocupa
+   todo el ancho disponible, el mapa pasa ARRIBA de la tabla para que el árbol
+   elegido siga a la vista, y el gráfico de especies baja DEBAJO de la tabla. */
+@media (min-width: 901px) {
   .sivu-inv.has-sheet .sivu-inv__layout {
     grid-template-columns: minmax(0, 1fr);
   }
+  .sivu-inv.has-sheet .sivu-inv__main,
   .sivu-inv.has-sheet .sivu-inv__side {
+    display: contents;
+  }
+  .sivu-inv.has-sheet .sivu-inv__head {
+    order: -2;
+  }
+  .sivu-inv.has-sheet .sivu-inv__map-panel {
     order: -1;
-    position: static;
+  }
+  .sivu-inv.has-sheet .sivu-inv__comp {
+    order: 1;
   }
 }
 
@@ -1451,4 +1460,12 @@ a.sivu-sheet__work--link:focus-visible .sivu-sheet__work-text strong {
   font-size: 12.5px;
   color: var(--green-700, #2f6b47);
   letter-spacing: 0.04em;
+}
+
+/* En Inventario la ficha es algo más grande (pedido de la responsable,
+   2026-11-23; antes 360 px). Territorio conserva los 360 px. */
+@media (min-width: 901px) {
+  .sivu-inv .sivu-sheet--drawer {
+    width: min(440px, calc(100vw - 32px));
+  }
 }
