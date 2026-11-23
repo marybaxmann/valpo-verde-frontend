@@ -126,6 +126,8 @@ export default function InspectionFormPage() {
 
   const [inspectionId, setInspectionId] = useState<string | null>(null);
   const [fechaTerreno, setFechaTerreno] = useState(hoyChile);
+  // D-198: instrumento o técnica (solo Evaluación instrumental).
+  const [metodoInstrumental, setMetodoInstrumental] = useState("");
   const [alcance, setAlcance] = useState<AlcanceInspeccion>("ambos");
   const [fechaRegistro, setFechaRegistro] = useState<string | null>(null);
   const [valores, setValores] = useState<ValoresCrudos>({});
@@ -189,6 +191,7 @@ export default function InspectionFormPage() {
         const borrador = [...inspecciones].reverse().find((i) => i.estado_registro === "preguardado") ?? null;
         setFechaTerreno(borrador?.fecha_inspeccion ?? hoyChile());
         setAlcance(borrador?.alcance_inspeccion ?? "ambos");
+        setMetodoInstrumental(borrador?.metodo_instrumental ?? "");
         setFechaRegistro(borrador?.fecha_registro ?? null);
         if (borrador) {
           setInspectionId(borrador.inspection_id);
@@ -217,6 +220,7 @@ export default function InspectionFormPage() {
     };
   }, [inspectionId]);
 
+  const esInstrumental = ot?.accion.codigo === "evaluacion_instrumental";
   const admiteAlcance = !!esquema?.campos_infraestructura &&
     (ot?.accion.codigo === "evaluacion_inicial" || ot?.accion.codigo === "reevaluacion");
   const alcanceActivo = admiteAlcance ? alcance : "ambos";
@@ -250,16 +254,21 @@ export default function InspectionFormPage() {
     (tipoEspecie?.clave !== claveEspecie || tipoEspecie?.error === true);
   const contexto = useMemo(() => ({ tipo_hoja: tipoHoja }), [tipoHoja]);
   const camposArbol = useMemo(
-    () => alcanceActivo === "infraestructura" ? [] :
+    () => alcanceActivo === "infraestructura" || esInstrumental ? [] :
       ordenar((esquema?.campos_arbol ?? []).filter((c) => aplicaEnProtocolo(c, palm01, tipoHoja))),
-    [esquema, alcanceActivo, palm01, tipoHoja],
+    [esquema, alcanceActivo, palm01, tipoHoja, esInstrumental],
   );
   const variables = useMemo(() => {
     if (!esquema) return [];
+    if (esInstrumental) {
+      // Solo lo que el backend define para la Evaluación instrumental (CC-040, CC-084).
+      const instrumental = new Set(esquema.campos_evaluacion_instrumental ?? []);
+      return ordenar(esquema.variables.filter((c) => instrumental.has(c.identificador) && aplicaEnProtocolo(c, palm01, tipoHoja)));
+    }
     const infraestructura = new Set(esquema.campos_infraestructura);
     return ordenar(esquema.variables.filter(c => aplicaEnProtocolo(c, palm01, tipoHoja) &&
       (alcanceActivo === "ambos" || infraestructura.has(c.identificador) === (alcanceActivo === "infraestructura"))));
-  }, [esquema, alcanceActivo, palm01, tipoHoja]);
+  }, [esquema, alcanceActivo, palm01, tipoHoja, esInstrumental]);
   const todos = useMemo(() => [...camposArbol, ...variables], [camposArbol, variables]);
   const grupos = useMemo(() => ordenarParaPresentacion(todos, esquema?.secciones ?? []), [todos, esquema]);
   const etiquetaDe = useMemo(() => new Map(todos.map((c) => [c.identificador, c.etiqueta])), [todos]);
@@ -349,6 +358,7 @@ export default function InspectionFormPage() {
         variables, camposArbol, valores, ot.accion.codigo, ot.subtipo?.codigo ?? null, fechaTerreno, contexto,
       );
       if (admiteAlcance) body.alcance_inspeccion = alcanceActivo;
+      if (esInstrumental) body.metodo_instrumental = metodoInstrumental.trim() || null;
       const res = inspectionId ? await guardarBorrador(inspectionId, body) : await crearBorrador(workOrderId, body);
       if (!inspectionId) setFechaRegistro(hoy);
       setInspectionId(res.inspection_id);
@@ -493,6 +503,13 @@ export default function InspectionFormPage() {
     );
   }
   if (!ot || !esquema) return <p className="sivu-state">Cargando la inspección…</p>;
+  if (esInstrumental && !esquema.campos_evaluacion_instrumental) {
+    return (
+      <p className="sivu-state sivu-state--error" role="alert">
+        La API todavía no entrega los campos de la Evaluación instrumental. Este formulario se habilita cuando se publique esa versión.
+      </p>
+    );
+  }
 
   const hayEtiquetasPendientes = todos.some((c) => c.etiqueta_pendiente);
   const puedeFinalizar =
@@ -508,11 +525,27 @@ export default function InspectionFormPage() {
       .map((b) => ({ ...b, campos: b.campos.filter((c) => cumple(c.condicion_activacion, convertidos)) }))
       .filter((b) => b.campos.length > 0),
   }));
-  const seccionesVisibles = seccionesTodas.filter((g) => g.bloques.length > 0);
+  // En una OT de Evaluación instrumental la etapa «Evaluación instrumental»
+  // siempre se muestra: lleva la técnica y el método (D-197, D-198).
+  const conMetodo = (codigo: string) => esInstrumental && codigo === "instrumental";
+  const seccionesVisibles = seccionesTodas.filter((g) => g.bloques.length > 0 || conMetodo(g.seccion.codigo));
   // Avance: solo campos aplicables (visibles), obligatorios o condicionales, ya respondidos.
   // Es una guía; qué falta oficialmente lo dice el backend al calcular.
+  // Evaluación instrumental (CC-084): basta con un componente ensayado. Si ya
+  // se respondió la pregunta inicial de uno, la del otro no cuenta como
+  // pendiente en esta guía (lo oficial lo dice /calcular).
+  const raicesComponente = esInstrumental
+    ? variables.filter((c) => c.condicion_activacion?.op === "siempre").map((c) => c.identificador)
+    : [];
+  const algunComponente = raicesComponente.some((id) => tieneValor(valores[id]));
+  const noEnsayado = new Set(algunComponente ? raicesComponente.filter((id) => !tieneValor(valores[id])) : []);
   const avanceDe = (campos: CampoFormulario[]) => {
-    const cuentan = campos.filter((c) => tipoObligatoriedad(c.obligatoriedad) !== "opcional" && c.obligatoriedad);
+    const cuentan = campos.filter((c) => tipoObligatoriedad(c.obligatoriedad) !== "opcional" && c.obligatoriedad && !noEnsayado.has(c.identificador));
+    // En la instrumental, D, d, Cc y C pueden venir de los valores vigentes
+    // (CC-084): con un cálculo vigente, la guía sigue lo que falta según el backend.
+    if (esInstrumental && calculo) {
+      return { total: cuentan.length, hechas: cuentan.filter((c) => !faltantes.has(c.identificador)).length };
+    }
     return { total: cuentan.length, hechas: cuentan.filter((c) => tieneValor(valores[c.identificador])).length };
   };
   const etapasDatos: Etapa[] = seccionesTodas.map(({ seccion, bloques }) => ({
@@ -520,9 +553,12 @@ export default function InspectionFormPage() {
     etiqueta: seccion.etiqueta,
     tipo: "datos",
     sub: SUBTITULO_ETAPA[seccion.codigo] ?? null,
-    na: bloques.length === 0,
+    na: bloques.length === 0 && !conMetodo(seccion.codigo),
     campos: bloques.flatMap((b) => b.campos.map((c) => c.identificador)),
-    avance: avanceDe(bloques.flatMap((b) => b.campos)),
+    avance: ((a) => conMetodo(seccion.codigo)
+      ? { total: a.total + 1, hechas: a.hechas + (metodoInstrumental.trim() ? 1 : 0) }
+      : a)(avanceDe(bloques.flatMap((b) => b.campos))),
+    noEnsayado: bloques.length > 0 && bloques.every((b) => b.campos.every((c) => noEnsayado.has(c.identificador))),
     faltan: 0,
   }));
   const extra = (id: string, etiqueta: string, tipo: Etapa["tipo"], sub: string, campos: string[] = []): Etapa => ({
@@ -645,6 +681,41 @@ export default function InspectionFormPage() {
                 />
               </div>
             )}
+            {conMetodo(seccion.codigo) && (
+              <>
+                <div className="card sivu-insp__block sivu-insp__instrumental">
+                  <div className="sivu-insp__instr-fila">
+                    <span className="sivu-insp__instr-label">Técnica</span>
+                    <strong>{ot.subtipo?.etiqueta ?? "Sin técnica indicada en la OT"}</strong>
+                  </div>
+                  <label className="sivu-insp__instr-metodo">
+                    <span className="sivu-insp__instr-label">Método o equipo instrumental</span>
+                    <input
+                      type="text"
+                      value={metodoInstrumental}
+                      maxLength={200}
+                      disabled={bloqueado}
+                      placeholder="Por ejemplo, tomógrafo sónico de 12 sensores"
+                      onChange={(event) => {
+                        setMetodoInstrumental(event.target.value);
+                        ediciones.current += 1;
+                        setSinGuardar(true);
+                        setGuardadoOk(null);
+                        invalidarCalculo();
+                      }}
+                    />
+                    <small>Instrumento o técnica empleada en la evaluación instrumental.</small>
+                  </label>
+                </div>
+                <div className="card sivu-insp__block">
+                  <p className="sivu-insp__intro">
+                    Registra al menos uno de los dos componentes: Raíces y cuello o Tronco. Un «No» también cuenta como componente ensayado.
+                    Si hay cavidad, indica el resultado interno (Sí o No) y el espesor de pared residual medido en esta inspección. Las dimensiones
+                    externas pueden tomarse de los valores vigentes del árbol. El componente que no se ensaye conserva su evaluación vigente.
+                  </p>
+                </div>
+              </>
+            )}
             {visibles.map((b, i) => (
             <div key={b.subtitulo ?? i} className="card sivu-insp__block">
             {b.subtitulo && <h3 className="sivu-insp__subhead">{b.subtitulo}</h3>}
@@ -671,7 +742,12 @@ export default function InspectionFormPage() {
       {activa === "sec-fotografias" && (
       <section id="sec-fotografias" className="card card--pad sivu-insp__section">
         <h2>Fotografías</h2>
-        <p className="sivu-insp__intro">
+        {esInstrumental && (
+          <p className="sivu-insp__intro">
+            En la Evaluación instrumental las fotos son opcionales: se recomiendan una del equipo en posición y otra del resultado, en las vistas Base, Tronco o Detalle.
+          </p>
+        )}
+        <p className="sivu-insp__intro" hidden={esInstrumental}>
           Para finalizar una Evaluación inicial, Reevaluación o Levantamiento se requieren al menos dos fotos válidas y distintas de esta inspección. Las vistas de árbol completo, base, tronco y copa son recomendadas. JPG o PNG, hasta 10 MB. Mientras la inspección esté en borrador, una foto subida por error se puede eliminar.
         </p>
         {!inspectionId ? (
@@ -992,6 +1068,7 @@ export default function InspectionFormPage() {
 
 /** Una línea por etapa de presentación (maqueta aprobada); sin texto, la etapa no lleva bajada. */
 const SUBTITULO_ETAPA: Record<string, string> = {
+  instrumental: "Lo que se confirma o mide con instrumento: cavidad interna y pared residual.",
   identificacion: "Dónde está el árbol y qué especie es.",
   medidas: "Tamaño del árbol y de su copa. Si algo no existe, márcalo en «no presenta».",
   zona_objetivo: "Qué hay bajo el árbol y con qué frecuencia se ocupa.",
@@ -1006,6 +1083,8 @@ type Etapa = {
   id: string;
   etiqueta: string;
   tipo: "datos" | "fotos" | "revision" | "resultado" | "ajustes";
+  /** Evaluación instrumental: componente sin ensayar mientras el otro ya tiene respuesta (CC-084). */
+  noEnsayado?: boolean;
   /** Bajada de la etapa (maqueta aprobada). */
   sub: string | null;
   /** Ningún campo de la etapa aplica con las respuestas actuales. */
@@ -1080,6 +1159,7 @@ function RecorridoEtapas({
     if (e.tipo === "resultado") return "Del último cálculo";
     if (e.tipo === "ajustes") return "Opcional";
     if (e.faltan > 0) return `Faltan ${e.faltan} según el cálculo`;
+    if (e.noEnsayado) return "No ensayado · opcional";
     if (!e.avance || e.avance.total === 0) return "Solo preguntas opcionales";
     return e.avance.hechas === e.avance.total ? `Lista · ${e.avance.total} respuestas` : `${e.avance.hechas} de ${e.avance.total} respondidas`;
   };

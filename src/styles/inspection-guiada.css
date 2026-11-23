@@ -811,3 +811,34 @@
     width: 100%;
   }
 }
+
+/* Evaluación instrumental (D-196 a D-198): técnica de la OT y método o equipo. */
+.sivu-insp__instrumental {
+  display: grid;
+  gap: 14px;
+}
+.sivu-insp__instr-fila {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+}
+.sivu-insp__instr-label {
+  font-size: 14.5px;
+  font-weight: 500;
+}
+.sivu-insp__instr-metodo {
+  display: grid;
+  gap: 6px;
+}
+.sivu-insp__instr-metodo input {
+  width: 100%;
+  border: 1.5px solid var(--insp-line);
+  border-radius: 14px;
+  padding: 10px 14px;
+  font: inherit;
+  background: var(--surface);
+}
+.sivu-insp__instr-metodo small {
+  color: var(--text-muted);
+}

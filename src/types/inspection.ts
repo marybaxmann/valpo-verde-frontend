@@ -71,6 +71,8 @@ export interface CampoFormulario {
 
 export interface EsquemaFormulario {
   campos_infraestructura?: string[];
+  /** Variables de la Evaluación instrumental (CC-040, CC-084), subconjunto de `variables`. Ausente en APIs anteriores. */
+  campos_evaluacion_instrumental?: string[];
   tipo: string;
   rule_version?: string;
   secciones?: SeccionFormulario[];
@@ -88,6 +90,8 @@ export interface BorradorBody {
   /** Debe corresponder a la acción de la OT (D-196). */
   tipo_inspeccion_realizada: string;
   subtipo_inspeccion: string | null;
+  /** D-198: instrumento o técnica de la Evaluación instrumental. */
+  metodo_instrumental?: string | null;
   variables: Record<string, ValorCampo>;
   campos_arbol: Record<string, ValorCampo>;
 }

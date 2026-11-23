@@ -48,6 +48,17 @@ const PRESENTACION: SeccionPresentacion[] = [
   { codigo: "zona_objetivo", etiqueta: "Zona objetivo", bloques: [{ campos: ["zona_objetivo", "tasa_ocupacion_objetivo"] }] },
   { codigo: "raices_cuello", bloques: [] },
   { codigo: "tronco", bloques: [] },
+  // Evaluación instrumental dentro de la evaluación (pedido de Valej,
+  // 2026-11-23): reúne las preguntas del Excel que resuelve o mide un
+  // instrumento (D-41, D-47, D-53, D-59). Solo cambia dónde se muestran.
+  {
+    codigo: "instrumental",
+    etiqueta: "Evaluación instrumental",
+    bloques: [
+      { subtitulo: "Raíces y cuello", campos: ["cavidad_basal_interna", "t_pared_residual_basal_cm"] },
+      { subtitulo: "Tronco", campos: ["cavidad_interna_tronco", "t_pared_residual_tronco_cm"] },
+    ],
+  },
   {
     codigo: "copa_ramas",
     bloques: [
