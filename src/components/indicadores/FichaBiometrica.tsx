@@ -2,7 +2,7 @@ import { lazy, Suspense, useState } from "react";
 import type { FichaArbol } from "../../types/fichaArbol";
 import type { SecuestroArbol } from "../../types/indicadores";
 import { co2Anual, MOTIVO_SECUESTRO, nombreCientifico, num } from "./formato";
-import type { Zona } from "./Arbol3D";
+import type { Forma, Zona } from "./Arbol3D";
 
 /**
  * Ficha biométrica del árbol (B2), como experiencia visual: el árbol 3D al
@@ -14,6 +14,24 @@ import type { Zona } from "./Arbol3D";
  */
 
 const Arbol3D = lazy(() => import("./Arbol3D").then((m) => ({ default: m.Arbol3D })));
+/**
+ * Grupo morfológico SOLO para la ilustración: tipo de hoja del catálogo y, si
+ * la especie no está vinculada, el género. No interviene en ningún cálculo.
+ */
+function formaIlustracion(tipoHoja: string | null | undefined, especie: string | null | undefined): Forma {
+  const e = (especie ?? "").trim().toLowerCase();
+  if (tipoHoja === "palmera" || /^(phoenix|washingtonia|syagrus|butia|jubaea|trachycarpus|archontophoenix)\b/.test(e)) return "palmera";
+  // Modelo de araucaria solo para el género Araucaria.
+  if (/^araucaria (angustifolia|araucana)\b/.test(e)) return "araucaria";
+  if (/^araucaria\b/.test(e)) return "araucaria_piramidal";
+  return "latifoliada";
+}
+const NOMBRE_FORMA: Record<Forma, string> = {
+  latifoliada: "latifoliada",
+  araucaria: "araucaria",
+  araucaria_piramidal: "araucaria piramidal",
+  palmera: "palmera",
+};
 const n = (v: unknown): number | null => (typeof v === "number" && Number.isFinite(v) ? v : null);
 
 function Captura({ s, onExplorar }: { s: SecuestroArbol | undefined; onExplorar: (v: boolean) => void }) {
@@ -119,6 +137,7 @@ export function FichaBiometrica({ ficha, lugar = null }: { ficha: FichaArbol; lu
     "data-zona": z,
   });
   const on = (z: Zona) => (zona === z ? "is-zona" : "");
+  const forma = formaIlustracion(ficha.sobre_la_especie?.tipo_hoja?.codigo, a.especie_cientifica as string | null);
 
   return (
     <div className={`bx-exp ${zona ? `bx-exp--${zona}` : ""}`}>
@@ -132,7 +151,7 @@ export function FichaBiometrica({ ficha, lugar = null }: { ficha: FichaArbol; lu
           {clase && <span className="bio-chip">{clase}</span>}
         </header>
         <Suspense fallback={<div className="a3d" aria-busy="true" />}>
-          <Arbol3D key={a.id as string} semilla={a.tree_code as string} zona={zona} onZona={setZona} captura={captura || zona === "copa"} />
+          <Arbol3D key={a.id as string} semilla={a.tree_code as string} forma={forma} zona={zona} onZona={setZona} captura={captura || zona === "copa"} />
         </Suspense>
         <span className={`bx-exp__pin bx-exp__pin--copa ${on("copa")}`}>
           <b>Copa</b> {copa !== null ? `${num(copa, 1)} m` : "sin medición"}
@@ -146,7 +165,7 @@ export function FichaBiometrica({ ficha, lugar = null }: { ficha: FichaArbol; lu
           <b>Raíces y suelo</b> método pendiente
         </span>
         <p className="bx-exp__pista">Arrastra para girar · toca la copa, el tronco o el suelo</p>
-        <span className="bx-exp__nota">Ilustración generada para SIVU, no a escala</span>
+        <span className="bx-exp__nota">Ilustración por grupo morfológico ({NOMBRE_FORMA[forma]}), no a escala: no reconstruye el ejemplar</span>
       </section>
 
       <div className="bx-exp__izq">
