@@ -9,11 +9,13 @@ import type { BorradorBody, CampoFormulario, CondicionActivacion, ValorCampo } f
  */
 
 /**
- * Tipos de inspección con evaluación completa (REGLAS_GENERALES fila 28,
- * CC-040): usan el mismo esquema de B16. El Levantamiento con árbol nuevo
- * (CC-052) y el Monitoreo por subtipo esperan su contrato en el backend.
+ * Tipos de inspección con formulario. La evaluación completa (REGLAS_GENERALES
+ * fila 28, CC-040) usa todo el esquema de B16; la Evaluación instrumental
+ * (CC-040, CC-084) solo las variables que el backend entrega en
+ * `campos_evaluacion_instrumental`. El Levantamiento con árbol nuevo (CC-052)
+ * y el Monitoreo por subtipo esperan su contrato en el backend.
  */
-export const TIPOS_CON_FORMULARIO: readonly string[] = ["evaluacion_inicial", "reevaluacion"];
+export const TIPOS_CON_FORMULARIO: readonly string[] = ["evaluacion_inicial", "reevaluacion", "evaluacion_instrumental"];
 
 /** Lo que guarda cada control: texto para números y listas, booleano o códigos. */
 export type ValorCrudo = string | boolean | string[] | null;

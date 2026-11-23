@@ -388,6 +388,12 @@ Rama `feature/indicadores-experimental`, sin publicar. Backend con modelos UTD p
 - `ArbolInventario.codigo_publico` (B1): columna Código del inventario y ficha lateral (`TreeSheet`) muestran el código público y, debajo, el `tree_code`; la lista de Placas QR también.
 - Solo en la plataforma: la ficha pública (`ExperienciaArbol`) y la placa impresa no lo muestran; la API pública no lo entrega.
 
+### Fase 7 · Evaluación instrumental dentro del formulario
+**Fecha:** 2026-11-23. Pedido de Valej: la evaluación instrumental va dentro de la evaluación, no aparte.
+- `ordenFormulario.ts`: sección de presentación `instrumental` después de Tronco con D-41/D-47 (Raíces y cuello) y D-53/D-59 (Tronco). Solo cambia dónde se muestran; condiciones y validaciones son las del backend.
+- `TIPOS_CON_FORMULARIO` incluye `evaluacion_instrumental`: variables según `campos_evaluacion_instrumental` del esquema (B16); la etapa agrega técnica (OT) y `metodo_instrumental` (D-198) en el body. Sin esa clave en la API, el formulario lo avisa y no se abre.
+- Guía de avance: con un componente respondido, el otro queda «No ensayado · opcional» (CC-084); con un cálculo vigente, la guía de la instrumental sigue los faltantes del backend.
+
 ## 5. Limitaciones conocidas (revisado 2026-11-19)
 
 - **Agregar miembro** a un proyecto todavía pide el `user_id` (UUID) en un campo de texto. El backend ya expone `GET /api/sivu/projects/:id/available-users`, pero el frontend aún no lo usa: es una mejora pendiente.
