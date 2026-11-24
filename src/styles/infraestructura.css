@@ -358,3 +358,52 @@
 .infp-gestion span:last-child { font-size: 12px; color: var(--text-muted); }
 .infp-gestion__cruce { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; font-size: 12.5px; color: var(--text-muted); }
 .infp-gestion__cruce b { color: var(--text); }
+
+/* Orden y compactación (2026-11-24) */
+.infp { gap: 12px; }
+.infp__bloque h3 { font-size: 14px; margin-bottom: 8px; }
+.infp__prio { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; margin-top: 0; }
+.infp__prio-tile {
+  display: flex; flex-direction: column; gap: 2px; min-width: 0; padding: 8px 10px; border-radius: 12px;
+  border: 1px solid color-mix(in srgb, var(--pc) 30%, transparent); background: color-mix(in srgb, var(--pc) 10%, transparent);
+  color: inherit; font: inherit; text-align: left; cursor: pointer; transition: background 0.15s ease, transform 0.15s ease;
+}
+.infp__prio-tile:hover { transform: translateY(-1px); background: color-mix(in srgb, var(--pc) 18%, transparent); }
+.infp__prio-tile.is-on { background: var(--pc); border-color: var(--pc); color: #fff; }
+.infp__prio-tile.is-on .infp__prio-n { color: #fff; }
+.infp__prio-tile.is-cero { opacity: 0.45; }
+.infp__prio-tile .infp__prio-n { font-size: 22px; }
+.infp__prio-tile .infp__prio-txt { font-size: 11.5px; line-height: 1.2; }
+.infp__comps { gap: 2px; margin-top: 0; }
+.infp__comp { grid-template-columns: 74px minmax(0, 1fr) 26px; align-items: center; gap: 8px; padding: 5px 6px; }
+.infp__comp-nom { font-size: 12.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.infp__comp b { text-align: right; font-size: 13px; font-variant-numeric: tabular-nums; }
+.infp__pista { display: block; min-width: 0; }
+.infp__ley { margin-top: 6px; }
+.infp__sub { margin-top: 6px; }
+.infp__aviso { margin-top: 6px; padding: 6px 8px; font-size: 11.5px; }
+.infp__pie { padding-top: 8px; }
+
+/* Ficha: selector de componentes sin elementos que se salgan */
+.sivu-infra-compbar__dot { right: 2px; top: 2px; width: 8px; height: 8px; box-shadow: 0 0 0 2px var(--surface); }
+.sivu-infra-compbar button { min-width: 0; overflow: hidden; }
+
+/* Ficha: detalle por componente */
+.infc { display: grid; gap: 10px; }
+.infc__cab { display: grid; grid-template-columns: 38px minmax(0, 1fr) auto; gap: 10px; align-items: center; }
+.infc__ic { display: grid; place-items: center; width: 38px; height: 38px; border-radius: 12px; background: var(--surface-subtle); color: var(--text); }
+.infc__cab strong { display: block; font-size: 15px; }
+.infc__frase { display: block; font-size: 12.5px; color: var(--text-muted); line-height: 1.35; }
+.infc--lev .infc__ic { background: color-mix(in srgb, var(--infp-lev) 25%, transparent); }
+.infc--mod .infc__ic { background: color-mix(in srgb, var(--infp-mod) 25%, transparent); }
+.infc--sev .infc__ic { background: color-mix(in srgb, var(--infp-sev) 25%, transparent); }
+.infc__med { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; margin: 0; }
+.infc__med div { display: flex; flex-direction: column; gap: 2px; padding: 8px 10px; border-radius: 10px; background: var(--surface-subtle); min-width: 0; }
+.infc__med dt { font-size: 11px; color: var(--text-muted); line-height: 1.25; }
+.infc__med dd { margin: 0; font-size: 14px; font-weight: 600; }
+.infc__nota { font-size: 12px; color: var(--text-muted); }
+.infp-obs { padding: 0; }
+.infp-obs summary { cursor: pointer; font-size: 12.5px; font-weight: 600; padding: 10px 12px; list-style: none; }
+.infp-obs summary::-webkit-details-marker { display: none; }
+.infp-obs summary::after { content: " ▾"; color: var(--text-muted); }
+.infp-obs p { margin: 0; padding: 0 12px 12px; font-size: 12.5px; line-height: 1.5; color: var(--text-muted); }

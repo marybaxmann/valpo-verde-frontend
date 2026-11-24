@@ -194,15 +194,16 @@ function Panel({
     return { def: c, severa: n("severa"), moderada: n("moderada"), leve: n("leve"), sinDato: n("no_determinado") };
   });
   const afectados = comps.filter((c) => c.severa + c.moderada + c.leve > 0);
-  const sinAfectacion = comps.filter((c) => c.severa + c.moderada + c.leve === 0).map((c) => c.def.nombre.toLowerCase());
+  const sinAfectacion = comps.filter((c) => c.severa + c.moderada + c.leve === 0).map((c) => c.def.corto.toLowerCase().replace(/\.$/, ""));
   const maxAf = Math.max(1, ...afectados.map((c) => c.severa + c.moderada + c.leve));
   const sinEvaluar = comps.filter((c) => c.sinDato > 0);
 
   return (
     <div className="infp">
       <section className="infp__bloque" aria-labelledby="infp-que-hacer">
-        <h3 id="infp-que-hacer">Qué hacer y dónde</h3>
-        <p className="infp__sub">Prioridad según el riesgo del árbol y su afectación a la infraestructura.</p>
+        <h3 id="infp-que-hacer" title="Prioridad de intervención: riesgo del árbol × afectación a la infraestructura (M05)">
+          Qué hacer y dónde
+        </h3>
         <div className="infp__prio">
           {PRIORIDADES.map((p) => {
             const n = conteo(p.codigo);
@@ -211,14 +212,14 @@ function Panel({
               <button
                 key={p.codigo}
                 type="button"
-                className={`infp__prio-fila ${on ? "is-on" : ""} ${n === 0 ? "is-cero" : ""}`}
+                className={`infp__prio-tile ${on ? "is-on" : ""} ${n === 0 ? "is-cero" : ""}`}
                 style={{ ["--pc" as string]: p.color }}
                 aria-pressed={on}
+                title={p.orientacion}
                 onClick={() => onFiltro("prioridad", p.codigo)}
               >
                 <span className="infp__prio-n">{n}</span>
-                <span className="infp__prio-txt">{p.orientacion}</span>
-                <Icon name="arrow-right" size={13} />
+                <span className="infp__prio-txt">{p.orientacion === "Intervención prioritaria en el corto plazo" ? "Intervenir a corto plazo" : p.orientacion}</span>
               </button>
             );
           })}
@@ -241,17 +242,17 @@ function Panel({
                   className={`infp__comp ${on ? "is-on" : ""}`}
                   aria-pressed={on}
                   onClick={() => onFiltro("componente", c.def.codigo)}
-                  title={`Severa ${c.severa} · Moderada ${c.moderada} · Leve ${c.leve}`}
+                  title={`${c.def.nombre} · Severa ${c.severa} · Moderada ${c.moderada} · Leve ${c.leve}`}
                 >
-                  <span className="infp__comp-cab">
-                    <span>{c.def.nombre}</span>
-                    <b>{total}</b>
+                  <span className="infp__comp-nom">{c.def.corto}</span>
+                  <span className="infp__pista">
+                    <span className="infp__barra" style={{ width: `${(total / maxAf) * 100}%` }} aria-hidden>
+                      {c.severa > 0 && <i className="is-sev" style={{ flexGrow: c.severa }} />}
+                      {c.moderada > 0 && <i className="is-mod" style={{ flexGrow: c.moderada }} />}
+                      {c.leve > 0 && <i className="is-lev" style={{ flexGrow: c.leve }} />}
+                    </span>
                   </span>
-                  <span className="infp__barra" style={{ width: `${(total / maxAf) * 100}%` }} aria-hidden>
-                    {c.severa > 0 && <i className="is-sev" style={{ flexGrow: c.severa }} />}
-                    {c.moderada > 0 && <i className="is-mod" style={{ flexGrow: c.moderada }} />}
-                    {c.leve > 0 && <i className="is-lev" style={{ flexGrow: c.leve }} />}
-                  </span>
+                  <b>{total}</b>
                 </button>
               );
             })}
@@ -268,16 +269,16 @@ function Panel({
             <i className="is-sev" /> severa
           </span>
         </div>
-        {sinAfectacion.length > 0 && <p className="infp__sub">Sin afectación: {sinAfectacion.join(", ")}.</p>}
+        {sinAfectacion.length > 0 && <p className="infp__sub">Sin daño: {sinAfectacion.join(", ")}.</p>}
         {sinEvaluar.length > 0 && (
-          <p className="infp__aviso">
-            <Icon name="alert" size={13} /> Sin evaluar: {sinEvaluar.map((c) => `${c.def.nombre.toLowerCase()} en ${c.sinDato}`).join(" · ")} árboles
+          <p className="infp__aviso" title="Componentes que la inspección no pudo evaluar">
+            <Icon name="alert" size={12} /> Falta evaluar {sinEvaluar.map((c) => `${c.def.corto.toLowerCase().replace(/\.$/, "")} (${c.sinDato})`).join(" y ")}
           </p>
         )}
       </section>
 
       <p className="infp__pie">
-        {cobertura.arboles_con_evaluacion_valida} de {cobertura.arboles_presentes} árboles evaluados · {cobertura.arboles_sin_evaluacion_valida} sin evaluación vigente
+        {cobertura.arboles_con_evaluacion_valida} de {cobertura.arboles_presentes} árboles evaluados
       </p>
     </div>
   );

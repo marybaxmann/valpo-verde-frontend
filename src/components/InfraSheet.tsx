@@ -174,9 +174,19 @@ export function InfraSheet({
 
       <div className="sivu-sheet__status">
         {fila ? (
-          <span className="sivu-infra-tag" style={cls && cls.codigo !== "no_aplica" ? { background: colorClasificacion(tono), color: tono === "low" || tono === "medium" ? "#1f2a10" : "#fff" } : undefined}>
-            {cls?.etiqueta ?? "Sin clasificación"}
-          </span>
+          (() => {
+            const p = prioridadDe(fila.prioridad?.codigo);
+            return (
+              <>
+                {p && (
+                  <span className="sivu-infra-tag" style={{ background: p.color, color: "#fff" }}>
+                    {p.orientacion === "Intervención prioritaria en el corto plazo" ? "Intervenir a corto plazo" : p.orientacion}
+                  </span>
+                )}
+                <span className="sivu-infra-tag sivu-infra-tag--parcial">Afectación: {cls?.etiqueta ?? "sin clasificar"}</span>
+              </>
+            );
+          })()
         ) : (
           <span className="sivu-infra-tag sivu-infra-tag--pend">Evaluación pendiente</span>
         )}
@@ -345,20 +355,12 @@ export function InfraSheet({
                 campos={campos}
                 esquemaListo={esqC.estado !== "cargando"}
               />
-              {inspC.valor?.observaciones && (
-                <p className="sivu-infra-obs">
-                  <b>Observación de la inspección {inspC.valor.codigo_inspeccion ?? ""}</b>
-                  {inspC.valor.observaciones}
-                </p>
-              )}
-              <ClaveEstados />
             </>
           ) : (
             <>
               <div className="sivu-sheet__card sivu-infra-card">
                 <p className="sivu-infra-empty">Los seis componentes aparecerán cuando el Inspector finalice una evaluación completa de este árbol y su OT se complete.</p>
               </div>
-              <ClaveEstados />
             </>
           ))}
 
@@ -465,6 +467,15 @@ function EstadoComponente({ r, pendiente = false }: { r: ComponenteInfraestructu
   return <span className={`sivu-infra-st sivu-infra-st--${a}`}>{r?.categoria?.etiqueta ?? "Sin dato"}</span>;
 }
 
+/** Una frase simple por estado del componente (sin códigos ni reglas). */
+function frase(a: string, nombre: string, etiqueta: string | null | undefined): string {
+  const n = nombre.toLowerCase();
+  if (a === "na") return `No hay ${n} junto al árbol, así que no se evalúa.`;
+  if (a === "nd") return "No se pudo evaluar: faltó un dato en la inspección.";
+  if (a === "sin") return "Existe junto al árbol y no tiene daño.";
+  return `El árbol le provoca un daño ${String(etiqueta ?? "").toLowerCase()}.`;
+}
+
 function DetalleComponente({
   def,
   r,
@@ -480,24 +491,30 @@ function DetalleComponente({
 }) {
   const a = aspectoCategoria(r?.categoria?.codigo);
   const variables = insp.valor?.variables ?? {};
-  const filas = def.campos.filter((id) => id in variables);
+  // Solo las mediciones con un valor útil: se omiten «No» y vacíos, que no dicen nada del daño.
+  const filas = def.campos.filter((id) => {
+    const v = variables[id];
+    return id in variables && v !== null && v !== "" && v !== false && v !== "no";
+  });
+  const motivo = motivoParaUsuario(r?.motivo);
   return (
-    <div className="sivu-sheet__card sivu-infra-card">
-      <div className="sivu-infra-dhead">
-        <IconoComponente codigo={def.codigo} size={18} />
-        <strong>{def.nombre}</strong>
+    <div className={`sivu-sheet__card infc infc--${a}`}>
+      <div className="infc__cab">
+        <span className="infc__ic">
+          <IconoComponente codigo={def.codigo} size={20} />
+        </span>
+        <div>
+          <strong>{def.nombre}</strong>
+          <span className="infc__frase">{frase(a, def.nombre, r?.categoria?.etiqueta)}</span>
+        </div>
         <EstadoComponente r={r} />
       </div>
-      {a === "na" ? (
-        <p className="sivu-infra-empty">El componente no existe junto al árbol: no se evalúa y no entra en la clasificación.</p>
-      ) : (
+      {a !== "na" && (
         <>
-          {insp.estado === "cargando" && <p className="sivu-state">Cargando las mediciones de la inspección…</p>}
-          {insp.estado === "error" && <p className="sivu-state sivu-state--error">No se pudieron leer las mediciones: {insp.error}</p>}
-          {insp.estado === "listo" && !insp.valor && <p className="sivu-state">La evaluación vigente no tiene una inspección con mediciones disponible.</p>}
-          {insp.estado === "listo" && insp.valor && filas.length === 0 && <p className="sivu-state">La inspección no registró mediciones de este componente.</p>}
+          {insp.estado === "cargando" && <p className="sivu-state">Cargando mediciones…</p>}
+          {insp.estado === "error" && <p className="sivu-state sivu-state--error">No se pudieron leer las mediciones.</p>}
           {filas.length > 0 && esquemaListo && (
-            <dl className="sivu-infra-rows">
+            <dl className="infc__med">
               {filas.map((id) => (
                 <div key={id}>
                   <dt>{etiquetaCampo(campos.get(id), id)}</dt>
@@ -506,31 +523,12 @@ function DetalleComponente({
               ))}
             </dl>
           )}
-          {a === "nd" && <span className="sivu-infra-note">No determinado: faltó un dato. No cuenta en la clasificación y la marca como «Parcial».</span>}
-          {a === "sin" && <span className="sivu-infra-note">Sin afectación: existe, se evaluó y no tiene daño. Sí cuenta en la clasificación.</span>}
         </>
       )}
-      {/* Sin códigos internos en pantalla (regla, CC, campo): solo el motivo en palabras, si lo hay. */}
-      {motivoParaUsuario(r?.motivo) && <span className="sivu-infra-note">Motivo: {motivoParaUsuario(r?.motivo)}</span>}
-    </div>
-  );
-}
-
-function ClaveEstados() {
-  return (
-    <div className="sivu-infra-key" aria-label="Diferencia entre estados">
-      <div>
-        <span className="sivu-infra-st sivu-infra-st--sin">Sin afectación</span>
-        Existe y se evaluó, sin daño. Cuenta.
-      </div>
-      <div>
-        <span className="sivu-infra-st sivu-infra-st--na">No aplica</span>
-        No existe junto al árbol. No cuenta.
-      </div>
-      <div>
-        <span className="sivu-infra-st sivu-infra-st--pend">Pendiente</span>
-        El árbol no tiene evaluación vigente.
-      </div>
+      {insp.estado === "listo" && filas.length === 0 && (a === "lev" || a === "mod" || a === "sev") && (
+        <span className="infc__nota">La inspección no registró mediciones de este componente.</span>
+      )}
+      {motivo && <span className="infc__nota">{motivo}</span>}
     </div>
   );
 }
