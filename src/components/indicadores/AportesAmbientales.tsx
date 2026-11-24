@@ -336,7 +336,7 @@ export function AportesAmbientales({ d }: { d: IndicadoresProyecto }) {
             aporte={aCar}
             cifra={num(ci ? ci.aereo.carbono_kg_aprobado + ci.aereo.carbono_kg_exploratorio : null, 0)}
             unidad="kg C"
-            nota={ci ? `${num(ci.aereo.carbono_kg_aprobado, 0)} kg C oficiales en ${ci.aprobados} árboles; el resto es exploratorio y no suma.` : aCar.resultado}
+            nota={ci ? `en ${num(ci.aprobados + ci.exploratorios)} árboles; ${num(ci.no_estimables)} sin estimación.` : aCar.resultado}
           >
             {ci && (
               <Pila
@@ -439,7 +439,7 @@ export function AportesAmbientales({ d }: { d: IndicadoresProyecto }) {
             </p>
           </div>
         )}
-        <p className="ap-fuente">Propuesta experimental, no es metodología vigente: ningún resultado suma a los totales oficiales. Marco: {r.marco}</p>
+        <p className="ap-fuente">Metodología vigente (CC-087). Marco: {r.marco}</p>
       </details>
     </div>
   );

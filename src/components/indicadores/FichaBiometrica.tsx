@@ -94,9 +94,9 @@ function Captura({
       <header className="bx-captura__head">
         <span className="bx-eyebrow">{titulo}</span>
         {usaVariacion ? (
-          <span className="bio-tag bio-tag--simulacion">Simulación experimental</span>
+          <span className="bio-tag bio-tag--simulacion">Variación con hojas</span>
         ) : s.tipo === "simulacion_exploratoria" ? (
-          <span className="bio-tag bio-tag--simulacion">Simulación exploratoria</span>
+          <span className="bio-tag bio-tag--simulacion">Rango de escenarios</span>
         ) : (
           <span className="bio-tag bio-tag--resuelto">Estimación</span>
         )}
@@ -174,7 +174,7 @@ function Captura({
         </p>
         <p className="bx-detalle__pie">
           Modelo {s.modelo.id} · CLE {s.entradas.cle} · muerte regresiva {s.entradas.muerte_regresiva_pct} %
-          {usaVariacion ? " · propuesta experimental" : ""}
+          {usaVariacion ? " · carbono aéreo total con hojas" : ""}
         </p>
         <p className="bx-detalle__pie">Ecuación: {s.modelo.fuente}.</p>
         {s.metodo?.crecimiento?.fuente && <p className="bx-detalle__pie">Crecimiento: {s.metodo.crecimiento.fuente}.</p>}
@@ -370,7 +370,7 @@ export function FichaBiometrica({ ficha, lugar = null }: { ficha: FichaArbol; lu
         {tv && (
           <details className="bio-card bx-notas">
             <summary>Notas del modelo de carbono</summary>
-            <p>{tv.modelo.id} · carbono aéreo total (con hojas), exploratorio para árboles urbanos; no suma a los totales.</p>
+            <p>{tv.modelo.id} · carbono aéreo total (con hojas), modelo de la especie ajustado fuera de la ciudad.</p>
             <p className="bx-notas__fuente">
               {tv.modelo.fuente}.{" "}
               <a href={tv.modelo.doi} target="_blank" rel="noreferrer">

@@ -33,7 +33,6 @@ export function AportesArbol({ ficha, extra, clase }: { ficha: FichaArbol; extra
     <article {...extra} className={`bio-card bx-aportes ${clase ?? ""}`}>
       <header className="bx-aportes__head">
         <h3>Aportes del árbol</h3>
-        <span className="ap-chip is-sim">Simulación</span>
       </header>
 
       {!f && !p ? (

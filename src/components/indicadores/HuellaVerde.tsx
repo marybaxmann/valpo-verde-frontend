@@ -236,6 +236,20 @@ function CarbonoProyecto({ d, onVerArboles }: { d: IndicadoresProyecto; onVerArb
     .filter(([m, v]) => v > 0 && m !== "sin_evaluacion_valida" && m !== "no_presente")
     .sort((a, b) => b[1] - a[1]);
 
+  // CC-087: con el carbono integrado (mejor modelo por árbol), la tarjeta usa sus cifras.
+  const ci = d.estimacion_carbono_integrada;
+  const evaluadosCi = ci ? ci.arboles.filter((x) => !/evaluación completa|no está presente/i.test(x.motivo ?? "")) : [];
+  const almacen = ci
+    ? {
+        total: masa((ci.aereo.carbono_kg_aprobado + ci.aereo.carbono_kg_exploratorio) / 1000),
+        co2: masa(ci.aereo.co2e_kg / 1000),
+        con: ci.aprobados + ci.exploratorios,
+        sin: evaluadosCi.filter((x) => x.estado === "no_estimable").length,
+      }
+    : { total, co2, con: cc.con_resultado, sin: Math.max(0, sinCarbono) };
+  const motivosIntegrado = Object.entries(
+    evaluadosCi.filter((x) => x.estado === "no_estimable").reduce<Record<string, number>>((m, x) => ({ ...m, [x.motivo ?? "sin motivo"]: (m[x.motivo ?? "sin motivo"] ?? 0) + 1 }), {})
+  );
   const motivosCarbono = Object.entries(cc.motivos)
     .filter(([m, v]) => v > 0 && m !== "sin_evaluacion_valida" && m !== "no_presente")
     .sort((a, b) => b[1] - a[1]);
@@ -295,7 +309,7 @@ function CarbonoProyecto({ d, onVerArboles }: { d: IndicadoresProyecto; onVerArb
         </p>
         {!rp && v && v.cobertura.simulacion_exploratoria > 0 && (
           <p className="bx-carbono__nota bx-carbono__extra">
-            <span className="bio-tag bio-tag--simulacion">Experimental</span> {num(v.cobertura.simulacion_exploratoria)}{" "}
+            {num(v.cobertura.simulacion_exploratoria)}{" "}
             {v.cobertura.simulacion_exploratoria === 1 ? "árbol tiene" : "árboles tienen"} además una simulación de la variación anual del carbono aéreo
             total, con hojas. Va aparte y no se suma.
           </p>
@@ -310,21 +324,19 @@ function CarbonoProyecto({ d, onVerArboles }: { d: IndicadoresProyecto; onVerArb
       <article className="bio-card bx-carbono__almacen">
         <header>
           <span className="bx-eyebrow">Carbono almacenado</span>
-          <span className="bio-tag bio-tag--pendiente">En validación</span>
         </header>
         <div className="bx-carbono__cifra bx-carbono__cifra--sm">
-          <b>{total.valor}</b>
+          <b>{almacen.total.valor}</b>
           <span>
-            {total.unidad} C · {co2.valor} {co2.unidad} CO₂e
+            {almacen.total.unidad} C · {almacen.co2.valor} {almacen.co2.unidad} CO₂e
             <br />
-            en {num(cc.con_resultado)} árboles con modelo aprobado
+            en {num(almacen.con)} árboles, con el mejor modelo de cada uno
           </span>
         </div>
         <Barra
           partes={[
-            { n: cc.con_resultado, clase: "fund", etiqueta: "modelo aprobado" },
-            { n: cc.con_resultado_exploratorio ?? 0, clase: "sim", etiqueta: "exploratorios (no suman)" },
-            { n: Math.max(0, sinCarbono), clase: "no", etiqueta: "sin estimación" },
+            { n: almacen.con, clase: "fund", etiqueta: "con estimación" },
+            { n: almacen.sin, clase: "no", etiqueta: "sin estimación" },
           ]}
         />
         {t && t.cobertura.con_resultado_exploratorio > 0 && (
@@ -338,7 +350,7 @@ function CarbonoProyecto({ d, onVerArboles }: { d: IndicadoresProyecto; onVerArb
 
       <MotivosCarbono
         proyeccion={{ total: rp ? rp.no_estimable : cs.no_estimable, motivos }}
-        almacenado={{ total: Math.max(0, sinCarbono), motivos: motivosCarbono }}
+        almacenado={{ total: almacen.sin, motivos: ci ? motivosIntegrado : motivosCarbono }}
         fuera={cs.presentes - cs.universo_calculo}
       />
     </section>
@@ -357,7 +369,7 @@ function EnDefinicion({ d }: { d: IndicadoresProyecto }) {
           {num(carbono.cobertura.con_resultado)} de {num(carbono.cobertura.presentes)} árboles.{" "}
         </>
       )}
-      <span className="bio-tag bio-tag--pendiente">Método en definición</span> Agua, aire, sombra, fauna, energía y valor compensatorio se activan cuando su método
+      <span className="bio-tag bio-tag--pendiente">Método en definición</span> Sombra, fauna, energía y valor compensatorio se activan cuando su método
       quede definido.
     </p>
   );
@@ -375,7 +387,6 @@ export function HuellaVerde({ d, onVerArboles }: { d: IndicadoresProyecto; onVer
           id="aportes"
           titulo="Aportes ambientales"
           bajada="Los cinco aportes que piden los instrumentos climáticos (Nowak, 2024): qué se estima con los datos registrados y qué falta."
-          etiqueta="Experimental"
         >
           <AportesAmbientales d={d} />
         </Seccion>
@@ -384,8 +395,7 @@ export function HuellaVerde({ d, onVerArboles }: { d: IndicadoresProyecto; onVer
       <Seccion
         id="carbono"
         titulo="Carbono"
-        bajada="Carbono almacenado y captura anual. Solo los resultados aprobados suman a los totales oficiales."
-        etiqueta="En validación"
+        bajada="Carbono almacenado y captura anual del arbolado."
       >
         <CarbonoProyecto d={d} onVerArboles={onVerArboles} />
         {d.estimacion_carbono_integrada && <CarbonoIntegradoPanel d={d.estimacion_carbono_integrada} />}
