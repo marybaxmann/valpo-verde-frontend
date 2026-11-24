@@ -8,13 +8,12 @@ import type { ArbolInventario } from "../types/inventory";
 import type { Diagnostico } from "../types/diagnostico";
 import type { CampoFormulario, EsquemaFormulario, InspeccionDeOt, ValorCampo } from "../types/inspection";
 import { fechaChile } from "../lib/dates";
-import { getClassificationTone } from "./ClassificationBadge";
 import { Icon } from "./Icons";
 import { prioridadDe } from "../lib/prioridadGestion";
 import { PendingNotice } from "./PendingNotice";
 import { fotosCompatibles, VisorFoto } from "./TreePhotos";
 import { IconoComponente } from "./InfraIcons";
-import { aspectoCategoria, colorClasificacion, COMPONENTES, ORDEN_CATEGORIAS, svgDataUrl, svgReloj, type DefComponente } from "../lib/infraestructura";
+import { aspectoCategoria, COMPONENTES, ORDEN_CATEGORIAS, type DefComponente } from "../lib/infraestructura";
 import { motivoParaUsuario } from "../lib/textoUsuario";
 
 type Tab = "resumen" | "componentes" | "fotos";
@@ -30,14 +29,6 @@ function esquema(projectId: string): Promise<EsquemaFormulario> {
   }
   return esquemaCache;
 }
-
-/** Escalera de la clasificación (M04, D-170: según el peor componente evaluado). Solo texto de lectura. */
-const ESCALERA: { codigo: string; regla: string }[] = [
-  { codigo: "bajo", regla: "Sin afectación o Leve" },
-  { codigo: "moderado", regla: "Moderada" },
-  { codigo: "alto", regla: "1 Severa" },
-  { codigo: "critico", regla: "2 o más Severas" },
-];
 
 interface Carga<T> {
   estado: "cargando" | "listo" | "error";
@@ -155,7 +146,6 @@ export function InfraSheet({
   const fotoActual = fotos[Math.min(foto, Math.max(0, fotos.length - 1))];
 
   const cls = fila?.infraestructura.clasificacion ?? null;
-  const tono = cls ? getClassificationTone(cls.etiqueta) : "neutral";
   const parcial = !!fila?.componentes.some((c) => c.categoria?.codigo === "no_determinado");
   const desde = fila?.evaluacion_vigente.desde;
 
@@ -235,69 +225,46 @@ export function InfraSheet({
                 </div>
               ) : null;
             })()}
-            <div className="sivu-sheet__card sivu-infra-card">
-              <span className="sivu-infra-eyebrow">
-                Afectación a la infraestructura
-                {fila && <span className="sivu-infra-eyebrow__r">Peor componente</span>}
-              </span>
+            <div className="sivu-sheet__card infd">
+              <span className="infp-gestion__eyebrow infd__eyebrow">Daño a la infraestructura</span>
               {fila ? (
-                <>
-                  <div className="sivu-infra-result">
-                    <img
-                      src={svgDataUrl(svgReloj(COMPONENTES.map((c) => aspectoCategoria(cat(fila, c.codigo))), cls && cls.codigo !== "no_aplica" ? colorClasificacion(tono) : null))}
-                      width={52}
-                      height={52}
-                      alt=""
-                    />
-                    <span className="sivu-infra-result__why">{porque(fila)}</span>
-                  </div>
-                  {cls && cls.codigo !== "no_aplica" && (
-                    <div className="sivu-infra-ladder" aria-label="Escala de la clasificación">
-                      {ESCALERA.map((e) => (
-                        <div key={e.codigo} className={cls.codigo === e.codigo ? "is-on" : ""}>
-                          <b style={{ background: colorClasificacion(getClassificationTone(e.codigo === "critico" ? "crítico" : e.codigo)) }} />
-                          <strong>{e.codigo === "critico" ? "Crítico" : e.codigo[0].toUpperCase() + e.codigo.slice(1)}</strong>
-                          <span>{e.regla}</span>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                  {excluidos(fila) && <span className="sivu-infra-note">No cuentan: {excluidos(fila)}</span>}
-                </>
-              ) : (
-                <p className="sivu-infra-empty">
-                  El árbol está presente, pero no tiene una evaluación completa válida y vigente. No se le asigna «Sin afectación» ni «No aplica».
-                </p>
-              )}
-            </div>
-
-            <div className="sivu-sheet__card sivu-infra-card">
-              <span className="sivu-infra-eyebrow">
-                Por componente
-              </span>
-              <div className="sivu-infra-tiles">
-                {COMPONENTES.map((c) => {
-                  const r = fila?.componentes.find((x) => x.componente.codigo === c.codigo) ?? null;
-                  return (
-                    <button
-                      key={c.codigo}
-                      type="button"
-                      className="sivu-infra-tile"
-                      disabled={!fila}
-                      onClick={() => {
-                        setComp(c.codigo);
-                        setTab("componentes");
-                      }}
-                    >
-                      <span className="sivu-infra-tile__nm">
-                        <IconoComponente codigo={c.codigo} size={14} />
-                        {c.corto}
-                      </span>
-                      <EstadoComponente r={r} pendiente={!fila} />
-                    </button>
+                (() => {
+                  const danados = fila.componentes.filter((x) => ["leve", "moderada", "severa"].includes(x.categoria?.codigo ?? ""));
+                  const orden = { severa: 0, moderada: 1, leve: 2 } as Record<string, number>;
+                  danados.sort((x, y) => (orden[x.categoria!.codigo] ?? 9) - (orden[y.categoria!.codigo] ?? 9));
+                  return danados.length === 0 ? (
+                    <strong className="infd__frase">Sin daño en la infraestructura junto al árbol.</strong>
+                  ) : (
+                    <>
+                      <strong className="infd__frase">
+                        Daño {danados[0].categoria!.etiqueta?.toLowerCase()} en {danados.length === 1 ? "1 componente" : `${danados.length} componentes`}
+                      </strong>
+                      <div className="infd__chips">
+                        {danados.map((x) => {
+                          const def = COMPONENTES.find((c) => c.codigo === x.componente.codigo);
+                          return (
+                            <button
+                              key={x.componente.codigo}
+                              type="button"
+                              className={`infd__chip infd__chip--${aspectoCategoria(x.categoria?.codigo)}`}
+                              onClick={() => {
+                                setComp(x.componente.codigo);
+                                setTab("componentes");
+                              }}
+                            >
+                              <IconoComponente codigo={x.componente.codigo} size={14} />
+                              {def?.nombre ?? x.componente.etiqueta}
+                              <small>{x.categoria?.etiqueta}</small>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </>
                   );
-                })}
-              </div>
+                })()
+              ) : (
+                <p className="sivu-infra-empty">El árbol no tiene una evaluación vigente.</p>
+              )}
             </div>
 
             <div className="sivu-sheet__card sivu-infra-card">
@@ -427,26 +394,6 @@ function peorComponente(f: ArbolInfraestructura | null): string {
     return i < 0 ? 99 : i;
   };
   return [...COMPONENTES].sort((a, b) => orden(a.codigo) - orden(b.codigo))[0].codigo;
-}
-
-/** Qué componentes sostienen la clasificación (lectura de las categorías de B8, sin recalcular). */
-function porque(f: ArbolInfraestructura): string {
-  const cls = f.infraestructura.clasificacion?.codigo;
-  const nombres = (codigo: string) => COMPONENTES.filter((c) => cat(f, c.codigo) === codigo).map((c) => c.nombre.split(" / ")[0]);
-  if (f.infraestructura.ajustada) return "Clasificación ajustada por el Inspector en la evaluación vigente.";
-  if (cls === "no_aplica") return "Ningún componente aplica: no hay infraestructura inmediata junto al árbol.";
-  const sev = nombres("severa");
-  if (sev.length) return `${sev.length === 1 ? "Un componente" : `${sev.length} componentes`} con afectación Severa: ${sev.join(", ")}.`;
-  const mod = nombres("moderada");
-  if (mod.length) return `El peor componente está en Moderada: ${mod.join(", ")}.`;
-  return "Los componentes evaluados están Sin afectación o Leve.";
-}
-
-function excluidos(f: ArbolInfraestructura): string {
-  if (f.infraestructura.clasificacion?.codigo === "no_aplica") return "";
-  return COMPONENTES.filter((c) => ["no_aplica", "no_determinado"].includes(cat(f, c.codigo) ?? ""))
-    .map((c) => `${c.corto} (${(f.componentes.find((x) => x.componente.codigo === c.codigo)?.categoria?.etiqueta ?? "").toLowerCase()})`)
-    .join(", ");
 }
 
 function peso(f: FotoArbol, inspeccionVigente: string | undefined): number {

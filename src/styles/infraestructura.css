@@ -407,3 +407,15 @@
 .infp-obs summary::-webkit-details-marker { display: none; }
 .infp-obs summary::after { content: " ▾"; color: var(--text-muted); }
 .infp-obs p { margin: 0; padding: 0 12px 12px; font-size: 12.5px; line-height: 1.5; color: var(--text-muted); }
+
+/* Ficha: daño a la infraestructura (resumen simple) */
+.infd { display: grid; gap: 8px; }
+.infd__eyebrow { color: var(--text-muted); }
+.infd__frase { font-size: 15px; }
+.infd__chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.infd__chip { display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px; border-radius: 99px; border: 0; font: inherit; font-size: 12.5px; cursor: pointer; color: var(--text); background: var(--surface-subtle); }
+.infd__chip small { font-size: 11px; font-weight: 600; opacity: 0.8; }
+.infd__chip--lev { background: color-mix(in srgb, var(--infp-lev) 28%, transparent); }
+.infd__chip--mod { background: color-mix(in srgb, var(--infp-mod) 28%, transparent); }
+.infd__chip--sev { background: color-mix(in srgb, var(--infp-sev) 28%, transparent); }
+.infd__chip:hover { filter: brightness(1.05); }
