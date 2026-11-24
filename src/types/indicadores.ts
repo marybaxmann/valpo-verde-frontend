@@ -135,6 +135,12 @@ export interface IndicadoresProyecto {
   /** Propuesta experimental (2026-11-21): solo cobertura de la variación anual del carbono aéreo total. */
   /** Propuesta experimental: indicadores descriptivos con datos medidos y vigentes. Ausente en la API publicada. */
   diagnostico_descriptivo?: DiagnosticoDescriptivo;
+  /** Propuesta experimental (2026-11-23): cobertura arbórea con la unión de copas (sin contar dos veces la superposición). */
+  cobertura_arborea?: CoberturaArborea;
+  /** Propuesta experimental (2026-11-23): estado de los aportes ambientales del marco de Nowak (2024). */
+  aportes_ambientales?: AportesAmbientales;
+  /** Propuesta experimental (2026-11-23): área foliar, remoción de contaminantes e interceptación por árbol. */
+  aportes_foliares?: AportesFoliares;
   /** Propuesta experimental: una sola clase por árbol evaluado. Ausente en la API publicada. */
   resumen_proyeccion_anual?: {
     universo_calculo: number;
@@ -387,4 +393,85 @@ export interface CarbonoIntegrado {
   total: { arboles: number; carbono_kg: number; co2e_kg: number };
   pendientes: Record<string, number>;
   arboles: CarbonoIntegradoArbol[];
+}
+
+/** Propuesta experimental (2026-11-23). */
+export interface CoberturaArborea {
+  unidad: "porcentaje";
+  valor: number | null;
+  motivo: string | null;
+  area_cubierta_m2: number | null;
+  suma_areas_individuales_m2: number | null;
+  superposicion_m2: number | null;
+  superficie_m2: number | null;
+  n_con_copa_ubicada: number;
+  n_no_presenta_copa: number;
+  n_sin_medicion: number;
+  n_sin_ubicacion: number;
+  denominador_evaluados: number;
+}
+
+export interface AporteAmbiental {
+  codigo: string;
+  nombre: string;
+  estado: "calculado" | "simulacion" | "no_estimable";
+  resultado: string;
+  usa: string[];
+  falta: string[];
+  fila_indices: string | null;
+}
+
+/** Propuesta experimental (2026-11-23). */
+export interface AportesAmbientales {
+  estado_metodologico: string;
+  marco: string;
+  variables_basicas: {
+    arboles_presentes: number;
+    con_especie: number;
+    con_dap: number;
+    con_altura: number;
+    con_condicion: number;
+    con_las_cuatro: number;
+  };
+  aportes: AporteAmbiental[];
+}
+
+export type Contaminante = "o3" | "no2" | "so2" | "pm10" | "co";
+
+export interface ArbolAporteFoliar {
+  id: string;
+  tree_code: string | null;
+  especie_cientifica: string | null;
+  area_foliar_m2: number | null;
+  lai: number | null;
+  area_copa_m2: number | null;
+  caducifolia: boolean;
+  ajustes: string[];
+  motivo: string | null;
+  remocion_g: Record<Contaminante, number> | null;
+  remocion_total_g: number | null;
+  intercepcion_m3: number | null;
+  lluvia_sobre_copa_m3: number | null;
+}
+
+/** Propuesta experimental (2026-11-23). */
+export interface AportesFoliares {
+  estado_metodologico: string;
+  parametros: {
+    area_foliar: { ecuacion: string; variables: string; fuente: string; rango: string; sin_factor_correccion: string };
+    sin_hojas: { supuesto: string };
+    lai_maximo?: { valor: number; supuesto: string };
+    deposicion: { formula: string; fuente: string; simplificacion: string };
+    intercepcion: { formula: string; fuente: string; simplificacion: string };
+    serie: { descripcion: string; fuentes: string[] };
+  };
+  cobertura: { arboles: number; con_area_foliar: number; sin_area_foliar: number; motivos: Record<string, number>; lai_acotado?: string[] };
+  area_foliar: { total_m2: number | null; lai_medio: number | null };
+  remocion_contaminantes: {
+    por_contaminante: Record<Contaminante, number | null>;
+    total_kg: number | null;
+    concentracion_media_ug_m3: Record<Contaminante, number | null>;
+  };
+  intercepcion_precipitaciones: { total_m3: number | null; lluvia_sobre_copas_m3: number | null; porcentaje_interceptado: number | null; precipitacion_anual_mm: number };
+  arboles: ArbolAporteFoliar[];
 }

@@ -1,4 +1,5 @@
 import type React from "react";
+import { AportesAmbientales } from "./AportesAmbientales";
 import { CarbonoIntegradoPanel } from "./CarbonoIntegrado";
 import { DiagnosticoArbolado } from "./DiagnosticoArbolado";
 import type { IndicadoresProyecto, NivelTaxonomico } from "../../types/indicadores";
@@ -375,7 +376,18 @@ export function HuellaVerde({ d, onVerArboles }: { d: IndicadoresProyecto; onVer
           unidad="m²"
           nota={area.total_m2 === null ? "ningún evaluado con copa medida" : `suma de ${num(area.n_con_area)} árboles evaluados`}
         />
-        {d.cobertura_copa && (
+        {d.cobertura_arborea ? (
+          <Kpi
+            etiqueta="Cobertura arbórea"
+            valor={num(d.cobertura_arborea.valor, 2)}
+            unidad="%"
+            nota={
+              d.cobertura_arborea.valor === null
+                ? (d.cobertura_arborea.motivo ?? "sin dato")
+                : `${num(d.cobertura_arborea.area_cubierta_m2, 0)} m² cubiertos por copas (superpuestas contadas una vez) sobre ${num(d.cobertura_arborea.superficie_m2, 0)} m² del sector`
+            }
+          />
+        ) : d.cobertura_copa && (
           <Kpi
             etiqueta="Cobertura de copa"
             valor={num(d.cobertura_copa.valor, 2)}
@@ -389,6 +401,17 @@ export function HuellaVerde({ d, onVerArboles }: { d: IndicadoresProyecto; onVer
         )}
       </div>
       </Seccion>
+
+      {d.aportes_ambientales && (
+        <Seccion
+          id="aportes"
+          titulo="Aportes ambientales"
+          bajada="Los cinco aportes que piden los instrumentos climáticos (Nowak, 2024): qué se estima con los datos registrados y qué falta."
+          etiqueta="Experimental"
+        >
+          <AportesAmbientales d={d} />
+        </Seccion>
+      )}
 
       <Seccion
         id="carbono"
