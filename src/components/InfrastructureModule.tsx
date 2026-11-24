@@ -194,9 +194,9 @@ function Panel({
     return { def: c, severa: n("severa"), moderada: n("moderada"), leve: n("leve"), sinDato: n("no_determinado") };
   });
   const afectados = comps.filter((c) => c.severa + c.moderada + c.leve > 0);
-  const sinAfectacion = comps.filter((c) => c.severa + c.moderada + c.leve === 0).map((c) => c.def.corto.toLowerCase().replace(/\.$/, ""));
+  // «Sin daño» solo si además no quedaron árboles sin determinar en ese componente.
+  const sinAfectacion = comps.filter((c) => c.severa + c.moderada + c.leve === 0 && c.sinDato === 0).map((c) => c.def.nombre.toLowerCase());
   const maxAf = Math.max(1, ...afectados.map((c) => c.severa + c.moderada + c.leve));
-  const sinEvaluar = comps.filter((c) => c.sinDato > 0);
 
   return (
     <div className="infp">
@@ -270,11 +270,6 @@ function Panel({
           </span>
         </div>
         {sinAfectacion.length > 0 && <p className="infp__sub">Sin daño: {sinAfectacion.join(", ")}.</p>}
-        {sinEvaluar.length > 0 && (
-          <p className="infp__aviso" title="Componentes que la inspección no pudo evaluar">
-            <Icon name="alert" size={12} /> Falta evaluar {sinEvaluar.map((c) => `${c.def.corto.toLowerCase().replace(/\.$/, "")} (${c.sinDato})`).join(" y ")}
-          </p>
-        )}
       </section>
 
       <p className="infp__pie">
