@@ -118,7 +118,6 @@ export function PlacasQr({ projectId, arboles, municipal }: { projectId: string;
                 <th>Placa</th>
                 <th>Árbol</th>
                 <th>Ubicación</th>
-                <th>Ciclo de vida</th>
                 <th>En el PDF</th>
               </tr>
             </thead>
@@ -138,7 +137,6 @@ export function PlacasQr({ projectId, arboles, municipal }: { projectId: string;
                       {a.nombre_comun && a.especie_cientifica && <em>{a.especie_cientifica}</em>}
                     </td>
                     <td className="sivu-placas__place">{a.ubicacion_descriptiva ?? a.sector ?? "—"}</td>
-                    <td>{a.ciclo_vida?.etiqueta ?? a.estado_ciclo_vida}</td>
                     <td>
                       <span className={`sivu-placas__pill ${activo ? "is-on" : ""}`}>{activo ? "Incluida" : "No incluida"}</span>
                     </td>
