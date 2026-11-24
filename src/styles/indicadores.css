@@ -2975,3 +2975,106 @@
 .bx-aportes__rango { position: relative; height: 6px; margin: 4px 0 2px; border-radius: 99px; background: var(--bio-track); }
 .bx-aportes__hoy { position: absolute; inset: 0 auto 0 0; border-radius: 99px; background: var(--bio-mint-bar); }
 .bx-aportes__mas { position: absolute; top: 0; bottom: 0; right: 0; border-radius: 99px; background: repeating-linear-gradient(135deg, var(--bio-amber) 0 4px, transparent 4px 7px); }
+
+/* ==================================================
+   Indicadores esenciales (2026-11-24): aportes con detalle al tocar,
+   composición plegable y ficha del árbol en dos columnas.
+   ================================================== */
+.ap-vars { display: block; padding: 8px 12px; margin: 0; font-size: 12.5px; }
+.ap-grid { grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); }
+button.ap-tarjeta {
+  font: inherit; color: inherit; text-align: left; cursor: pointer;
+  gap: 4px; padding: 14px 14px 12px;
+}
+button.ap-tarjeta::before { background: var(--bio-mint); opacity: 0; transition: opacity 0.2s ease; }
+button.ap-tarjeta:hover { transform: translateY(-2px); border-color: var(--bio-mint); }
+button.ap-tarjeta.is-on { border-color: var(--bio-mint); background: var(--bio-mint-soft); }
+button.ap-tarjeta.is-on::before { opacity: 1; }
+button.ap-tarjeta:focus-visible { outline: 2px solid var(--bio-mint); outline-offset: 2px; }
+.ap-tarjeta .ap-tarjeta__glifo { width: 34px; height: 34px; border-radius: 10px; color: var(--bio-mint); background: var(--bio-mint-soft); display: grid; place-items: center; margin-bottom: 4px; }
+.ap-tarjeta .ap-tarjeta__nombre { font-size: 12.5px; font-weight: 600; color: var(--bio-muted); margin: 0; }
+.ap-tarjeta .ap-tarjeta__cifra { display: block; font-family: var(--font-display); font-size: 28px; line-height: 1.1; font-weight: 600; color: var(--bio-ink); font-variant-numeric: tabular-nums; }
+.ap-tarjeta .ap-tarjeta__cifra small { margin-left: 4px; font-size: 12.5px; font-weight: 500; color: var(--bio-muted); }
+.ap-tarjeta .ap-tarjeta__nota { font-size: 12px; color: var(--bio-muted); }
+
+.ap-det {
+  padding: 14px 16px; border-radius: 18px;
+  background: var(--bio-card); border: 1px solid var(--bio-mint); box-shadow: var(--bio-card-shadow);
+  display: grid; gap: 10px; animation: ap-entra 0.3s ease-out both;
+}
+.ap-det > header { display: flex; justify-content: space-between; align-items: center; }
+.ap-det h3 { margin: 0; font-size: 15px; font-weight: 600; }
+.ap-det__cerrar { border: 0; background: var(--bio-track); color: var(--bio-ink); width: 26px; height: 26px; border-radius: 50%; cursor: pointer; font-size: 15px; line-height: 1; }
+.ap-det__lead { margin: 0; font-size: 13.5px; line-height: 1.5; }
+.ap-det__metodo { margin: 0; padding-top: 8px; border-top: 1px solid var(--bio-card-border); font-size: 12px; color: var(--bio-muted); }
+.ap-det__metodo span { font-weight: 600; color: var(--bio-ink); margin-right: 4px; }
+.ap-det__contaminantes { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px 18px; font-size: 13px; }
+.ap-det__contaminantes li { display: inline-flex; align-items: center; gap: 6px; }
+.ap-det__contaminantes i { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
+.ap-det__motivos { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; font-size: 12.5px; color: var(--bio-muted); max-width: 520px; }
+.ap-det__motivos li { display: flex; justify-content: space-between; border-bottom: 1px solid var(--bio-card-border); padding-bottom: 4px; }
+.ap-det__motivos b { color: var(--bio-ink); }
+.ap-det .ap-ranking { padding: 0; border: 0; background: none; box-shadow: none; }
+.ap-det .ap-ranking h4 { margin: 4px 0 6px; font-size: 13px; }
+.ap-det .ap-ranking__mas, .ap-det > .ap-ranking__mas { justify-self: start; margin-top: 6px; }
+.bci--compacto { padding: 0; }
+.bci--compacto .bci__tabla { max-height: 320px; }
+
+/* Composición plegable */
+details.bio-plegable > summary { list-style: none; cursor: pointer; }
+details.bio-plegable > summary::-webkit-details-marker { display: none; }
+.bio-plegable__flecha { color: var(--bio-muted); transition: transform 0.2s ease; align-self: center; }
+details.bio-plegable:not([open]) .bio-plegable__flecha { transform: rotate(-90deg); }
+
+/* Ficha del árbol: escena + una columna */
+.bx-exp.bx-exp--esencial { grid-template-columns: minmax(0, 1fr) minmax(270px, 320px); grid-template-areas: "escena der"; }
+@media (max-width: 900px) {
+  .bx-exp.bx-exp--esencial { grid-template-columns: minmax(0, 1fr); grid-template-areas: "escena" "der"; }
+}
+.bx-aportes__ico.is-carbono { color: var(--bio-mint); background: var(--bio-mint-soft); }
+.bx-aportes h3 { margin: 0; }
+
+/* Impacto visual de los aportes (2026-11-24): color propio, degradé y mini figura. */
+.ap-tarjeta--cobertura { --ac: #3f9466; }
+.ap-tarjeta--carbono { --ac: #2f6b4f; }
+.ap-tarjeta--secuestro { --ac: #c98a1c; }
+.ap-tarjeta--aire { --ac: #4f7fe0; }
+.ap-tarjeta--lluvia { --ac: #2b8fc9; }
+:root[data-theme="dark"] .ap-tarjeta--cobertura { --ac: #7cc59b; }
+:root[data-theme="dark"] .ap-tarjeta--carbono { --ac: #a8e6c3; }
+:root[data-theme="dark"] .ap-tarjeta--secuestro { --ac: #f2c46d; }
+:root[data-theme="dark"] .ap-tarjeta--aire { --ac: #8fb3ff; }
+:root[data-theme="dark"] .ap-tarjeta--lluvia { --ac: #7cc4ff; }
+button.ap-tarjeta {
+  position: relative; overflow: hidden; min-height: 150px; padding: 16px 16px 14px;
+  background:
+    radial-gradient(120% 90% at 100% 0%, color-mix(in srgb, var(--ac) 22%, transparent) 0%, transparent 60%),
+    linear-gradient(180deg, color-mix(in srgb, var(--ac) 8%, var(--bio-card-strong)) 0%, var(--bio-card-strong) 100%);
+  border: 1px solid color-mix(in srgb, var(--ac) 25%, var(--bio-card-border));
+}
+button.ap-tarjeta::before { background: var(--ac); height: 4px; }
+button.ap-tarjeta:hover { border-color: var(--ac); box-shadow: 0 18px 40px -24px color-mix(in srgb, var(--ac) 70%, transparent); }
+button.ap-tarjeta.is-on { border-color: var(--ac); background: color-mix(in srgb, var(--ac) 14%, var(--bio-card-strong)); }
+.ap-tarjeta .ap-tarjeta__glifo { color: var(--ac); background: color-mix(in srgb, var(--ac) 16%, transparent); }
+.ap-tarjeta .ap-tarjeta__cifra { font-size: 34px; letter-spacing: -0.02em; color: var(--bio-ink); }
+.ap-tarjeta .ap-tarjeta__cifra small { color: var(--ac); font-weight: 600; }
+.ap-tarjeta__viz { position: absolute; top: 14px; right: 14px; pointer-events: none; }
+.ap-viz.ap-anillo { width: 46px; height: 46px; }
+.ap-viz .ap-anillo__pista { fill: none; stroke: color-mix(in srgb, var(--ac) 18%, transparent); stroke-width: 6; }
+.ap-viz .ap-anillo__valor { fill: none; stroke: var(--ac); stroke-width: 6; stroke-linecap: round; animation: ap-traza 1.1s ease-out both; }
+.ap-viz.ap-gota { width: 34px; height: 46px; }
+.ap-viz.ap-pila { display: flex; width: 64px; height: 8px; gap: 2px; border-radius: 99px; overflow: hidden; margin-top: 18px; }
+.ap-viz.ap-pila > span { animation: ap-crece 0.9s ease-out both; transform-origin: left; }
+.ap-viz.ap-curva { width: 58px; height: 36px; }
+.ap-curva__linea { fill: none; stroke: var(--ac); stroke-width: 2.5; stroke-linecap: round; stroke-dasharray: 90; stroke-dashoffset: 90; animation: ap-dibuja 1.2s ease-out forwards; }
+.ap-curva__punto { fill: var(--ac); animation: ap-entra 0.4s 1s ease-out both; }
+.ap-viz.ap-hoja { width: 40px; height: 40px; }
+.ap-hoja__fondo { fill: color-mix(in srgb, var(--ac) 30%, transparent); stroke: var(--ac); stroke-width: 1.5; }
+.ap-hoja__vena { stroke: var(--ac); stroke-width: 1.5; stroke-linecap: round; }
+@keyframes ap-dibuja { to { stroke-dashoffset: 0; } }
+@media (prefers-reduced-motion: reduce) {
+  .ap-curva__linea { animation: none; stroke-dashoffset: 0; }
+}
+
+/* Recurso arbóreo: seis indicadores en una fila */
+.ra-kpis { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }

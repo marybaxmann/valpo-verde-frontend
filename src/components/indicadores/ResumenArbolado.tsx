@@ -7,7 +7,7 @@ import { num } from "./formato";
  * y muestra su definición breve. Solo presenta valores de la API.
  */
 
-type Clave = "presentes" | "riqueza" | "shannon" | "densidad" | "diametro" | "area" | "cobertura";
+type Clave = "presentes" | "riqueza" | "shannon" | "densidad" | "diametro" | "area";
 
 /** Definición breve de cada indicador (hoja INDICES; la cobertura arbórea es propuesta experimental). */
 const DEFINICION: Record<Clave, string> = {
@@ -17,7 +17,6 @@ const DEFINICION: Record<Clave, string> = {
   densidad: "Árboles presentes por hectárea del sector.",
   diametro: "Ancho promedio de las copas de los árboles evaluados.",
   area: "Superficie de sombra que proyectan las copas sobre el suelo.",
-  cobertura: "Porcentaje del sector cubierto por copas vistas desde arriba.",
 };
 
 export function ResumenArbolado({ d }: { d: IndicadoresProyecto }) {
@@ -25,7 +24,6 @@ export function ResumenArbolado({ d }: { d: IndicadoresProyecto }) {
   const copa = d.diametro_medio_copa;
   const area = d.area_proyectada_copa;
   const ha = d.densidad_arborea.superficie_m2 ? d.densidad_arborea.superficie_m2 / 10000 : null;
-  const cob = d.cobertura_arborea;
   const evaluados = d.cobertura.arboles_con_evaluacion_valida;
 
   const kpis: Array<{ clave: Clave; etiqueta: string; valor: string; unidad?: string; nota: string }> = [
@@ -46,15 +44,6 @@ export function ResumenArbolado({ d }: { d: IndicadoresProyecto }) {
     },
     { clave: "diametro", etiqueta: "Diámetro medio de copa", valor: num(copa.valor, 1), unidad: "m", nota: `${num(copa.n_validos)} árboles con copa medida` },
     { clave: "area", etiqueta: "Área de copa", valor: num(area.total_m2, 0), unidad: "m²", nota: `suma de ${num(area.n_con_area)} árboles` },
-    cob
-      ? { clave: "cobertura", etiqueta: "Cobertura arbórea", valor: num(cob.valor, 2), unidad: "%", nota: "copas superpuestas contadas una vez" }
-      : {
-          clave: "cobertura",
-          etiqueta: "Cobertura de copa",
-          valor: num(d.cobertura_copa?.valor, 2),
-          unidad: "%",
-          nota: d.cobertura_copa?.valor == null ? (d.cobertura_copa?.motivo ?? "sin dato") : "área de copa sobre el sector",
-        },
   ];
 
   return (
