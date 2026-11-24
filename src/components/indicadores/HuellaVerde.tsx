@@ -1,5 +1,7 @@
+import { useState } from "react";
 import type React from "react";
 import { AportesAmbientales } from "./AportesAmbientales";
+import { ResumenArbolado } from "./ResumenArbolado";
 import { CarbonoIntegradoPanel } from "./CarbonoIntegrado";
 import { DiagnosticoArbolado } from "./DiagnosticoArbolado";
 import type { IndicadoresProyecto, NivelTaxonomico } from "../../types/indicadores";
@@ -36,19 +38,6 @@ function Seccion({ id, titulo, bajada, etiqueta, children }: { id: string; titul
       </header>
       {children}
     </section>
-  );
-}
-
-function Kpi({ etiqueta, valor, unidad, nota }: { etiqueta: string; valor: string; unidad?: string; nota: string }) {
-  return (
-    <article className="bio-card bio-ckpi">
-      <span className="bio-ckpi__lbl">{etiqueta}</span>
-      <span className="bio-ckpi__val">
-        {valor}
-        {unidad && valor !== "—" && <small>{unidad}</small>}
-      </span>
-      <span className="bio-ckpi__note">{nota}</span>
-    </article>
   );
 }
 
@@ -188,6 +177,48 @@ function Barra({ partes }: { partes: { n: number; clase: string; etiqueta: strin
  * El total oficial suma solo estimaciones fundamentadas; las simulaciones se
  * cuentan y se ven en la ficha de cada árbol, nunca se suman.
  */
+/**
+ * Motivos de los árboles evaluados sin resultado, por indicador: cada total
+ * coincide con el «no estimables» / «sin estimación» de su tarjeta.
+ */
+function MotivosCarbono({
+  proyeccion,
+  almacenado,
+  fuera,
+}: {
+  proyeccion: { total: number; motivos: [string, number][] };
+  almacenado: { total: number; motivos: [string, number][] };
+  fuera: number;
+}) {
+  const [vista, setVista] = useState<"proyeccion" | "almacenado">("proyeccion");
+  const actual = vista === "proyeccion" ? proyeccion : almacenado;
+  const max = Math.max(1, ...actual.motivos.map(([, v]) => v));
+  return (
+    <article className="bio-card bx-carbono__motivos">
+      <span className="bx-eyebrow">Por qué no se estiman</span>
+      <div className="sivu-seg bx-motivos__seg" role="tablist" aria-label="Indicador">
+        <button type="button" role="tab" aria-selected={vista === "proyeccion"} className={`sivu-seg__opt ${vista === "proyeccion" ? "is-on" : ""}`} onClick={() => setVista("proyeccion")}>
+          Proyección anual · {num(proyeccion.total)}
+        </button>
+        <button type="button" role="tab" aria-selected={vista === "almacenado"} className={`sivu-seg__opt ${vista === "almacenado" ? "is-on" : ""}`} onClick={() => setVista("almacenado")}>
+          Carbono almacenado · {num(almacenado.total)}
+        </button>
+      </div>
+      <ul key={vista}>
+        {actual.motivos.map(([m, v]) => (
+          <li key={m}>
+            <span>{MOTIVO_SECUESTRO[m] ?? m}</span>
+            <b>{num(v)}</b>
+            <i className="bx-motivos__barra" style={{ width: `${(v / max) * 100}%` }} aria-hidden />
+          </li>
+        ))}
+        {actual.motivos.length === 0 && <li><span>Todos los árboles evaluados tienen resultado.</span></li>}
+      </ul>
+      <p className="bx-carbono__nota">{num(fuera)} árboles más están fuera del cálculo: aún no tienen evaluación completa vigente.</p>
+    </article>
+  );
+}
+
 function CarbonoProyecto({ d, onVerArboles }: { d: IndicadoresProyecto; onVerArboles?: () => void }) {
   const s = d.estimacion_secuestro_anual;
   const c = d.estimacion_carbono_aereo_lenoso;
@@ -202,6 +233,10 @@ function CarbonoProyecto({ d, onVerArboles }: { d: IndicadoresProyecto; onVerArb
   const total = masa(c.total.carbono_t);
   const co2 = masa(c.total.co2e_t);
   const motivos = Object.entries(rp ? rp.motivos_no_estimable : cs.motivos)
+    .filter(([m, v]) => v > 0 && m !== "sin_evaluacion_valida" && m !== "no_presente")
+    .sort((a, b) => b[1] - a[1]);
+
+  const motivosCarbono = Object.entries(cc.motivos)
     .filter(([m, v]) => v > 0 && m !== "sin_evaluacion_valida" && m !== "no_presente")
     .sort((a, b) => b[1] - a[1]);
 
@@ -301,18 +336,11 @@ function CarbonoProyecto({ d, onVerArboles }: { d: IndicadoresProyecto; onVerArb
         )}
       </article>
 
-      <article className="bio-card bx-carbono__motivos">
-        <span className="bx-eyebrow">Por qué no se estiman</span>
-        <ul>
-          {motivos.map(([m, v]) => (
-            <li key={m}>
-              <span>{MOTIVO_SECUESTRO[m] ?? m}</span>
-              <b>{num(v)}</b>
-            </li>
-          ))}
-        </ul>
-        <p className="bx-carbono__nota">{num(cs.presentes - cs.universo_calculo)} árboles aún sin evaluación completa vigente.</p>
-      </article>
+      <MotivosCarbono
+        proyeccion={{ total: rp ? rp.no_estimable : cs.no_estimable, motivos }}
+        almacenado={{ total: Math.max(0, sinCarbono), motivos: motivosCarbono }}
+        fuera={cs.presentes - cs.universo_calculo}
+      />
     </section>
   );
 }
@@ -336,70 +364,10 @@ function EnDefinicion({ d }: { d: IndicadoresProyecto }) {
 }
 
 export function HuellaVerde({ d, onVerArboles }: { d: IndicadoresProyecto; onVerArboles?: () => void }) {
-  const copa = d.diametro_medio_copa;
-  const area = d.area_proyectada_copa;
-  const ha = d.densidad_arborea.superficie_m2 ? d.densidad_arborea.superficie_m2 / 10000 : null;
   return (
     <div className="bio-huella bio-compacto">
       <Seccion id="resumen" titulo="Resumen del arbolado" bajada="Cuántos árboles hay, qué tan diversos son y cuánta copa aportan.">
-      <div className="bio-ckpis">
-        <Kpi etiqueta="Árboles presentes" valor={num(d.numero_total_arboles.valor)} nota="en el inventario" />
-        <Kpi
-          etiqueta="Riqueza de especies"
-          valor={num(d.riqueza_especies.valor)}
-          nota={
-            d.riqueza_especies.n_no_identificados > 0
-              ? `más ${num(d.riqueza_especies.n_no_identificados)} árboles de especie no identificada`
-              : "todas identificadas"
-          }
-        />
-        <Kpi
-          etiqueta="Diversidad (Shannon)"
-          valor={num(d.diversidad_shannon.valor, 2)}
-          nota={`con ${num(d.diversidad_shannon.n_identificados)} árboles identificados`}
-        />
-        <Kpi
-          etiqueta="Densidad arbórea"
-          valor={num(d.densidad_arborea.valor, 1)}
-          unidad="árb/ha"
-          nota={d.densidad_arborea.valor === null ? (d.densidad_arborea.motivo ?? "Sin superficie del sector") : `sobre ${num(ha, 2)} ha del sector`}
-        />
-        <Kpi
-          etiqueta="Diámetro medio de copa"
-          valor={num(copa.valor, 1)}
-          unidad="m"
-          nota={copa.valor === null ? "ningún evaluado con copa medida" : `${num(copa.n_validos)} de ${num(d.cobertura.arboles_presentes)} árboles evaluados`}
-        />
-        <Kpi
-          etiqueta="Área de copa"
-          valor={num(area.total_m2, 0)}
-          unidad="m²"
-          nota={area.total_m2 === null ? "ningún evaluado con copa medida" : `suma de ${num(area.n_con_area)} árboles evaluados`}
-        />
-        {d.cobertura_arborea ? (
-          <Kpi
-            etiqueta="Cobertura arbórea"
-            valor={num(d.cobertura_arborea.valor, 2)}
-            unidad="%"
-            nota={
-              d.cobertura_arborea.valor === null
-                ? (d.cobertura_arborea.motivo ?? "sin dato")
-                : `${num(d.cobertura_arborea.area_cubierta_m2, 0)} m² cubiertos por copas (superpuestas contadas una vez) sobre ${num(d.cobertura_arborea.superficie_m2, 0)} m² del sector`
-            }
-          />
-        ) : d.cobertura_copa && (
-          <Kpi
-            etiqueta="Cobertura de copa"
-            valor={num(d.cobertura_copa.valor, 2)}
-            unidad="%"
-            nota={
-              d.cobertura_copa.valor === null
-                ? (d.cobertura_copa.motivo ?? "sin dato")
-                : `${num(d.cobertura_copa.area_copa_m2, 0)} m² de copa sobre ${num(d.cobertura_copa.superficie_m2, 0)} m² del sector`
-            }
-          />
-        )}
-      </div>
+      <ResumenArbolado d={d} />
       </Seccion>
 
       {d.aportes_ambientales && (

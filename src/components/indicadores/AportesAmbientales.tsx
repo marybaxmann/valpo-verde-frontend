@@ -193,7 +193,7 @@ function Ranking({ d }: { d: AportesFoliares }) {
       .sort((x, y) => y.v - x.v);
   }, [d, vista]);
   const max = filas[0]?.v ?? 0;
-  const visibles = todos ? filas : filas.slice(0, 8);
+  const visibles = todos ? filas : filas.slice(0, 5);
   const unidad = VISTAS.find((v) => v.codigo === vista)!.unidad;
   return (
     <section className="ap-ranking" aria-label="Árboles que más aportan">
@@ -261,9 +261,9 @@ function Ranking({ d }: { d: AportesFoliares }) {
         ) : (
           <span />
         )}
-        {filas.length > 8 && (
+        {filas.length > 5 && (
           <button type="button" className="ap-ranking__mas" onClick={() => setTodos(!todos)}>
-            {todos ? "Ver solo los 8 primeros" : `Ver los ${num(filas.length)} árboles`}
+            {todos ? "Ver solo los 5 primeros" : `Ver los ${num(filas.length)} árboles`}
           </button>
         )}
       </footer>
@@ -352,9 +352,15 @@ export function AportesAmbientales({ d }: { d: IndicadoresProyecto }) {
           <Tarjeta
             indice={2}
             aporte={aSec}
-            cifra={num(sec?.cobertura.simulacion_exploratoria, 0)}
+            cifra={num(d.resumen_proyeccion_anual ? d.resumen_proyeccion_anual.con_proyeccion : sec?.cobertura.simulacion_exploratoria, 0)}
             unidad="árboles"
-            nota={sec ? `con crecimiento simulado (i-Tree Eco); ${sec.cobertura.estimacion_fundamentada} estimaciones fundamentadas.` : aSec.resultado}
+            nota={
+              d.resumen_proyeccion_anual
+                ? `de ${num(d.resumen_proyeccion_anual.universo_calculo)} evaluados tienen proyección anual simulada; ${d.resumen_proyeccion_anual.estimacion_fundamentada} fundamentadas.`
+                : sec
+                  ? `con crecimiento simulado (i-Tree Eco); ${sec.cobertura.estimacion_fundamentada} estimaciones fundamentadas.`
+                  : aSec.resultado
+            }
           />
         )}
         {aAire && (

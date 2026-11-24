@@ -37,7 +37,7 @@ export function CarbonoIntegradoPanel({ d }: { d: CarbonoIntegrado }) {
     <section className="bio-card bci" aria-label="Carbono almacenado por árbol">
       <header className="bio-panel__head">
         <h2>Carbono almacenado con el mejor modelo por árbol</h2>
-        <span className="bio-panel__hint">propuesta experimental</span>
+        <span className="bio-tag bio-tag--pendiente">Propuesta experimental</span>
       </header>
       <div className="bci__kpis">
         <div>
@@ -55,7 +55,7 @@ export function CarbonoIntegradoPanel({ d }: { d: CarbonoIntegrado }) {
             {aereo.valor} <small>{aereo.unidad} C</small>
           </b>
           <small>
-            {num(d.aereo.arboles)} árboles · aprobado {num(d.aereo.carbono_kg_aprobado, 0)} kg
+            {num(d.aereo.arboles)} árboles · {num(d.aereo.carbono_kg_aprobado, 0)} kg C aprobados
           </small>
         </div>
         <div>

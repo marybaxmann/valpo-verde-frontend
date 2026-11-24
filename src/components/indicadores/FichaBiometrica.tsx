@@ -3,6 +3,7 @@ import type { FichaArbol } from "../../types/fichaArbol";
 import type { SecuestroArbol } from "../../types/indicadores";
 import { co2Anual, MOTIVO_SECUESTRO, nombreCientifico, nombreVisible, num, ORIGEN_SIN_DETERMINAR } from "./formato";
 import type { Forma, Zona } from "./Arbol3D";
+import { AportesArbol } from "./AportesArbol";
 
 /**
  * Ficha biométrica del árbol (B2), como experiencia visual: el árbol 3D al
@@ -365,14 +366,7 @@ export function FichaBiometrica({ ficha, lugar = null }: { ficha: FichaArbol; lu
           )}
           <p className="bx-medidas__pie">Medición vigente desde {ficha.historial[0]?.vigente_desde ?? "—"}</p>
         </article>
-        <article {...resalta("raices")} className={`bio-card bx-prox ${on("raices")}`}>
-          <h3>Próximamente</h3>
-          <ul>
-            <li>Área y biomasa foliar</li>
-            <li>Escorrentía evitada</li>
-            <li>Proyección de crecimiento</li>
-          </ul>
-        </article>
+        <AportesArbol ficha={ficha} extra={{ ...resalta("raices") }} clase={on("raices")} />
         {tv && (
           <details className="bio-card bx-notas">
             <summary>Notas del modelo de carbono</summary>

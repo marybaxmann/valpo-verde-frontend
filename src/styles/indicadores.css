@@ -2712,7 +2712,8 @@
 }
 
 /* Carbono almacenado por árbol (propuesta experimental, 2026-11-22). */
-.bci { display: grid; gap: 12px; }
+.bci { display: grid; gap: 12px; padding: 18px 18px 14px; min-width: 0; }
+.bci > .bio-panel__head { align-items: center; }
 .bci__kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 10px; }
 .bci__kpis > div { display: grid; gap: 2px; padding: 12px 14px; border-radius: 14px; background: color-mix(in srgb, var(--sivu-accent, #3b6d11) 7%, transparent); }
 .bci__kpis span { font-size: 12px; color: var(--text-muted); }
@@ -2734,6 +2735,9 @@
 .bci__estado.is-aprobado { background: #dcefd0; color: #2b5a12; }
 .bci__estado.is-exploratorio { background: #f8e9c8; color: #7a4f05; }
 .bci__estado.is-no_estimable { background: #ececec; color: #555; }
+:root[data-theme="dark"] .bci__estado.is-aprobado { background: var(--bio-mint-soft); color: var(--bio-mint); }
+:root[data-theme="dark"] .bci__estado.is-exploratorio { background: var(--bio-amber-soft); color: var(--bio-amber-ink); }
+:root[data-theme="dark"] .bci__estado.is-no_estimable { background: var(--bio-track); color: var(--bio-muted); }
 
 /* Vista de proyecto ordenada en secciones (2026-11-23). */
 .bio-huella.bio-compacto { display: grid; gap: 32px; }
@@ -2914,3 +2918,60 @@
 @media (prefers-reduced-motion: reduce) {
   .ap-tarjeta, .ap-ranking__lista li, .ap-pila > span, .ap-ranking__barra > span, .ap-anillo__valor, .ap-gota__ola { animation: none; }
 }
+
+/* Motivos de carbono con pestañas (2026-11-23). */
+.bx-motivos__seg { margin: 8px 0 4px; align-self: flex-start; }
+.bx-motivos__seg .sivu-seg__opt { font-size: 12px; height: 30px; padding: 0 10px; }
+.bx-carbono__motivos ul li { position: relative; }
+.bx-motivos__barra {
+  position: absolute; left: 0; bottom: -1px; height: 2px; border-radius: 2px;
+  background: var(--bio-amber); opacity: 0.7; animation: ap-crece 0.6s ease-out both; transform-origin: left;
+}
+
+/* Resumen del arbolado: tarjetas que se dan vuelta con la definición (2026-11-23). */
+.ra-kpi {
+  position: relative; display: grid; text-align: left; font: inherit; color: inherit; cursor: pointer;
+  perspective: 800px; transition: border-color 0.2s ease, transform 0.2s ease;
+}
+.ra-kpi:hover { transform: translateY(-2px); border-color: var(--bio-mint); }
+.ra-kpi:focus-visible { outline: 2px solid var(--bio-mint); outline-offset: 2px; }
+.ra-kpi__cara {
+  grid-area: 1 / 1; display: flex; flex-direction: column; gap: 4px; min-width: 0;
+  backface-visibility: hidden; transition: transform 0.45s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.3s ease;
+}
+.ra-kpi__dorso { transform: rotateY(180deg); opacity: 0; }
+.ra-kpi.is-on .ra-kpi__frente { transform: rotateY(-180deg); opacity: 0; }
+.ra-kpi.is-on .ra-kpi__dorso { transform: none; opacity: 1; }
+.ra-kpi.is-on { border-color: var(--bio-mint); background: var(--bio-mint-soft); }
+.ra-kpi__def { font-size: 13px; line-height: 1.4; color: var(--bio-ink); }
+.ra-kpi__icono {
+  position: absolute; top: 10px; right: 10px; display: grid; place-items: center; width: 18px; height: 18px;
+  border-radius: 50%; font-size: 11px; font-weight: 700; color: var(--bio-muted); background: var(--bio-track);
+  opacity: 0; transition: opacity 0.2s ease;
+}
+.ra-kpi:hover .ra-kpi__icono, .ra-kpi:focus-visible .ra-kpi__icono, .ra-kpi.is-on .ra-kpi__icono { opacity: 1; }
+@media (prefers-reduced-motion: reduce) { .ra-kpi__cara { transition: opacity 0.2s ease; transform: none !important; } }
+
+/* Aportes del árbol en la ficha biométrica (propuesta experimental, 2026-11-23). */
+.bx-aportes { padding: 14px 16px; display: flex; flex-direction: column; gap: 10px; }
+.bx-aportes__head { display: flex; justify-content: space-between; align-items: center; }
+.bx-aportes__head h3 { margin: 0; font-size: 13px; }
+.bx-aportes__vacio, .bx-aportes__pie { margin: 0; font-size: 11.5px; color: var(--bio-muted); }
+.bx-aportes__lista { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.bx-aportes__lista li { display: grid; grid-template-columns: 28px minmax(0, 1fr); gap: 10px; align-items: start; animation: ap-entra 0.4s ease-out both; }
+.bx-aportes__lista li:nth-child(2) { animation-delay: 60ms; }
+.bx-aportes__lista li:nth-child(3) { animation-delay: 120ms; }
+.bx-aportes__lista li:nth-child(4) { animation-delay: 180ms; }
+.bx-aportes__ico { display: grid; place-items: center; width: 28px; height: 28px; border-radius: 9px; font-size: 14px; }
+.bx-aportes__ico.is-hoja { color: var(--bio-mint); background: var(--bio-mint-soft); }
+.bx-aportes__ico.is-aire { color: var(--ap-o3); background: color-mix(in srgb, var(--ap-o3) 14%, transparent); }
+.bx-aportes__ico.is-agua { background: var(--ap-agua-soft); font-size: 12px; }
+.bx-aportes__ico.is-crece { color: var(--bio-amber-ink); background: var(--bio-amber-soft); }
+.bx-aportes__txt { display: flex; flex-direction: column; gap: 2px; min-width: 0; font-size: 12px; color: var(--bio-muted); }
+.bx-aportes__txt b { font-size: 14px; color: var(--bio-ink); font-weight: 600; font-variant-numeric: tabular-nums; }
+.bx-aportes__txt b small { font-size: 11.5px; font-weight: 500; color: var(--bio-muted); }
+.bx-aportes__pila { display: flex; height: 6px; gap: 2px; border-radius: 99px; overflow: hidden; margin-top: 3px; }
+.bx-aportes__pila > span { animation: ap-crece 0.7s ease-out both; transform-origin: left; }
+.bx-aportes__rango { position: relative; height: 6px; margin: 4px 0 2px; border-radius: 99px; background: var(--bio-track); }
+.bx-aportes__hoy { position: absolute; inset: 0 auto 0 0; border-radius: 99px; background: var(--bio-mint-bar); }
+.bx-aportes__mas { position: absolute; top: 0; bottom: 0; right: 0; border-radius: 99px; background: repeating-linear-gradient(135deg, var(--bio-amber) 0 4px, transparent 4px 7px); }
