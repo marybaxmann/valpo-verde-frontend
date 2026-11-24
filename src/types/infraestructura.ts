@@ -34,6 +34,8 @@ export interface ArbolInfraestructura {
     puntaje: number | null;
     porcentaje: number | null;
   };
+  /** Riesgo vigente del árbol (2026-11-24): junto con la afectación explica la prioridad (M05). */
+  riesgo?: CodigoEtiqueta | null;
   prioridad: CodigoEtiqueta | null;
   prioridad_ajustada: boolean;
   componentes: ComponenteInfraestructura[];

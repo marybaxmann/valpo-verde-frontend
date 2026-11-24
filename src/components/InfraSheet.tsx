@@ -10,6 +10,7 @@ import type { CampoFormulario, EsquemaFormulario, InspeccionDeOt, ValorCampo } f
 import { fechaChile } from "../lib/dates";
 import { getClassificationTone } from "./ClassificationBadge";
 import { Icon } from "./Icons";
+import { prioridadDe } from "../lib/prioridadGestion";
 import { PendingNotice } from "./PendingNotice";
 import { fotosCompatibles, VisorFoto } from "./TreePhotos";
 import { IconoComponente } from "./InfraIcons";
@@ -205,10 +206,28 @@ export function InfraSheet({
       <div className="sivu-sheet__body">
         {tab === "resumen" && (
           <>
+            {fila && (() => {
+              const p = prioridadDe(fila.prioridad?.codigo);
+              return p ? (
+                <div className="sivu-sheet__card infp-gestion" style={{ ["--pc" as string]: p.color }}>
+                  <span className="infp-gestion__eyebrow">Qué hacer</span>
+                  <strong>{p.orientacion}</strong>
+                  <span className="infp-gestion__cruce">
+                    <span>
+                      Riesgo del árbol <b>{fila.riesgo?.etiqueta ?? "—"}</b>
+                    </span>
+                    <span aria-hidden>×</span>
+                    <span>
+                      Afectación <b>{fila.infraestructura.clasificacion?.etiqueta ?? "—"}</b>
+                    </span>
+                  </span>
+                  {fila.prioridad_ajustada && <span>Prioridad ajustada por el Inspector.</span>}
+                </div>
+              ) : null;
+            })()}
             <div className="sivu-sheet__card sivu-infra-card">
               <span className="sivu-infra-eyebrow">
-                <span className="sivu-infra-tbd" title="Ícono por definir">?</span>
-                Clasificación de infraestructura
+                Afectación a la infraestructura
                 {fila && <span className="sivu-infra-eyebrow__r">Peor componente</span>}
               </span>
               {fila ? (
