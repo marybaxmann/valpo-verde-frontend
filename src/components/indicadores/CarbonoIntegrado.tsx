@@ -37,7 +37,6 @@ export function CarbonoIntegradoPanel({ d }: { d: CarbonoIntegrado }) {
     <section className="bio-card bci" aria-label="Carbono almacenado por árbol">
       <header className="bio-panel__head">
         <h2>Carbono almacenado con el mejor modelo por árbol</h2>
-        <span className="bio-panel__hint">propuesta experimental</span>
       </header>
       <div className="bci__kpis">
         <div>
@@ -46,7 +45,7 @@ export function CarbonoIntegradoPanel({ d }: { d: CarbonoIntegrado }) {
             {num(d.con_estimacion)} <small>de {num(d.arboles_presentes)}</small>
           </b>
           <small>
-            {num(d.aprobados)} aprobados · {num(d.exploratorios)} exploratorios
+            {d.exploratorios > 0 ? `${num(d.aprobados)} aprobados · ${num(d.exploratorios)} exploratorios` : `${num(d.no_estimables)} sin estimación`}
           </small>
         </div>
         <div>
@@ -55,7 +54,7 @@ export function CarbonoIntegradoPanel({ d }: { d: CarbonoIntegrado }) {
             {aereo.valor} <small>{aereo.unidad} C</small>
           </b>
           <small>
-            {num(d.aereo.arboles)} árboles · aprobado {num(d.aereo.carbono_kg_aprobado, 0)} kg
+            {num(d.aereo.arboles)} árboles · {num(d.aereo.carbono_kg_aprobado, 0)} kg C aprobados
           </small>
         </div>
         <div>
@@ -75,13 +74,12 @@ export function CarbonoIntegradoPanel({ d }: { d: CarbonoIntegrado }) {
       </div>
       <p className="bio-panel__foot">
         Aéreo: {num(d.aereo.por_componente.aerea_lenosa.arboles)} árboles solo tronco y ramas y{" "}
-        {num(d.aereo.por_componente.aerea_total.arboles)} con hojas. El total con raíces es otro conjunto y no se suma al aéreo. Los
-        exploratorios no suman a los indicadores oficiales.
+        {num(d.aereo.por_componente.aerea_total.arboles)} con hojas. El total con raíces es otro conjunto y no se suma al aéreo.
       </p>
       <details className="bci__detalle">
         <summary>Ver el detalle por árbol ({num(d.arboles.length)})</summary>
       <div className="bci__filtros" role="group" aria-label="Filtrar por estado">
-        {(["todos", "aprobado", "exploratorio", "no_estimable"] as const).map((f) => (
+        {(["todos", "aprobado", "exploratorio", "no_estimable"] as const).filter((f) => f !== "exploratorio" || d.exploratorios > 0).map((f) => (
           <button key={f} type="button" aria-pressed={filtro === f} onClick={() => setFiltro(f)}>
             {f === "todos" ? "Todos" : ESTADO[f]} ({f === "todos" ? d.arboles.length : d.arboles.filter((a) => a.estado === f).length})
           </button>

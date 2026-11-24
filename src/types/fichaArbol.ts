@@ -1,3 +1,4 @@
+import type { ArbolAporteFoliar } from "./indicadores";
 import type { CarbonoAereoTotalArbol, CarbonoArbol, DescriptivosArbol, SecuestroArbol } from "./indicadores";
 import type { CodigoEtiqueta, EvaluacionVigente } from "./diagnostico";
 import type { OtListada } from "./workOrder";
@@ -39,6 +40,10 @@ export interface FichaArbol {
   variacion_anual_carbono_aereo_total?: SecuestroArbol;
   /** Propuesta experimental: valores descriptivos y condición de copa registrada. Ausente en la API publicada. */
   descriptivos?: DescriptivosArbol;
+  /** Propuesta experimental (2026-11-23): área foliar, remoción e interceptación del árbol; null sin evaluación vigente. */
+  aportes_foliares?: (ArbolAporteFoliar & { precipitacion_anual_mm: number }) | null;
+  /** Propuesta experimental (2026-11-23): escenarios de crecimiento del DAP (i-Tree Eco). */
+  proyeccion_crecimiento?: ProyeccionCrecimiento | null;
   /** Rasgos de la especie del catálogo (tipo de hoja para la ilustración). */
   sobre_la_especie?: { genero: string | null; familia: string | null; tipo_hoja: { codigo: string; etiqueta: string | null } | null } | null;
   /** Secuestro anual (decisiones A a C, 2026-11-20); ausente en la API publicada hasta su despliegue. */
@@ -47,4 +52,16 @@ export interface FichaArbol {
   historial: VersionHistorial[];
   ordenes_trabajo: OtListada[];
   incidencias: Incidencia[];
+}
+
+/** Propuesta experimental (2026-11-23). */
+export interface ProyeccionCrecimiento {
+  motivo: string | null;
+  detalle_motivo: string | null;
+  supuestos: string[];
+  valor: {
+    dap_actual_cm: number;
+    categoria_referencia: string | null;
+    escenarios: Array<{ categoria: string; etiqueta: string; incremento_cm_anio: number; dap_cm: Array<{ anios: number; dap_cm: number }> }>;
+  } | null;
 }
