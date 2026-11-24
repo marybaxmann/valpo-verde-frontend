@@ -306,3 +306,116 @@
 .sivu-infra-photo__nav { position: absolute; top: 50%; transform: translateY(-50%); width: 30px; height: 30px; border: 0; border-radius: 50%; display: grid; place-items: center; background: rgba(7, 23, 15, 0.6); color: #fff; cursor: pointer; }
 .sivu-infra-photo__nav.is-l { left: 8px; }
 .sivu-infra-photo__nav.is-r { right: 8px; }
+
+/* ==================================================
+   Rediseño 2026-11-24: panel por preguntas y prioridad de gestión (M05).
+   ================================================== */
+:root { --infp-lev: #e8c25a; --infp-mod: #e08a2e; --infp-sev: #b5471f; }
+:root[data-theme="dark"] { --infp-lev: #f0d27a; --infp-mod: #f2a557; --infp-sev: #ff7a52; }
+.infp { display: flex; flex-direction: column; gap: 16px; }
+.infp__bloque h3 { margin: 0; font-size: 15px; font-weight: 600; }
+.infp__sub { margin: 2px 0 0; font-size: 12px; color: var(--text-muted); line-height: 1.4; }
+.infp__prio { display: grid; gap: 6px; margin-top: 10px; }
+.infp__prio-fila {
+  display: grid; grid-template-columns: 44px minmax(0, 1fr) 14px; align-items: center; gap: 8px;
+  padding: 8px 10px; border-radius: 12px; border: 1px solid color-mix(in srgb, var(--pc) 30%, transparent);
+  background: color-mix(in srgb, var(--pc) 10%, transparent); color: inherit; font: inherit; text-align: left; cursor: pointer;
+  transition: transform 0.15s ease, background 0.15s ease;
+}
+.infp__prio-fila:hover { transform: translateX(2px); background: color-mix(in srgb, var(--pc) 18%, transparent); }
+.infp__prio-fila.is-on { background: var(--pc); color: #fff; border-color: var(--pc); }
+.infp__prio-fila.is-cero { opacity: 0.45; }
+.infp__prio-fila svg { color: color-mix(in srgb, var(--pc) 80%, var(--text)); }
+.infp__prio-fila.is-on svg { color: #fff; }
+.infp__prio-n { font-family: var(--font-display); font-size: 24px; font-weight: 600; line-height: 1; color: var(--pc); font-variant-numeric: tabular-nums; }
+.infp__prio-fila.is-on .infp__prio-n { color: #fff; }
+.infp__prio-txt { font-size: 13px; line-height: 1.25; }
+.infp__comps { display: grid; gap: 8px; margin-top: 10px; }
+.infp__comp { display: grid; gap: 4px; padding: 4px 6px; margin: 0 -6px; border: 0; border-radius: 10px; background: none; color: inherit; font: inherit; text-align: left; cursor: pointer; }
+.infp__comp:hover, .infp__comp.is-on { background: var(--surface-subtle); }
+.infp__comp.is-on { outline: 1.5px solid var(--sivu-accent, #3b6d11); }
+.infp__comp-cab { display: flex; justify-content: space-between; font-size: 13px; }
+.infp__comp-cab b { font-variant-numeric: tabular-nums; }
+.infp__barra { display: flex; height: 8px; min-width: 6px; gap: 2px; border-radius: 99px; overflow: hidden; }
+.infp__barra i, .infp__ley i { display: block; }
+.infp__barra i { animation: infp-crece 0.6s ease-out both; transform-origin: left; }
+.is-lev { background: var(--infp-lev); }
+.is-mod { background: var(--infp-mod); }
+.is-sev { background: var(--infp-sev); }
+.infp__ley { display: flex; gap: 12px; margin-top: 8px; font-size: 11.5px; color: var(--text-muted); }
+.infp__ley span { display: inline-flex; align-items: center; gap: 5px; }
+.infp__ley i { width: 9px; height: 9px; border-radius: 3px; }
+.infp__aviso { display: flex; gap: 6px; align-items: flex-start; margin: 10px 0 0; padding: 8px 10px; border-radius: 10px; font-size: 12px; line-height: 1.35; background: color-mix(in srgb, #e0a92e 16%, transparent); color: color-mix(in srgb, #8a5a00 85%, var(--text)); }
+.infp__pie { margin: 0; padding-top: 10px; border-top: 1px solid var(--border); font-size: 11.5px; color: var(--text-muted); }
+.sivu-infra-dot--pend { background: transparent; border: 1.5px dashed #8a948f; }
+@keyframes infp-crece { from { transform: scaleX(0); } to { transform: none; } }
+@media (prefers-reduced-motion: reduce) { .infp__barra i { animation: none; } .infp__prio-fila { transition: none; } }
+
+/* Ficha: qué hacer */
+.infp-gestion { display: grid; gap: 3px; border-left: 0; background: color-mix(in srgb, var(--pc) 12%, var(--surface)); border: 1px solid color-mix(in srgb, var(--pc) 35%, transparent); }
+.infp-gestion__eyebrow { font-size: 11px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--pc); }
+.infp-gestion strong { font-size: 16px; }
+.infp-gestion span:last-child { font-size: 12px; color: var(--text-muted); }
+.infp-gestion__cruce { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; font-size: 12.5px; color: var(--text-muted); }
+.infp-gestion__cruce b { color: var(--text); }
+
+/* Orden y compactación (2026-11-24) */
+.infp { gap: 12px; }
+.infp__bloque h3 { font-size: 14px; margin-bottom: 8px; }
+.infp__prio { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; margin-top: 0; }
+.infp__prio-tile {
+  display: flex; flex-direction: column; gap: 2px; min-width: 0; padding: 8px 10px; border-radius: 12px;
+  border: 1px solid color-mix(in srgb, var(--pc) 30%, transparent); background: color-mix(in srgb, var(--pc) 10%, transparent);
+  color: inherit; font: inherit; text-align: left; cursor: pointer; transition: background 0.15s ease, transform 0.15s ease;
+}
+.infp__prio-tile:hover { transform: translateY(-1px); background: color-mix(in srgb, var(--pc) 18%, transparent); }
+.infp__prio-tile.is-on { background: var(--pc); border-color: var(--pc); color: #fff; }
+.infp__prio-tile.is-on .infp__prio-n { color: #fff; }
+.infp__prio-tile.is-cero { opacity: 0.45; }
+.infp__prio-tile .infp__prio-n { font-size: 22px; }
+.infp__prio-tile .infp__prio-txt { font-size: 11.5px; line-height: 1.2; }
+.infp__comps { gap: 2px; margin-top: 0; }
+.infp__comp { grid-template-columns: 74px minmax(0, 1fr) 26px; align-items: center; gap: 8px; padding: 5px 6px; }
+.infp__comp-nom { font-size: 12.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.infp__comp b { text-align: right; font-size: 13px; font-variant-numeric: tabular-nums; }
+.infp__pista { display: block; min-width: 0; }
+.infp__ley { margin-top: 6px; }
+.infp__sub { margin-top: 6px; }
+.infp__aviso { margin-top: 6px; padding: 6px 8px; font-size: 11.5px; }
+.infp__pie { padding-top: 8px; }
+
+/* Ficha: selector de componentes sin elementos que se salgan */
+.sivu-infra-compbar__dot { right: 2px; top: 2px; width: 8px; height: 8px; box-shadow: 0 0 0 2px var(--surface); }
+.sivu-infra-compbar button { min-width: 0; overflow: hidden; }
+
+/* Ficha: detalle por componente */
+.infc { display: grid; gap: 10px; }
+.infc__cab { display: grid; grid-template-columns: 38px minmax(0, 1fr) auto; gap: 10px; align-items: center; }
+.infc__ic { display: grid; place-items: center; width: 38px; height: 38px; border-radius: 12px; background: var(--surface-subtle); color: var(--text); }
+.infc__cab strong { display: block; font-size: 15px; }
+.infc__frase { display: block; font-size: 12.5px; color: var(--text-muted); line-height: 1.35; }
+.infc--lev .infc__ic { background: color-mix(in srgb, var(--infp-lev) 25%, transparent); }
+.infc--mod .infc__ic { background: color-mix(in srgb, var(--infp-mod) 25%, transparent); }
+.infc--sev .infc__ic { background: color-mix(in srgb, var(--infp-sev) 25%, transparent); }
+.infc__med { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; margin: 0; }
+.infc__med div { display: flex; flex-direction: column; gap: 2px; padding: 8px 10px; border-radius: 10px; background: var(--surface-subtle); min-width: 0; }
+.infc__med dt { font-size: 11px; color: var(--text-muted); line-height: 1.25; }
+.infc__med dd { margin: 0; font-size: 14px; font-weight: 600; }
+.infc__nota { font-size: 12px; color: var(--text-muted); }
+.infp-obs { padding: 0; }
+.infp-obs summary { cursor: pointer; font-size: 12.5px; font-weight: 600; padding: 10px 12px; list-style: none; }
+.infp-obs summary::-webkit-details-marker { display: none; }
+.infp-obs summary::after { content: " ▾"; color: var(--text-muted); }
+.infp-obs p { margin: 0; padding: 0 12px 12px; font-size: 12.5px; line-height: 1.5; color: var(--text-muted); }
+
+/* Ficha: daño a la infraestructura (resumen simple) */
+.infd { display: grid; gap: 8px; }
+.infd__eyebrow { color: var(--text-muted); }
+.infd__frase { font-size: 15px; }
+.infd__chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.infd__chip { display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px; border-radius: 99px; border: 0; font: inherit; font-size: 12.5px; cursor: pointer; color: var(--text); background: var(--surface-subtle); }
+.infd__chip small { font-size: 11px; font-weight: 600; opacity: 0.8; }
+.infd__chip--lev { background: color-mix(in srgb, var(--infp-lev) 28%, transparent); }
+.infd__chip--mod { background: color-mix(in srgb, var(--infp-mod) 28%, transparent); }
+.infd__chip--sev { background: color-mix(in srgb, var(--infp-sev) 28%, transparent); }
+.infd__chip:hover { filter: brightness(1.05); }

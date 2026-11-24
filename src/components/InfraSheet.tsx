@@ -8,12 +8,12 @@ import type { ArbolInventario } from "../types/inventory";
 import type { Diagnostico } from "../types/diagnostico";
 import type { CampoFormulario, EsquemaFormulario, InspeccionDeOt, ValorCampo } from "../types/inspection";
 import { fechaChile } from "../lib/dates";
-import { getClassificationTone } from "./ClassificationBadge";
 import { Icon } from "./Icons";
+import { prioridadDe } from "../lib/prioridadGestion";
 import { PendingNotice } from "./PendingNotice";
 import { fotosCompatibles, VisorFoto } from "./TreePhotos";
 import { IconoComponente } from "./InfraIcons";
-import { aspectoCategoria, colorClasificacion, COMPONENTES, ORDEN_CATEGORIAS, svgDataUrl, svgReloj, type DefComponente } from "../lib/infraestructura";
+import { aspectoCategoria, COMPONENTES, ORDEN_CATEGORIAS, type DefComponente } from "../lib/infraestructura";
 import { motivoParaUsuario } from "../lib/textoUsuario";
 
 type Tab = "resumen" | "componentes" | "fotos";
@@ -29,14 +29,6 @@ function esquema(projectId: string): Promise<EsquemaFormulario> {
   }
   return esquemaCache;
 }
-
-/** Escalera de la clasificación (M04, D-170: según el peor componente evaluado). Solo texto de lectura. */
-const ESCALERA: { codigo: string; regla: string }[] = [
-  { codigo: "bajo", regla: "Sin afectación o Leve" },
-  { codigo: "moderado", regla: "Moderada" },
-  { codigo: "alto", regla: "1 Severa" },
-  { codigo: "critico", regla: "2 o más Severas" },
-];
 
 interface Carga<T> {
   estado: "cargando" | "listo" | "error";
@@ -154,7 +146,6 @@ export function InfraSheet({
   const fotoActual = fotos[Math.min(foto, Math.max(0, fotos.length - 1))];
 
   const cls = fila?.infraestructura.clasificacion ?? null;
-  const tono = cls ? getClassificationTone(cls.etiqueta) : "neutral";
   const parcial = !!fila?.componentes.some((c) => c.categoria?.codigo === "no_determinado");
   const desde = fila?.evaluacion_vigente.desde;
 
@@ -173,9 +164,19 @@ export function InfraSheet({
 
       <div className="sivu-sheet__status">
         {fila ? (
-          <span className="sivu-infra-tag" style={cls && cls.codigo !== "no_aplica" ? { background: colorClasificacion(tono), color: tono === "low" || tono === "medium" ? "#1f2a10" : "#fff" } : undefined}>
-            {cls?.etiqueta ?? "Sin clasificación"}
-          </span>
+          (() => {
+            const p = prioridadDe(fila.prioridad?.codigo);
+            return (
+              <>
+                {p && (
+                  <span className="sivu-infra-tag" style={{ background: p.color, color: "#fff" }}>
+                    {p.orientacion === "Intervención prioritaria en el corto plazo" ? "Intervenir a corto plazo" : p.orientacion}
+                  </span>
+                )}
+                <span className="sivu-infra-tag sivu-infra-tag--parcial">Afectación: {cls?.etiqueta ?? "sin clasificar"}</span>
+              </>
+            );
+          })()
         ) : (
           <span className="sivu-infra-tag sivu-infra-tag--pend">Evaluación pendiente</span>
         )}
@@ -205,70 +206,65 @@ export function InfraSheet({
       <div className="sivu-sheet__body">
         {tab === "resumen" && (
           <>
-            <div className="sivu-sheet__card sivu-infra-card">
-              <span className="sivu-infra-eyebrow">
-                <span className="sivu-infra-tbd" title="Ícono por definir">?</span>
-                Clasificación de infraestructura
-                {fila && <span className="sivu-infra-eyebrow__r">Peor componente</span>}
-              </span>
+            {fila && (() => {
+              const p = prioridadDe(fila.prioridad?.codigo);
+              return p ? (
+                <div className="sivu-sheet__card infp-gestion" style={{ ["--pc" as string]: p.color }}>
+                  <span className="infp-gestion__eyebrow">Qué hacer</span>
+                  <strong>{p.orientacion}</strong>
+                  <span className="infp-gestion__cruce">
+                    <span>
+                      Riesgo del árbol <b>{fila.riesgo?.etiqueta ?? "—"}</b>
+                    </span>
+                    <span aria-hidden>×</span>
+                    <span>
+                      Afectación <b>{fila.infraestructura.clasificacion?.etiqueta ?? "—"}</b>
+                    </span>
+                  </span>
+                  {fila.prioridad_ajustada && <span>Prioridad ajustada por el Inspector.</span>}
+                </div>
+              ) : null;
+            })()}
+            <div className="sivu-sheet__card infd">
+              <span className="infp-gestion__eyebrow infd__eyebrow">Daño a la infraestructura</span>
               {fila ? (
-                <>
-                  <div className="sivu-infra-result">
-                    <img
-                      src={svgDataUrl(svgReloj(COMPONENTES.map((c) => aspectoCategoria(cat(fila, c.codigo))), cls && cls.codigo !== "no_aplica" ? colorClasificacion(tono) : null))}
-                      width={52}
-                      height={52}
-                      alt=""
-                    />
-                    <span className="sivu-infra-result__why">{porque(fila)}</span>
-                  </div>
-                  {cls && cls.codigo !== "no_aplica" && (
-                    <div className="sivu-infra-ladder" aria-label="Escala de la clasificación">
-                      {ESCALERA.map((e) => (
-                        <div key={e.codigo} className={cls.codigo === e.codigo ? "is-on" : ""}>
-                          <b style={{ background: colorClasificacion(getClassificationTone(e.codigo === "critico" ? "crítico" : e.codigo)) }} />
-                          <strong>{e.codigo === "critico" ? "Crítico" : e.codigo[0].toUpperCase() + e.codigo.slice(1)}</strong>
-                          <span>{e.regla}</span>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                  {excluidos(fila) && <span className="sivu-infra-note">No cuentan: {excluidos(fila)}</span>}
-                </>
-              ) : (
-                <p className="sivu-infra-empty">
-                  El árbol está presente, pero no tiene una evaluación completa válida y vigente. No se le asigna «Sin afectación» ni «No aplica».
-                </p>
-              )}
-            </div>
-
-            <div className="sivu-sheet__card sivu-infra-card">
-              <span className="sivu-infra-eyebrow">
-                Por componente
-              </span>
-              <div className="sivu-infra-tiles">
-                {COMPONENTES.map((c) => {
-                  const r = fila?.componentes.find((x) => x.componente.codigo === c.codigo) ?? null;
-                  return (
-                    <button
-                      key={c.codigo}
-                      type="button"
-                      className="sivu-infra-tile"
-                      disabled={!fila}
-                      onClick={() => {
-                        setComp(c.codigo);
-                        setTab("componentes");
-                      }}
-                    >
-                      <span className="sivu-infra-tile__nm">
-                        <IconoComponente codigo={c.codigo} size={14} />
-                        {c.corto}
-                      </span>
-                      <EstadoComponente r={r} pendiente={!fila} />
-                    </button>
+                (() => {
+                  const danados = fila.componentes.filter((x) => ["leve", "moderada", "severa"].includes(x.categoria?.codigo ?? ""));
+                  const orden = { severa: 0, moderada: 1, leve: 2 } as Record<string, number>;
+                  danados.sort((x, y) => (orden[x.categoria!.codigo] ?? 9) - (orden[y.categoria!.codigo] ?? 9));
+                  return danados.length === 0 ? (
+                    <strong className="infd__frase">Sin daño en la infraestructura junto al árbol.</strong>
+                  ) : (
+                    <>
+                      <strong className="infd__frase">
+                        Daño {danados[0].categoria!.etiqueta?.toLowerCase()} en {danados.length === 1 ? "1 componente" : `${danados.length} componentes`}
+                      </strong>
+                      <div className="infd__chips">
+                        {danados.map((x) => {
+                          const def = COMPONENTES.find((c) => c.codigo === x.componente.codigo);
+                          return (
+                            <button
+                              key={x.componente.codigo}
+                              type="button"
+                              className={`infd__chip infd__chip--${aspectoCategoria(x.categoria?.codigo)}`}
+                              onClick={() => {
+                                setComp(x.componente.codigo);
+                                setTab("componentes");
+                              }}
+                            >
+                              <IconoComponente codigo={x.componente.codigo} size={14} />
+                              {def?.nombre ?? x.componente.etiqueta}
+                              <small>{x.categoria?.etiqueta}</small>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </>
                   );
-                })}
-              </div>
+                })()
+              ) : (
+                <p className="sivu-infra-empty">El árbol no tiene una evaluación vigente.</p>
+              )}
             </div>
 
             <div className="sivu-sheet__card sivu-infra-card">
@@ -326,20 +322,12 @@ export function InfraSheet({
                 campos={campos}
                 esquemaListo={esqC.estado !== "cargando"}
               />
-              {inspC.valor?.observaciones && (
-                <p className="sivu-infra-obs">
-                  <b>Observación de la inspección {inspC.valor.codigo_inspeccion ?? ""}</b>
-                  {inspC.valor.observaciones}
-                </p>
-              )}
-              <ClaveEstados />
             </>
           ) : (
             <>
               <div className="sivu-sheet__card sivu-infra-card">
                 <p className="sivu-infra-empty">Los seis componentes aparecerán cuando el Inspector finalice una evaluación completa de este árbol y su OT se complete.</p>
               </div>
-              <ClaveEstados />
             </>
           ))}
 
@@ -408,26 +396,6 @@ function peorComponente(f: ArbolInfraestructura | null): string {
   return [...COMPONENTES].sort((a, b) => orden(a.codigo) - orden(b.codigo))[0].codigo;
 }
 
-/** Qué componentes sostienen la clasificación (lectura de las categorías de B8, sin recalcular). */
-function porque(f: ArbolInfraestructura): string {
-  const cls = f.infraestructura.clasificacion?.codigo;
-  const nombres = (codigo: string) => COMPONENTES.filter((c) => cat(f, c.codigo) === codigo).map((c) => c.nombre.split(" / ")[0]);
-  if (f.infraestructura.ajustada) return "Clasificación ajustada por el Inspector en la evaluación vigente.";
-  if (cls === "no_aplica") return "Ningún componente aplica: no hay infraestructura inmediata junto al árbol.";
-  const sev = nombres("severa");
-  if (sev.length) return `${sev.length === 1 ? "Un componente" : `${sev.length} componentes`} con afectación Severa: ${sev.join(", ")}.`;
-  const mod = nombres("moderada");
-  if (mod.length) return `El peor componente está en Moderada: ${mod.join(", ")}.`;
-  return "Los componentes evaluados están Sin afectación o Leve.";
-}
-
-function excluidos(f: ArbolInfraestructura): string {
-  if (f.infraestructura.clasificacion?.codigo === "no_aplica") return "";
-  return COMPONENTES.filter((c) => ["no_aplica", "no_determinado"].includes(cat(f, c.codigo) ?? ""))
-    .map((c) => `${c.corto} (${(f.componentes.find((x) => x.componente.codigo === c.codigo)?.categoria?.etiqueta ?? "").toLowerCase()})`)
-    .join(", ");
-}
-
 function peso(f: FotoArbol, inspeccionVigente: string | undefined): number {
   if (inspeccionVigente && f.inspection_id === inspeccionVigente) return f.vista === "detalle" ? 1 : 0;
   if (f.origen === "inspeccion") return 2;
@@ -446,6 +414,15 @@ function EstadoComponente({ r, pendiente = false }: { r: ComponenteInfraestructu
   return <span className={`sivu-infra-st sivu-infra-st--${a}`}>{r?.categoria?.etiqueta ?? "Sin dato"}</span>;
 }
 
+/** Una frase simple por estado del componente (sin códigos ni reglas). */
+function frase(a: string, nombre: string, etiqueta: string | null | undefined): string {
+  const n = nombre.toLowerCase();
+  if (a === "na") return `No hay ${n} junto al árbol, así que no se evalúa.`;
+  if (a === "nd") return "No se pudo evaluar: faltó un dato en la inspección.";
+  if (a === "sin") return "Existe junto al árbol y no tiene daño.";
+  return `El árbol le provoca un daño ${String(etiqueta ?? "").toLowerCase()}.`;
+}
+
 function DetalleComponente({
   def,
   r,
@@ -461,24 +438,34 @@ function DetalleComponente({
 }) {
   const a = aspectoCategoria(r?.categoria?.codigo);
   const variables = insp.valor?.variables ?? {};
-  const filas = def.campos.filter((id) => id in variables);
+  // Solo las mediciones con un valor útil: se omiten «No» y vacíos, que no dicen nada del daño.
+  // Solo con daño, y sin «existe_*» (ya lo dice la frase): las mediciones que explican el daño.
+  const conDano = a === "lev" || a === "mod" || a === "sev";
+  const filas = conDano
+    ? def.campos.filter((id) => {
+        const v = variables[id];
+        return !id.startsWith("existe_") && id in variables && v !== null && v !== "" && v !== false && v !== "no";
+      })
+    : [];
+  const motivo = motivoParaUsuario(r?.motivo);
   return (
-    <div className="sivu-sheet__card sivu-infra-card">
-      <div className="sivu-infra-dhead">
-        <IconoComponente codigo={def.codigo} size={18} />
-        <strong>{def.nombre}</strong>
+    <div className={`sivu-sheet__card infc infc--${a}`}>
+      <div className="infc__cab">
+        <span className="infc__ic">
+          <IconoComponente codigo={def.codigo} size={20} />
+        </span>
+        <div>
+          <strong>{def.nombre}</strong>
+          <span className="infc__frase">{frase(a, def.nombre, r?.categoria?.etiqueta)}</span>
+        </div>
         <EstadoComponente r={r} />
       </div>
-      {a === "na" ? (
-        <p className="sivu-infra-empty">El componente no existe junto al árbol: no se evalúa y no entra en la clasificación.</p>
-      ) : (
+      {a !== "na" && (
         <>
-          {insp.estado === "cargando" && <p className="sivu-state">Cargando las mediciones de la inspección…</p>}
-          {insp.estado === "error" && <p className="sivu-state sivu-state--error">No se pudieron leer las mediciones: {insp.error}</p>}
-          {insp.estado === "listo" && !insp.valor && <p className="sivu-state">La evaluación vigente no tiene una inspección con mediciones disponible.</p>}
-          {insp.estado === "listo" && insp.valor && filas.length === 0 && <p className="sivu-state">La inspección no registró mediciones de este componente.</p>}
+          {insp.estado === "cargando" && <p className="sivu-state">Cargando mediciones…</p>}
+          {insp.estado === "error" && <p className="sivu-state sivu-state--error">No se pudieron leer las mediciones.</p>}
           {filas.length > 0 && esquemaListo && (
-            <dl className="sivu-infra-rows">
+            <dl className="infc__med">
               {filas.map((id) => (
                 <div key={id}>
                   <dt>{etiquetaCampo(campos.get(id), id)}</dt>
@@ -487,31 +474,12 @@ function DetalleComponente({
               ))}
             </dl>
           )}
-          {a === "nd" && <span className="sivu-infra-note">No determinado: faltó un dato. No cuenta en la clasificación y la marca como «Parcial».</span>}
-          {a === "sin" && <span className="sivu-infra-note">Sin afectación: existe, se evaluó y no tiene daño. Sí cuenta en la clasificación.</span>}
         </>
       )}
-      {/* Sin códigos internos en pantalla (regla, CC, campo): solo el motivo en palabras, si lo hay. */}
-      {motivoParaUsuario(r?.motivo) && <span className="sivu-infra-note">Motivo: {motivoParaUsuario(r?.motivo)}</span>}
-    </div>
-  );
-}
-
-function ClaveEstados() {
-  return (
-    <div className="sivu-infra-key" aria-label="Diferencia entre estados">
-      <div>
-        <span className="sivu-infra-st sivu-infra-st--sin">Sin afectación</span>
-        Existe y se evaluó, sin daño. Cuenta.
-      </div>
-      <div>
-        <span className="sivu-infra-st sivu-infra-st--na">No aplica</span>
-        No existe junto al árbol. No cuenta.
-      </div>
-      <div>
-        <span className="sivu-infra-st sivu-infra-st--pend">Pendiente</span>
-        El árbol no tiene evaluación vigente.
-      </div>
+      {insp.estado === "listo" && filas.length === 0 && (a === "lev" || a === "mod" || a === "sev") && (
+        <span className="infc__nota">La inspección no registró mediciones de este componente.</span>
+      )}
+      {motivo && <span className="infc__nota">{motivo}</span>}
     </div>
   );
 }
