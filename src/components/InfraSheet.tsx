@@ -439,10 +439,14 @@ function DetalleComponente({
   const a = aspectoCategoria(r?.categoria?.codigo);
   const variables = insp.valor?.variables ?? {};
   // Solo las mediciones con un valor útil: se omiten «No» y vacíos, que no dicen nada del daño.
-  const filas = def.campos.filter((id) => {
-    const v = variables[id];
-    return id in variables && v !== null && v !== "" && v !== false && v !== "no";
-  });
+  // Solo con daño, y sin «existe_*» (ya lo dice la frase): las mediciones que explican el daño.
+  const conDano = a === "lev" || a === "mod" || a === "sev";
+  const filas = conDano
+    ? def.campos.filter((id) => {
+        const v = variables[id];
+        return !id.startsWith("existe_") && id in variables && v !== null && v !== "" && v !== false && v !== "no";
+      })
+    : [];
   const motivo = motivoParaUsuario(r?.motivo);
   return (
     <div className={`sivu-sheet__card infc infc--${a}`}>
