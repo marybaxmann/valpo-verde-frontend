@@ -1,4 +1,4 @@
-import type { ArbolAporteFoliar } from "./indicadores";
+import type { ArbolAporteFoliar, CarbonoIntegradoArbol } from "./indicadores";
 import type { CarbonoAereoTotalArbol, CarbonoArbol, DescriptivosArbol, SecuestroArbol } from "./indicadores";
 import type { CodigoEtiqueta, EvaluacionVigente } from "./diagnostico";
 import type { OtListada } from "./workOrder";
@@ -48,6 +48,8 @@ export interface FichaArbol {
   sobre_la_especie?: { genero: string | null; familia: string | null; tipo_hoja: { codigo: string; etiqueta: string | null } | null } | null;
   /** Secuestro anual (decisiones A a C, 2026-11-20); ausente en la API publicada hasta su despliegue. */
   secuestro_anual?: SecuestroArbol;
+  /** CC-087: carbono con el mejor modelo del árbol (el mismo que suma el proyecto). */
+  carbono_integrado?: CarbonoIntegradoArbol;
   evaluacion_vigente: EvaluacionVigente | null;
   historial: VersionHistorial[];
   ordenes_trabajo: OtListada[];

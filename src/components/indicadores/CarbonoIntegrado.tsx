@@ -27,12 +27,59 @@ function Celda({ c }: { c: ComponenteCarbonoIntegrado | null }) {
   );
 }
 
-export function CarbonoIntegradoPanel({ d }: { d: CarbonoIntegrado }) {
+export function CarbonoIntegradoPanel({ d, compacto = false }: { d: CarbonoIntegrado; compacto?: boolean }) {
   const [filtro, setFiltro] = useState<"todos" | "aprobado" | "exploratorio" | "no_estimable">("todos");
   const filas = useMemo(() => d.arboles.filter((a) => filtro === "todos" || a.estado === filtro), [d.arboles, filtro]);
   const aereo = masa(d.aereo.carbono_kg / 1000);
   const co2 = masa(d.aereo.co2e_kg / 1000);
   const total = masa(d.total.carbono_kg / 1000);
+  const detalle = (
+    <>
+      <div className="bci__filtros" role="group" aria-label="Filtrar por estado">
+        {(["todos", "aprobado", "exploratorio", "no_estimable"] as const).filter((f) => f !== "exploratorio" || d.exploratorios > 0).map((f) => (
+          <button key={f} type="button" aria-pressed={filtro === f} onClick={() => setFiltro(f)}>
+            {f === "todos" ? "Todos" : ESTADO[f]} ({f === "todos" ? d.arboles.length : d.arboles.filter((a) => a.estado === f).length})
+          </button>
+        ))}
+      </div>
+      <div className="bci__tabla">
+        <table>
+          <thead>
+            <tr>
+              <th>Árbol</th>
+              <th>Especie</th>
+              <th>Estado</th>
+              <th>Carbono aéreo</th>
+              <th>Carbono total</th>
+              <th>Observación</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filas.map((a) => (
+              <tr key={a.tree_id} className={`is-${a.estado}`}>
+                <td className="bci__cod">{a.tree_code}</td>
+                <td>
+                  <em>{a.especie ? nombreCientifico(a.especie) : "Especie no identificada"}</em>
+                </td>
+                <td>
+                  <span className={`bci__estado is-${a.estado}`}>{ESTADO[a.estado]}</span>
+                </td>
+                <Celda c={a.aereo} />
+                <Celda c={a.total} />
+                <td className="bci__obs">
+                  {a.motivo ??
+                    (a.comparacion.length > 0
+                      ? `Comparación: ${a.comparacion.map((c) => `${c.modelo.id} ${num(c.carbono_kg, 1)} kg C`).join("; ")}`
+                      : "")}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </>
+  );
+  if (compacto) return <div className="bci bci--compacto">{detalle}</div>;
   return (
     <section className="bio-card bci" aria-label="Carbono almacenado por árbol">
       <header className="bio-panel__head">
@@ -78,48 +125,7 @@ export function CarbonoIntegradoPanel({ d }: { d: CarbonoIntegrado }) {
       </p>
       <details className="bci__detalle">
         <summary>Ver el detalle por árbol ({num(d.arboles.length)})</summary>
-      <div className="bci__filtros" role="group" aria-label="Filtrar por estado">
-        {(["todos", "aprobado", "exploratorio", "no_estimable"] as const).filter((f) => f !== "exploratorio" || d.exploratorios > 0).map((f) => (
-          <button key={f} type="button" aria-pressed={filtro === f} onClick={() => setFiltro(f)}>
-            {f === "todos" ? "Todos" : ESTADO[f]} ({f === "todos" ? d.arboles.length : d.arboles.filter((a) => a.estado === f).length})
-          </button>
-        ))}
-      </div>
-      <div className="bci__tabla">
-        <table>
-          <thead>
-            <tr>
-              <th>Árbol</th>
-              <th>Especie</th>
-              <th>Estado</th>
-              <th>Carbono aéreo</th>
-              <th>Carbono total</th>
-              <th>Observación</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filas.map((a) => (
-              <tr key={a.tree_id} className={`is-${a.estado}`}>
-                <td className="bci__cod">{a.tree_code}</td>
-                <td>
-                  <em>{a.especie ? nombreCientifico(a.especie) : "Especie no identificada"}</em>
-                </td>
-                <td>
-                  <span className={`bci__estado is-${a.estado}`}>{ESTADO[a.estado]}</span>
-                </td>
-                <Celda c={a.aereo} />
-                <Celda c={a.total} />
-                <td className="bci__obs">
-                  {a.motivo ??
-                    (a.comparacion.length > 0
-                      ? `Comparación: ${a.comparacion.map((c) => `${c.modelo.id} ${num(c.carbono_kg, 1)} kg C`).join("; ")}`
-                      : "")}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      {detalle}
       </details>
     </section>
   );

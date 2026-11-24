@@ -166,16 +166,6 @@ export default function IndicesPage() {
                 </select>
               </label>
             )}
-            {vista === "proyecto" && (
-              <ul className="bio-head__legend">
-                <li>
-                  <i className="bio-legend__dot bio-legend__dot--ok" /> Resuelto · datos del proyecto
-                </li>
-                <li>
-                  <i className="bio-legend__dot bio-legend__dot--pend" /> Método pendiente
-                </li>
-              </ul>
-            )}
           </div>
         </div>
       </header>
