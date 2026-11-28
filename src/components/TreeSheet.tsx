@@ -241,7 +241,7 @@ export function TreeSheet({
         {actual && "diag" in actual && tab === "infra" &&
           (vigente ? (
             <div className="sivu-sheet__card">
-              <span className="sivu-sheet__eyebrow">Afectación de infraestructura · vigente desde {fechaChile(vigente.desde)}</span>
+              <span className="sivu-sheet__eyebrow">Infraestructura gris · vigente desde {fechaChile(vigente.desde)}</span>
               <Fila label="Clasificación" valor={infra?.clasificacion?.etiqueta ?? "—"} />
               <Fila label="Puntaje" valor={infra?.puntaje != null ? String(infra.puntaje) : "—"} />
               <Fila

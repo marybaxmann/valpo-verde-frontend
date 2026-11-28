@@ -74,7 +74,7 @@ export function DiagnosisModule({ vista }: { vista: Vista }) {
 
   const valor = (d: Diagnostico | undefined) =>
     vista === "riesgo" ? d?.vigente?.resultado.clasificacion_riesgo : d?.vigente?.resultado.infraestructura?.clasificacion;
-  const titulo = vista === "riesgo" ? "Riesgo Arbóreo" : "Infraestructura";
+  const titulo = vista === "riesgo" ? "Riesgo Arbóreo" : "Infraestructura gris";
   const visible = (a: ArbolInventario) => !ocultos.has(valor(datos?.diag.get(a.id))?.codigo ?? "");
   const arbolesVisibles = (datos?.arboles ?? []).filter(visible);
   const points = arbolesVisibles
@@ -138,7 +138,7 @@ export function DiagnosisModule({ vista }: { vista: Vista }) {
                   de {resumen.arboles_total} registrados
                 </span>
               </div>
-              <p className="sivu-terr__note">Afectación de infraestructura de la evaluación vigente. Toca un nivel abajo para mostrarlo u ocultarlo en el mapa.</p>
+              <p className="sivu-terr__note">Clasificación de infraestructura gris de la evaluación vigente. Toca un nivel abajo para mostrarlo u ocultarlo en el mapa.</p>
             </>
           )}
           {error && (

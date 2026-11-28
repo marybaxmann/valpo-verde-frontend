@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 import { obtenerInfraestructura } from "../api/infraestructura";
 import { listarInventarioCompleto } from "../api/inventory";
@@ -24,6 +24,11 @@ import { PRIORIDADES, prioridadDe, svgPin, svgPinPendiente } from "../lib/priori
  * Los datos son los de B8; el frontend solo agrupa y dibuja.
  */
 
+
+/** Nombre de la clasificación de prioridad tal como lo entrega B8 (Crítica, Alta, Media, Baja). */
+function etiquetaPrioridad(filas: ArbolInfraestructura[], codigo: string): string {
+  return filas.find((f) => f.prioridad?.codigo === codigo)?.prioridad?.etiqueta ?? codigo.charAt(0).toUpperCase() + codigo.slice(1);
+}
 
 function categoriaDe(f: ArbolInfraestructura, componente: string): string | null {
   return f.componentes.find((c) => c.componente.codigo === componente)?.categoria?.codigo ?? null;
@@ -108,7 +113,7 @@ export function InfrastructureModule() {
 
   return (
     <TerritorialModule
-      moduleLabel="Infraestructura"
+      moduleLabel="Infraestructura gris"
       points={points}
       selectedId={elegido}
       onSelect={setElegido}
@@ -132,45 +137,20 @@ export function InfrastructureModule() {
             </p>
           )}
           {!datos && !error && <p className="sivu-state">Cargando la infraestructura del proyecto…</p>}
-          {datos && <Panel infra={datos.infra} filas={filas} filtro={filtro} onFiltro={alternar} />}
+          {datos && (
+            <Panel
+              infra={datos.infra}
+              filas={filas}
+              filtro={filtro}
+              onFiltro={alternar}
+              nPendientes={nPendientes}
+              verPendientes={verPendientes}
+              onPendientes={() => setVerPendientes((v) => !v)}
+            />
+          )}
         </>
       }
-      leyendaInferior={
-        datos ? (
-          <div className="sivu-infra-bottom">
-            <div className="sivu-legendbar" role="group" aria-label="Prioridad de intervención: toca para filtrar el mapa">
-              {PRIORIDADES.map((p) => {
-                const n = filas.filter((f) => f.prioridad?.codigo === p.codigo).length;
-                const on = filtro?.tipo === "prioridad" && filtro.codigo === p.codigo;
-                return (
-                  <Chip key={p.codigo} on={!filtro || on} onClick={() => alternar("prioridad", p.codigo)} n={n} texto={p.corto} titulo={p.orientacion}>
-                    <span className="sivu-infra-dot" style={{ background: p.color }} />
-                  </Chip>
-                );
-              })}
-              {nPendientes > 0 && (
-                <>
-                  <span className="sivu-infra-lsep" aria-hidden="true" />
-                  <Chip on={verPendientes && !filtro} onClick={() => setVerPendientes((v) => !v)} n={nPendientes} texto="Sin evaluar" titulo="Árboles sin evaluación completa vigente">
-                    <span className="sivu-infra-dot sivu-infra-dot--pend" />
-                  </Chip>
-                </>
-              )}
-            </div>
-          </div>
-        ) : undefined
-      }
     />
-  );
-}
-
-function Chip({ on, onClick, n, texto, titulo, children }: { on: boolean; onClick: () => void; n: number; texto: string; titulo?: string; children: ReactNode }) {
-  return (
-    <button type="button" className={`sivu-legendbar__chip sivu-infra-lchip ${on ? "is-on" : ""}`} aria-pressed={on} onClick={onClick} title={titulo ?? texto}>
-      {children}
-      {texto}
-      <small>{n}</small>
-    </button>
   );
 }
 
@@ -180,7 +160,13 @@ function Panel({
   filas,
   filtro,
   onFiltro,
+  nPendientes,
+  verPendientes,
+  onPendientes,
 }: {
+  nPendientes: number;
+  verPendientes: boolean;
+  onPendientes: () => void;
   infra: RespuestaInfraestructura;
   filas: ArbolInfraestructura[];
   filtro: { tipo: "prioridad" | "componente"; codigo: string } | null;
@@ -201,7 +187,7 @@ function Panel({
   return (
     <div className="infp">
       <section className="infp__bloque" aria-labelledby="infp-que-hacer">
-        <h3 id="infp-que-hacer" title="Prioridad de intervención: riesgo del árbol × afectación a la infraestructura (M05)">
+        <h3 id="infp-que-hacer" title="Prioridad de intervención: riesgo del árbol × infraestructura gris (M05)">
           Qué hacer y dónde
         </h3>
         <div className="infp__prio">
@@ -219,7 +205,7 @@ function Panel({
                 onClick={() => onFiltro("prioridad", p.codigo)}
               >
                 <span className="infp__prio-n">{n}</span>
-                <span className="infp__prio-txt">{p.orientacion === "Intervención prioritaria en el corto plazo" ? "Intervenir a corto plazo" : p.orientacion}</span>
+                <span className="infp__prio-txt">{etiquetaPrioridad(filas, p.codigo)}</span>
               </button>
             );
           })}
@@ -272,9 +258,17 @@ function Panel({
         {sinAfectacion.length > 0 && <p className="infp__sub">Sin daño: {sinAfectacion.join(", ")}.</p>}
       </section>
 
-      <p className="infp__pie">
-        {cobertura.arboles_con_evaluacion_valida} de {cobertura.arboles_presentes} árboles evaluados
-      </p>
+      <div className="infp__pie">
+        <span>
+          {cobertura.arboles_con_evaluacion_valida} de {cobertura.arboles_presentes} árboles evaluados
+        </span>
+        {nPendientes > 0 && (
+          <label className="infp__toggle">
+            <input type="checkbox" checked={verPendientes} onChange={onPendientes} />
+            Ver los {nPendientes} sin evaluar
+          </label>
+        )}
+      </div>
     </div>
   );
 }

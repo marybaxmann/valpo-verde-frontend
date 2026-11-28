@@ -69,7 +69,7 @@ function Resultado({ r }: { r: ResultadoDiagnostico }) {
       </div>
       <dl className="sivu-treediag__rows">
         <div>
-          <dt>Infraestructura</dt>
+          <dt>Infraestructura gris</dt>
           <dd>{r.infraestructura?.clasificacion?.etiqueta ?? "—"}</dd>
         </div>
         <div>
