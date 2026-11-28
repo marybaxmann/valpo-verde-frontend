@@ -173,7 +173,7 @@ export function InfraSheet({
                     {p.orientacion === "Intervención prioritaria en el corto plazo" ? "Intervenir a corto plazo" : p.orientacion}
                   </span>
                 )}
-                <span className="sivu-infra-tag sivu-infra-tag--parcial">Afectación: {cls?.etiqueta ?? "sin clasificar"}</span>
+                <span className="sivu-infra-tag sivu-infra-tag--parcial">Infraestructura gris: {cls?.etiqueta ?? "sin clasificar"}</span>
               </>
             );
           })()
@@ -218,7 +218,7 @@ export function InfraSheet({
                     </span>
                     <span aria-hidden>×</span>
                     <span>
-                      Afectación <b>{fila.infraestructura.clasificacion?.etiqueta ?? "—"}</b>
+                      Infraestructura gris <b>{fila.infraestructura.clasificacion?.etiqueta ?? "—"}</b>
                     </span>
                   </span>
                   {fila.prioridad_ajustada && <span>Prioridad ajustada por el Inspector.</span>}
@@ -226,7 +226,7 @@ export function InfraSheet({
               ) : null;
             })()}
             <div className="sivu-sheet__card infd">
-              <span className="infp-gestion__eyebrow infd__eyebrow">Daño a la infraestructura</span>
+              <span className="infp-gestion__eyebrow infd__eyebrow">Daño a la infraestructura gris</span>
               {fila ? (
                 (() => {
                   const danados = fila.componentes.filter((x) => ["leve", "moderada", "severa"].includes(x.categoria?.codigo ?? ""));

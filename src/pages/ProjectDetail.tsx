@@ -12,7 +12,7 @@ const MODULE_LINKS: { to: string; label: string; icon: IconName }[] = [
   { to: "incidencias", label: "Incidencias", icon: "alert" },
   { to: "mapa", label: "Inventario", icon: "leaf" },
   { to: "inspeccion", label: "Riesgo Arbóreo", icon: "check-square" },
-  { to: "infraestructura", label: "Infraestructura", icon: "building" },
+  { to: "infraestructura", label: "Infraestructura gris", icon: "building" },
 ];
 import { Badge } from "../components/Badge";
 import { useAuth } from "../hooks/useAuth";

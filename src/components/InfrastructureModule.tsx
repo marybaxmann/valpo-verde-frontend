@@ -108,7 +108,7 @@ export function InfrastructureModule() {
 
   return (
     <TerritorialModule
-      moduleLabel="Infraestructura"
+      moduleLabel="Infraestructura gris"
       points={points}
       selectedId={elegido}
       onSelect={setElegido}
@@ -139,7 +139,7 @@ export function InfrastructureModule() {
         datos ? (
           <div className="sivu-infra-bottom">
             <div className="sivu-legendbar" role="group" aria-label="Prioridad de intervención: toca para filtrar el mapa">
-              {PRIORIDADES.map((p) => {
+              {PRIORIDADES.filter((p) => p.codigo !== "baja").map((p) => {
                 const n = filas.filter((f) => f.prioridad?.codigo === p.codigo).length;
                 const on = filtro?.tipo === "prioridad" && filtro.codigo === p.codigo;
                 return (
@@ -201,11 +201,11 @@ function Panel({
   return (
     <div className="infp">
       <section className="infp__bloque" aria-labelledby="infp-que-hacer">
-        <h3 id="infp-que-hacer" title="Prioridad de intervención: riesgo del árbol × afectación a la infraestructura (M05)">
+        <h3 id="infp-que-hacer" title="Prioridad de intervención: riesgo del árbol × infraestructura gris (M05)">
           Qué hacer y dónde
         </h3>
         <div className="infp__prio">
-          {PRIORIDADES.map((p) => {
+          {PRIORIDADES.filter((p) => p.codigo !== "baja").map((p) => {
             const n = conteo(p.codigo);
             const on = filtro?.tipo === "prioridad" && filtro.codigo === p.codigo;
             return (

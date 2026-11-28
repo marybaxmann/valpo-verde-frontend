@@ -1283,7 +1283,7 @@ function ResultadoCalculo({
   ];
   const ajustadas: [string, string][] = [
     ["Riesgo ajustado", etiqueta("clasificacion_riesgo", r.clasificacion_riesgo_ajustada)],
-    ["Infraestructura ajustada", etiqueta("clasificacion_infraestructura", r.clasificacion_infraestructura_ajustada)],
+    ["Infraestructura gris ajustada", etiqueta("clasificacion_infraestructura", r.clasificacion_infraestructura_ajustada)],
     ["Prioridad ajustada", etiqueta("clasificacion_prioridad", r.clasificacion_prioridad_ajustada)],
   ].filter(([, v]) => v !== "—") as [string, string][];
   return (
