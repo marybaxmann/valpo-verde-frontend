@@ -237,7 +237,7 @@ export function InfraSheet({
                   ) : (
                     <>
                       <strong className="infd__frase">
-                        Daño {danados[0].categoria!.etiqueta?.toLowerCase()} en {danados.length === 1 ? "1 componente" : `${danados.length} componentes`}
+                        Daño {({ leve: "leve", moderada: "moderado", severa: "severo" } as Record<string, string>)[danados[0].categoria!.codigo] ?? danados[0].categoria!.etiqueta?.toLowerCase()} en {danados.length === 1 ? "1 componente" : `${danados.length} componentes`}
                       </strong>
                       <div className="infd__chips">
                         {danados.map((x) => {
