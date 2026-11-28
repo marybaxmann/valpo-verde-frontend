@@ -420,5 +420,6 @@
 .infd__chip--sev { background: color-mix(in srgb, var(--infp-sev) 28%, transparent); }
 .infd__chip:hover { filter: brightness(1.05); }
 
-/* Sin «Seguimiento rutinario» en el panel (2026-11-27): tres prioridades en una fila. */
-.infp__prio { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+/* Cuatro clasificaciones de prioridad en una fila (2026-11-27). */
+.infp__prio { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.infp__prio-tile .infp__prio-txt { font-size: 12px; font-weight: 600; }

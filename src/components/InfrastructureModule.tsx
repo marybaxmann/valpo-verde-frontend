@@ -25,6 +25,11 @@ import { PRIORIDADES, prioridadDe, svgPin, svgPinPendiente } from "../lib/priori
  */
 
 
+/** Nombre de la clasificación de prioridad tal como lo entrega B8 (Crítica, Alta, Media, Baja). */
+function etiquetaPrioridad(filas: ArbolInfraestructura[], codigo: string): string {
+  return filas.find((f) => f.prioridad?.codigo === codigo)?.prioridad?.etiqueta ?? codigo.charAt(0).toUpperCase() + codigo.slice(1);
+}
+
 function categoriaDe(f: ArbolInfraestructura, componente: string): string | null {
   return f.componentes.find((c) => c.componente.codigo === componente)?.categoria?.codigo ?? null;
 }
@@ -139,11 +144,11 @@ export function InfrastructureModule() {
         datos ? (
           <div className="sivu-infra-bottom">
             <div className="sivu-legendbar" role="group" aria-label="Prioridad de intervención: toca para filtrar el mapa">
-              {PRIORIDADES.filter((p) => p.codigo !== "baja").map((p) => {
+              {PRIORIDADES.map((p) => {
                 const n = filas.filter((f) => f.prioridad?.codigo === p.codigo).length;
                 const on = filtro?.tipo === "prioridad" && filtro.codigo === p.codigo;
                 return (
-                  <Chip key={p.codigo} on={!filtro || on} onClick={() => alternar("prioridad", p.codigo)} n={n} texto={p.corto} titulo={p.orientacion}>
+                  <Chip key={p.codigo} on={!filtro || on} onClick={() => alternar("prioridad", p.codigo)} n={n} texto={etiquetaPrioridad(filas, p.codigo)} titulo={p.orientacion}>
                     <span className="sivu-infra-dot" style={{ background: p.color }} />
                   </Chip>
                 );
@@ -205,7 +210,7 @@ function Panel({
           Qué hacer y dónde
         </h3>
         <div className="infp__prio">
-          {PRIORIDADES.filter((p) => p.codigo !== "baja").map((p) => {
+          {PRIORIDADES.map((p) => {
             const n = conteo(p.codigo);
             const on = filtro?.tipo === "prioridad" && filtro.codigo === p.codigo;
             return (
@@ -219,7 +224,7 @@ function Panel({
                 onClick={() => onFiltro("prioridad", p.codigo)}
               >
                 <span className="infp__prio-n">{n}</span>
-                <span className="infp__prio-txt">{p.orientacion === "Intervención prioritaria en el corto plazo" ? "Intervenir a corto plazo" : p.orientacion}</span>
+                <span className="infp__prio-txt">{etiquetaPrioridad(filas, p.codigo)}</span>
               </button>
             );
           })}
