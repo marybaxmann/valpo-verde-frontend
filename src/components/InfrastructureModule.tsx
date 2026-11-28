@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 import { obtenerInfraestructura } from "../api/infraestructura";
 import { listarInventarioCompleto } from "../api/inventory";
@@ -137,45 +137,20 @@ export function InfrastructureModule() {
             </p>
           )}
           {!datos && !error && <p className="sivu-state">Cargando la infraestructura del proyecto…</p>}
-          {datos && <Panel infra={datos.infra} filas={filas} filtro={filtro} onFiltro={alternar} />}
+          {datos && (
+            <Panel
+              infra={datos.infra}
+              filas={filas}
+              filtro={filtro}
+              onFiltro={alternar}
+              nPendientes={nPendientes}
+              verPendientes={verPendientes}
+              onPendientes={() => setVerPendientes((v) => !v)}
+            />
+          )}
         </>
       }
-      leyendaInferior={
-        datos ? (
-          <div className="sivu-infra-bottom">
-            <div className="sivu-legendbar" role="group" aria-label="Prioridad de intervención: toca para filtrar el mapa">
-              {PRIORIDADES.map((p) => {
-                const n = filas.filter((f) => f.prioridad?.codigo === p.codigo).length;
-                const on = filtro?.tipo === "prioridad" && filtro.codigo === p.codigo;
-                return (
-                  <Chip key={p.codigo} on={!filtro || on} onClick={() => alternar("prioridad", p.codigo)} n={n} texto={etiquetaPrioridad(filas, p.codigo)} titulo={p.orientacion}>
-                    <span className="sivu-infra-dot" style={{ background: p.color }} />
-                  </Chip>
-                );
-              })}
-              {nPendientes > 0 && (
-                <>
-                  <span className="sivu-infra-lsep" aria-hidden="true" />
-                  <Chip on={verPendientes && !filtro} onClick={() => setVerPendientes((v) => !v)} n={nPendientes} texto="Sin evaluar" titulo="Árboles sin evaluación completa vigente">
-                    <span className="sivu-infra-dot sivu-infra-dot--pend" />
-                  </Chip>
-                </>
-              )}
-            </div>
-          </div>
-        ) : undefined
-      }
     />
-  );
-}
-
-function Chip({ on, onClick, n, texto, titulo, children }: { on: boolean; onClick: () => void; n: number; texto: string; titulo?: string; children: ReactNode }) {
-  return (
-    <button type="button" className={`sivu-legendbar__chip sivu-infra-lchip ${on ? "is-on" : ""}`} aria-pressed={on} onClick={onClick} title={titulo ?? texto}>
-      {children}
-      {texto}
-      <small>{n}</small>
-    </button>
   );
 }
 
@@ -185,7 +160,13 @@ function Panel({
   filas,
   filtro,
   onFiltro,
+  nPendientes,
+  verPendientes,
+  onPendientes,
 }: {
+  nPendientes: number;
+  verPendientes: boolean;
+  onPendientes: () => void;
   infra: RespuestaInfraestructura;
   filas: ArbolInfraestructura[];
   filtro: { tipo: "prioridad" | "componente"; codigo: string } | null;
@@ -277,9 +258,17 @@ function Panel({
         {sinAfectacion.length > 0 && <p className="infp__sub">Sin daño: {sinAfectacion.join(", ")}.</p>}
       </section>
 
-      <p className="infp__pie">
-        {cobertura.arboles_con_evaluacion_valida} de {cobertura.arboles_presentes} árboles evaluados
-      </p>
+      <div className="infp__pie">
+        <span>
+          {cobertura.arboles_con_evaluacion_valida} de {cobertura.arboles_presentes} árboles evaluados
+        </span>
+        {nPendientes > 0 && (
+          <label className="infp__toggle">
+            <input type="checkbox" checked={verPendientes} onChange={onPendientes} />
+            Ver los {nPendientes} sin evaluar
+          </label>
+        )}
+      </div>
     </div>
   );
 }

@@ -423,3 +423,6 @@
 /* Cuatro clasificaciones de prioridad en una fila (2026-11-27). */
 .infp__prio { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 .infp__prio-tile .infp__prio-txt { font-size: 12px; font-weight: 600; }
+.infp__pie { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }
+.infp__toggle { display: inline-flex; align-items: center; gap: 6px; font-size: 11.5px; color: var(--text-muted); cursor: pointer; }
+.infp__toggle input { accent-color: var(--sivu-accent, #3b6d11); }
